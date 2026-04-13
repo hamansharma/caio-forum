@@ -1,0 +1,56 @@
+.post-card {
+  display: flex; gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.post-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
+
+.vote-col {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 14px 10px;
+  background: var(--bg-base); min-width: 52px;
+}
+.vote-btn {
+  color: var(--text-muted); padding: 4px;
+  border-radius: 4px; transition: color 0.1s, background 0.1s;
+}
+.vote-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.vote-btn.up.active { color: var(--accent); }
+.vote-btn.down.active { color: #f87171; }
+.vote-count { font-size: 13px; font-weight: 600; color: var(--text-secondary); min-width: 28px; text-align: center; }
+.vote-count.voted { color: var(--accent); }
+
+.post-body { padding: 14px 16px; flex: 1; min-width: 0; }
+.post-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.meta-text { font-size: 12px; color: var(--text-muted); }
+.meta-text strong { color: var(--text-secondary); font-weight: 500; }
+.meta-dot { color: var(--text-muted); font-size: 12px; }
+
+.tag {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tag-concepts { background: var(--tag-concepts); color: var(--tag-concepts-text); }
+.tag-discussion { background: var(--tag-discussion); color: var(--tag-discussion-text); }
+.tag-strategy { background: var(--tag-strategy); color: var(--tag-strategy-text); }
+.tag-ethics { background: var(--tag-ethics); color: var(--tag-ethics-text); }
+
+.post-title {
+  display: block; font-size: 17px; font-weight: 600;
+  color: var(--text-primary); margin-bottom: 6px;
+  line-height: 1.4; transition: color 0.15s;
+}
+.post-title:hover { color: var(--accent); }
+.post-excerpt { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+
+.post-actions { display: flex; gap: 4px; }
+.action-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--text-muted);
+  padding: 5px 10px; border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.action-btn:hover { color: var(--text-primary); background: var(--bg-hover); }

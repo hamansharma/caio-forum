@@ -1,0 +1,56 @@
+.home {
+  max-width: 1100px; margin: 0 auto;
+  padding: 24px 16px;
+  display: grid; grid-template-columns: 1fr 300px; gap: 24px;
+}
+@media (max-width: 768px) { .home { grid-template-columns: 1fr; } .home-sidebar { display: none; } }
+
+.sort-bar {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 10px 14px;
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+.sort-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); transition: all 0.15s;
+}
+.sort-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sort-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+.filter-pills { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.filter-pill {
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; transition: opacity 0.15s;
+  background: var(--bg-hover); color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.filter-pill.active, .filter-pill:hover { opacity: 1; }
+.filter-pill.active.tag-concepts { background: var(--tag-concepts); color: var(--tag-concepts-text); border-color: transparent; }
+.filter-pill.active.tag-discussion { background: var(--tag-discussion); color: var(--tag-discussion-text); border-color: transparent; }
+.filter-pill.active.tag-strategy { background: var(--tag-strategy); color: var(--tag-strategy-text); border-color: transparent; }
+.filter-pill.active.tag-ethics { background: var(--tag-ethics); color: var(--tag-ethics-text); border-color: transparent; }
+
+.posts-list { display: flex; flex-direction: column; gap: 10px; }
+
+.home-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px;
+}
+.sidebar-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+.sidebar-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+.sidebar-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sidebar-stats div { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-stats strong { font-size: 20px; font-weight: 700; color: var(--accent); }
+.sidebar-stats span { font-size: 12px; color: var(--text-muted); }
+.sidebar-topic {
+  display: block; width: 100%; text-align: left;
+  padding: 7px 10px; border-radius: 8px;
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 6px; transition: opacity 0.15s;
+}
+.sidebar-topic:hover { opacity: 0.8; }

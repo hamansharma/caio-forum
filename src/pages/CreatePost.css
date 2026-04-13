@@ -1,0 +1,45 @@
+.create-page { max-width: 680px; margin: 0 auto; padding: 32px 16px; }
+.create-page h1 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+.create-form { display: flex; flex-direction: column; gap: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group label { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.form-group input, .form-group textarea {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-primary); border-radius: var(--radius);
+  padding: 12px 14px; font-size: 15px; outline: none;
+  transition: border-color 0.15s; width: 100%;
+}
+.form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { resize: vertical; }
+.char-count { font-size: 11px; color: var(--text-muted); text-align: right; }
+.cat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-pill {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; opacity: 0.4; transition: opacity 0.15s;
+  border: 1px solid transparent;
+}
+.cat-pill.active { opacity: 1; border-color: currentColor; }
+.cat-pill:hover { opacity: 0.8; }
+.cat-pill.tag-concepts { background: var(--tag-concepts); color: var(--tag-concepts-text); }
+.cat-pill.tag-discussion { background: var(--tag-discussion); color: var(--tag-discussion-text); }
+.cat-pill.tag-strategy { background: var(--tag-strategy); color: var(--tag-strategy-text); }
+.cat-pill.tag-ethics { background: var(--tag-ethics); color: var(--tag-ethics-text); }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-cancel {
+  padding: 10px 20px; border-radius: var(--radius);
+  font-size: 14px; color: var(--text-secondary); border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.btn-cancel:hover { border-color: var(--border-light); color: var(--text-primary); }
+.btn-post {
+  padding: 10px 24px; border-radius: var(--radius);
+  background: var(--accent); color: white;
+  font-size: 14px; font-weight: 600; transition: background 0.15s;
+}
+.btn-post:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-post:disabled { opacity: 0.4; cursor: not-allowed; }
+.create-gate { max-width: 400px; margin: 80px auto; text-align: center; padding: 16px; }
+.create-gate h2 { font-size: 20px; margin-bottom: 8px; }
+.create-gate p { color: var(--text-secondary); margin-bottom: 20px; }
+.create-gate button { background: var(--accent); color: white; padding: 10px 20px; border-radius: var(--radius); font-weight: 600; }
