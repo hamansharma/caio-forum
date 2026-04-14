@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Search, PlusCircle, LogOut, User } from 'lucide-react';
+import { Brain, PlusCircle, LogOut, User } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import './Navbar.css';
 
