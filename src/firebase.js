@@ -3,12 +3,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBftYloLX06tWEnDBch9ZP3lpoFcVQ9-Zs",
-  authDomain: "caio-forum.firebaseapp.com",
-  projectId: "caio-forum",
-  storageBucket: "caio-forum.firebasestorage.app",
-  messagingSenderId: "938534074428",
-  appId: "1:938534074428:web:d1ae6a0beab829e5de2b39",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,,
   measurementId: "G-166FH9J9BC"
 };
 
