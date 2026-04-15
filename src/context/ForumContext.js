@@ -79,13 +79,14 @@ export function ForumProvider({ children }) {
     if (authUser) await saveUserData(authUser.uid, { votedPosts: newVoted });
   };
 
-  const addComment = async (postId, body) => {
+  const addComment = async (postId, body, parentId = null) => {
     const postRef = doc(db, 'posts', postId);
     const postSnap = await getDoc(postRef);
     const existing = postSnap.data().comments || [];
     const newComment = {
       id: Date.now().toString(),
       postId,
+      parentId,
       author: user?.username || 'anonymous',
       body,
       votes: 1,

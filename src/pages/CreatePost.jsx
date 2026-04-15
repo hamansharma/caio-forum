@@ -18,10 +18,10 @@ export default function CreatePost() {
     </div>
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.body.trim()) return;
-    const id = addPost(form);
+    const id = await addPost(form);
     navigate(`/post/${id}`);
   };
 

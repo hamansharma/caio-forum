@@ -31,6 +31,7 @@
   color: var(--text-primary); border-radius: var(--radius);
   padding: 12px 14px; font-size: 14px; resize: vertical;
   outline: none; transition: border-color 0.15s; display: block;
+  white-space: pre-wrap;
 }
 .comment-form textarea:focus { border-color: var(--accent); }
 .comment-form button {

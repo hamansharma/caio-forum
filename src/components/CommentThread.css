@@ -1,0 +1,106 @@
+.comment-thread { display: flex; flex-direction: column; gap: 4px; }
+
+.comment-node {
+  display: flex;
+  gap: 0;
+  margin-left: calc(var(--depth, 0) * 20px);
+  margin-top: 8px;
+}
+
+.comment-thread-line {
+  width: 2px;
+  min-width: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-right: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.comment-thread-line:hover { background: var(--accent); }
+
+.comment-inner { flex: 1; min-width: 0; }
+
+.comment-header {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 6px; flex-wrap: wrap;
+}
+.comment-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.comment-author { font-size: 13px; color: var(--text-primary); font-weight: 600; }
+.comment-time { font-size: 12px; color: var(--text-muted); }
+.collapse-btn {
+  margin-left: auto; color: var(--text-muted); padding: 2px;
+  border-radius: 4px; transition: color 0.15s;
+}
+.collapse-btn:hover { color: var(--text-primary); }
+
+.comment-body {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.65; margin-bottom: 8px;
+}
+
+.comment-actions {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.vote-inline {
+  color: var(--text-muted); padding: 3px 4px;
+  border-radius: 4px; transition: color 0.1s;
+  display: flex; align-items: center;
+}
+.vote-inline:hover { color: var(--text-primary); }
+.vote-inline.up.active { color: var(--accent); }
+.vote-inline.down.active { color: #f87171; }
+.vote-inline-count {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); min-width: 20px; text-align: center;
+}
+.vote-inline-count.voted { color: var(--accent); }
+
+.reply-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px;
+  margin-left: 4px; transition: color 0.15s, background 0.15s;
+}
+.reply-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.reply-count {
+  font-size: 12px; color: var(--text-muted); margin-left: 4px;
+}
+
+.inline-reply-form {
+  margin-top: 10px; margin-bottom: 8px;
+}
+.inline-reply-form textarea {
+  width: 100%; background: var(--bg-input);
+  border: 1px solid var(--border); color: var(--text-primary);
+  border-radius: var(--radius); padding: 10px 12px;
+  font-size: 13px; resize: vertical; outline: none;
+  transition: border-color 0.15s; font-family: var(--font);
+}
+.inline-reply-form textarea:focus { border-color: var(--accent); }
+.inline-reply-actions {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;
+}
+.btn-cancel-reply {
+  padding: 6px 14px; border-radius: var(--radius);
+  font-size: 13px; color: var(--text-secondary);
+  border: 1px solid var(--border); transition: all 0.15s;
+  font-family: var(--font);
+}
+.btn-cancel-reply:hover { color: var(--text-primary); border-color: var(--border-light); }
+.btn-submit-reply {
+  padding: 6px 14px; border-radius: var(--radius);
+  background: var(--accent); color: white;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  transition: background 0.15s;
+}
+.btn-submit-reply:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-submit-reply:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.replies-container { margin-top: 4px; }
