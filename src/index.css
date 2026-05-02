@@ -3,18 +3,18 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-base: #0d0d0f;
-  --bg-card: #161618;
-  --bg-hover: #1e1e21;
-  --bg-input: #1a1a1d;
-  --border: #2a2a2e;
-  --border-light: #333338;
+  --bg-base: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-hover: #222535;
+  --bg-input: #131620;
+  --border: #252838;
+  --border-light: #2e3248;
   --accent: #7c6af7;
   --accent-hover: #9180f9;
   --accent-soft: #7c6af720;
-  --text-primary: #f0f0f2;
-  --text-secondary: #8a8a96;
-  --text-muted: #555560;
+  --text-primary: #e8eaf6;
+  --text-secondary: #9fa8c7;
+  --text-muted: #5c6385;
   --tag-concepts: #1a3a2a;
   --tag-concepts-text: #4ade80;
   --tag-discussion: #2a1a3a;
