@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import './CreatePost.css';
 
-const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics'];
+const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics', 'links'];
 
 export default function CreatePost() {
   const { user, addPost } = useForum();

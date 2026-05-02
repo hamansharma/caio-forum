@@ -3,35 +3,46 @@ import {
   collection, doc, addDoc, updateDoc, onSnapshot,
   query, orderBy, serverTimestamp, increment, getDoc, setDoc
 } from 'firebase/firestore';
-import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
 import { db, auth } from '../firebase';
 
 const ForumContext = createContext();
 
 export function ForumProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [authUser, setAuthUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [votedPosts, setVotedPosts] = useState({});
   const [votedComments, setVotedComments] = useState({});
 
-  // Firebase anonymous auth
+  // Auth state listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        setAuthUser(firebaseUser);
-        // Load their saved username + votes from Firestore
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setUser({ username: data.username });
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            fullName: data.fullName,
+            username: data.username,
+          });
           setVotedPosts(data.votedPosts || {});
           setVotedComments(data.votedComments || {});
         }
       } else {
-        await signInAnonymously(auth);
+        setUser(null);
+        setVotedPosts({});
+        setVotedComments({});
       }
+      setAuthLoading(false);
     });
     return unsub;
   }, []);
@@ -51,18 +62,60 @@ export function ForumProvider({ children }) {
     await setDoc(doc(db, 'users', uid), data, { merge: true });
   };
 
-  const login = async (username) => {
-    const userData = { username, votedPosts, votedComments };
-    setUser({ username });
-    if (authUser) await saveUserData(authUser.uid, userData);
+  const signup = async ({ email, password, fullName, username }) => {
+      let credential;
+      try {
+        credential = await createUserWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        throw err;
+      }
+      const uid = credential.user.uid;
+      try {
+        await setDoc(doc(db, 'users', uid), {
+          email: String(email),
+          fullName: String(fullName),
+          username: String(username),
+          votedPosts: {},
+          votedComments: {},
+          createdAt: new Date().toISOString(),
+        });
+      } catch (firestoreErr) {
+        console.error('Firestore write failed:', firestoreErr);
+        throw new Error('Account created but profile save failed. Please try signing in.');
+      }
+      setUser({ uid, email: String(email), fullName: String(fullName), username: String(username) });
+    };
+
+  const login = async ({ email, password }) => {
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      setUser({
+        uid: String(credential.user.uid),
+        email: String(credential.user.email),
+        fullName: String(data.fullName || ''),
+        username: String(data.username || ''),
+      });
+      setVotedPosts(data.votedPosts || {});
+      setVotedComments(data.votedComments || {});
+    } else {
+      throw new Error('User profile not found. Please sign up first.');
+    }
   };
 
-  const logout = () => setUser(null);
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setVotedPosts({});
+    setVotedComments({});
+  };
 
   const addPost = async (postData) => {
     const ref = await addDoc(collection(db, 'posts'), {
       ...postData,
       author: user?.username || 'anonymous',
+      authorFullName: user?.fullName || '',
       createdAt: serverTimestamp(),
       votes: 1,
       comments: [],
@@ -76,7 +129,7 @@ export function ForumProvider({ children }) {
     const newVoted = { ...votedPosts, [postId]: dir };
     setVotedPosts(newVoted);
     await updateDoc(doc(db, 'posts', postId), { votes: increment(dir - prev) });
-    if (authUser) await saveUserData(authUser.uid, { votedPosts: newVoted });
+    if (user) await saveUserData(user.uid, { votedPosts: newVoted });
   };
 
   const addComment = async (postId, body, parentId = null) => {
@@ -107,11 +160,14 @@ export function ForumProvider({ children }) {
       c.id === commentId ? { ...c, votes: c.votes + dir - prev } : c
     );
     await updateDoc(postRef, { comments });
-    if (authUser) await saveUserData(authUser.uid, { votedComments: newVoted });
+    if (user) await saveUserData(user.uid, { votedComments: newVoted });
   };
 
   return (
-    <ForumContext.Provider value={{ user, login, logout, posts, loading, addPost, votePost, addComment, voteComment, votedPosts, votedComments }}>
+    <ForumContext.Provider value={{
+      user, login, logout, signup, posts, loading, authLoading,
+      addPost, votePost, addComment, voteComment, votedPosts, votedComments
+    }}>
       {children}
     </ForumContext.Provider>
   );

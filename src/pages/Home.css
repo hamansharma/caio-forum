@@ -33,6 +33,7 @@
 .filter-pill.active.tag-discussion { background: var(--tag-discussion); color: var(--tag-discussion-text); border-color: transparent; }
 .filter-pill.active.tag-strategy { background: var(--tag-strategy); color: var(--tag-strategy-text); border-color: transparent; }
 .filter-pill.active.tag-ethics { background: var(--tag-ethics); color: var(--tag-ethics-text); border-color: transparent; }
+.filter-pill.active.tag-links { background: var(--tag-links); color: var(--tag-links-text); border-color: transparent; }
 
 .posts-list { display: flex; flex-direction: column; gap: 10px; }
 

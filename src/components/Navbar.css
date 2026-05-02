@@ -10,6 +10,11 @@
   display: flex; align-items: center; gap: 10px;
   font-weight: 600; font-size: 16px; color: var(--text-primary);
 }
+.navbar-logo {
+  height: 36px;
+  width: auto;
+  border-radius: 8px;
+}
 .navbar-brand svg { color: var(--accent); }
 .navbar-badge {
   font-size: 10px; font-weight: 500;
@@ -62,10 +67,16 @@
   padding: 10px 14px; font-size: 14px; margin-bottom: 12px;
   transition: border-color 0.15s; outline: none;
 }
-.modal-input:focus { border-color: var(--accent); }
+.modal-input:focus { border-color: var(--accent); 
+}
 .btn-submit {
   width: 100%; background: var(--accent); color: white;
   padding: 10px; border-radius: var(--radius);
   font-size: 14px; font-weight: 600; transition: background 0.15s;
 }
-.btn-submit:hover { background: var(--accent-hover); }
+.btn-submit:hover { background: var(--accent-hover); 
+}
+
+.nav-loading {
+  font-size: 13px; color: var(--text-muted);
+}

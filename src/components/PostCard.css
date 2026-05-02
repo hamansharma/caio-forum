@@ -37,6 +37,7 @@
 .tag-discussion { background: var(--tag-discussion); color: var(--tag-discussion-text); }
 .tag-strategy { background: var(--tag-strategy); color: var(--tag-strategy-text); }
 .tag-ethics { background: var(--tag-ethics); color: var(--tag-ethics-text); }
+.tag-links { background: var(--tag-links); color: var(--tag-links-text); }
 
 .post-title {
   display: block; font-size: 17px; font-weight: 600;

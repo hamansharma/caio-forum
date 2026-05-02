@@ -33,7 +33,7 @@ export default function Home() {
             </button>
           ))}
           <div className="filter-pills">
-            {['all', 'concepts', 'discussion', 'strategy', 'ethics'].map(cat => (
+            {['all', 'concepts', 'discussion', 'strategy', 'ethics', 'links'].map(cat => (
               <button key={cat} className={`filter-pill ${filter === cat ? 'active' : ''} ${cat !== 'all' ? `tag-${cat}` : ''}`}
                 onClick={() => setFilter(cat)}>
                 {cat === 'all' ? 'All' : cat}
@@ -54,7 +54,7 @@ export default function Home() {
       <aside className="home-sidebar">
         <div className="sidebar-card">
           <h3>About CAIO Forum</h3>
-          <p>A discussion space for Chief AI Officer topics, companion to the Chicago Booth CAIO Certificate program.</p>
+          <p>A discussion space for Chief AI Officer topics. Do not post copyright material without proper consent.</p>
           <div className="sidebar-stats">
             <div><strong>{posts.length}</strong><span>Posts</span></div>
             <div><strong>{posts.reduce((a, p) => a + p.comments.length, 0)}</strong><span>Comments</span></div>
@@ -62,7 +62,7 @@ export default function Home() {
         </div>
         <div className="sidebar-card">
           <h3>Topics</h3>
-          {['concepts', 'discussion', 'strategy', 'ethics'].map(cat => (
+          {['concepts', 'discussion', 'strategy', 'ethics', 'links'].map(cat => (
             <button key={cat} className={`sidebar-topic tag-${cat}`} onClick={() => setFilter(cat)}>
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>

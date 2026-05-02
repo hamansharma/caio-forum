@@ -1,0 +1,133 @@
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; backdrop-filter: blur(6px);
+  padding: 16px;
+}
+.auth-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 420px;
+  overflow: hidden;
+}
+
+.auth-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 0;
+}
+.auth-logo { font-size: 16px; font-weight: 700; color: var(--accent); }
+.auth-close {
+  color: var(--text-muted); padding: 4px; border-radius: 6px;
+  transition: color 0.15s;
+}
+.auth-close:hover { color: var(--text-primary); }
+
+.auth-tabs {
+  display: flex; gap: 0;
+  padding: 16px 24px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.auth-tabs button {
+  flex: 1; padding: 10px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s; margin-bottom: -1px;
+}
+.auth-tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.auth-tabs button:hover:not(.active) { color: var(--text-primary); }
+
+.auth-form {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 0 24px;
+}
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field label {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.form-field input {
+  background: var(--bg-input); border: 1px solid var(--border);
+  color: var(--text-primary); border-radius: var(--radius);
+  padding: 10px 14px; font-size: 14px; outline: none;
+  transition: border-color 0.15s; width: 100%;
+  font-family: var(--font);
+}
+.form-field input:focus { border-color: var(--accent); }
+
+.input-with-icon { position: relative; }
+.input-with-icon input { padding-right: 40px; }
+.input-icon-btn {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); padding: 4px; transition: color 0.15s;
+}
+.input-icon-btn:hover { color: var(--text-primary); }
+
+.username-options {
+  display: flex; gap: 6px; margin-bottom: 8px;
+}
+.username-opt {
+  flex: 1; padding: 7px;
+  font-size: 12px; font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: all 0.15s;
+  font-family: var(--font);
+}
+.username-opt:hover { border-color: var(--border-light); color: var(--text-primary); }
+.username-opt.active {
+  background: var(--accent-soft); color: var(--accent);
+  border-color: var(--accent);
+}
+
+.random-username {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 14px;
+}
+.random-username span { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.random-username button {
+  color: var(--text-muted); padding: 4px; border-radius: 4px;
+  transition: color 0.15s, transform 0.2s;
+}
+.random-username button:hover { color: var(--accent); transform: rotate(180deg); }
+
+.username-hint {
+  font-size: 11px; color: var(--text-muted);
+  margin-top: 5px; line-height: 1.5;
+}
+
+.auth-error {
+  background: #2a1010; border: 1px solid #f8717140;
+  color: #f87171; border-radius: var(--radius);
+  padding: 10px 14px; font-size: 13px;
+}
+
+.auth-submit {
+  background: var(--accent); color: white;
+  padding: 11px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background 0.15s; font-family: var(--font);
+  margin-top: 4px;
+}
+.auth-submit:hover:not(:disabled) { background: var(--accent-hover); }
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-footer {
+  text-align: center; font-size: 13px;
+  color: var(--text-muted); padding: 16px 24px 20px;
+}
+.auth-footer button {
+  color: var(--accent); font-weight: 500;
+  font-family: var(--font); font-size: 13px;
+  transition: color 0.15s;
+}
+.auth-footer button:hover { color: var(--accent-hover); }
