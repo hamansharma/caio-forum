@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ArrowUp, ArrowDown, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
+import MarkdownRenderer from './MarkdownRenderer';
+import MarkdownEditor from './MarkdownEditor';
 import './CommentThread.css';
 
 function CommentNode({ comment, postId, allComments, depth = 0 }) {
@@ -43,7 +45,7 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
 
         {!collapsed && (
           <>
-            <p className="comment-body" style={{ whiteSpace: 'pre-wrap' }}>{comment.body}</p>
+            <MarkdownRenderer content={comment.body} />
 
             <div className="comment-actions">
               <button className={`vote-inline up ${voted === 1 ? 'active' : ''}`}
@@ -68,11 +70,10 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
 
             {replyOpen && (
               <form className="inline-reply-form" onSubmit={handleReply}>
-                <textarea
-                  autoFocus
-                  placeholder={`Replying to u/${comment.author}…`}
+                <MarkdownEditor
                   value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
+                  onChange={setReplyText}
+                  placeholder={`Replying to u/${comment.author}…`}
                   rows={3}
                 />
                 <div className="inline-reply-actions">

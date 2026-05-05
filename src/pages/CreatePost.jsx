@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import './CreatePost.css';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics', 'links'];
 
@@ -53,10 +54,10 @@ export default function CreatePost() {
         </div>
         <div className="form-group">
           <label>Body</label>
-          <textarea
-            placeholder="Share your thoughts, insights, or questions..."
+          <MarkdownEditor
             value={form.body}
-            onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+            onChange={val => setForm(f => ({ ...f, body: val }))}
+            placeholder="Share your thoughts, insights, or questions..."
             rows={8}
           />
         </div>

@@ -4,6 +4,8 @@ import { ArrowUp, ArrowDown, ArrowLeft, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
 import CommentThread from '../components/CommentThread';
+import MarkdownRenderer from '../components/MarkdownRenderer';
+import MarkdownEditor from '../components/MarkdownEditor';
 import './PostDetail.css';
 
 export default function PostDetail() {
@@ -49,7 +51,7 @@ export default function PostDetail() {
             </span>
           </div>
           <h1 className="detail-title">{post.title}</h1>
-          <p className="detail-body" style={{ whiteSpace: 'pre-wrap' }}>{post.body}</p>
+          <MarkdownRenderer content={post.body} />
         </div>
       </article>
 
@@ -58,10 +60,10 @@ export default function PostDetail() {
 
         {user ? (
           <form className="comment-form" onSubmit={handleComment}>
-            <textarea
-              placeholder={`Comment as u/${user.username}`}
+            <MarkdownEditor
               value={comment}
-              onChange={e => setComment(e.target.value)}
+              onChange={setComment}
+              placeholder={`Comment as u/${user.username}`}
               rows={4}
             />
             <button type="submit" disabled={!comment.trim()}>Add Comment</button>
