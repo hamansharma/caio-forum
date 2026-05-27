@@ -1,15 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, LogOut, User } from 'lucide-react';
-import logo from '../assets/CAIO.png';
 import { useForum } from '../context/ForumContext';
 import AuthModal from './AuthModal';
+import SearchBar from './SearchBar';
+import SearchResults from './SearchResults';
+import { searchPosts } from '../utils/search';
 import './Navbar.css';
+import logo from '../assets/CAIO.png';
 
 export default function Navbar() {
-  const { user, logout, authLoading } = useForum();
+  const { user, logout, authLoading, posts } = useForum();
   const [showAuth, setShowAuth] = useState(false);
+  const [query, setQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef();
   const navigate = useNavigate();
+
+  const { results } = searchPosts(posts, query);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleQueryChange = (val) => {
+    setQuery(val);
+    setShowResults(val.trim().length > 0);
+  };
+
+  const handleClose = () => {
+    setQuery('');
+    setShowResults(false);
+  };
 
   return (
     <>
@@ -19,6 +47,13 @@ export default function Navbar() {
           <span>CAIO Forum</span>
           <span className="navbar-badge">Roadmap to Chief AI Officer</span>
         </Link>
+
+        <div className="navbar-search" ref={searchRef}>
+          <SearchBar value={query} onChange={handleQueryChange} onFocus={() => query && setShowResults(true)} />
+          {showResults && (
+            <SearchResults results={results} query={query} onClose={handleClose} />
+          )}
+        </div>
 
         <div className="navbar-actions">
           {authLoading ? (

@@ -1,0 +1,77 @@
+.search-results {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  width: 520px; max-height: 480px; overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 300;
+}
+@media (max-width: 768px) {
+  .search-results {
+    width: calc(100vw - 32px);
+    left: 50%; transform: translateX(-50%);
+  }
+}
+
+.search-results-header {
+  padding: 10px 16px;
+  font-size: 12px; color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.search-results-header strong { color: var(--text-primary); }
+
+.search-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 8px;
+  color: var(--text-muted);
+}
+.search-empty svg { opacity: 0.3; }
+.search-empty p { font-size: 14px; color: var(--text-secondary); }
+.search-empty span { font-size: 12px; }
+
+.search-list { padding: 6px; }
+.search-result-item {
+  display: block; padding: 12px;
+  border-radius: var(--radius); margin-bottom: 2px;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+}
+.search-result-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.result-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 6px;
+}
+.result-matched-fields { display: flex; gap: 4px; }
+.result-field-badge {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 10px; color: var(--text-muted);
+  background: var(--bg-hover); padding: 2px 6px;
+  border-radius: 20px; border: 1px solid var(--border);
+}
+
+.result-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--text-primary); margin-bottom: 4px;
+  line-height: 1.4;
+}
+.result-body {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5; margin-bottom: 6px;
+}
+.result-meta {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-muted);
+}
+
+.search-mark {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 2px; padding: 0 2px;
+  font-style: normal;
+}
