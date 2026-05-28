@@ -5,11 +5,17 @@ export function searchPosts(posts, query) {
   const terms = q.split(/\s+/);
 
   const scored = posts.map(post => {
+      const commentText = (post.comments || [])
+      .map(c => `${c.body || ''} ${c.author || ''}`)
+      .join(' ')
+      .toLowerCase();
+
     const fields = {
       title: (post.title || '').toLowerCase(),
       body: (post.body || '').toLowerCase(),
       author: (post.author || '').toLowerCase(),
       category: (post.category || '').toLowerCase(),
+      comments: commentText,
     };
 
     let score = 0;
@@ -20,6 +26,7 @@ export function searchPosts(posts, query) {
       if (fields.body.includes(term)) { score += 5; if (!matchedFields.includes('body')) matchedFields.push('body'); }
       if (fields.author.includes(term)) { score += 7; if (!matchedFields.includes('author')) matchedFields.push('author'); }
       if (fields.category.includes(term)) { score += 6; if (!matchedFields.includes('category')) matchedFields.push('category'); }
+      if (fields.comments.includes(term)) { score += 3; if (!matchedFields.includes('comments')) matchedFields.push('comments'); }
     }
 
     return { ...post, _score: score, _matchedFields: matchedFields };
