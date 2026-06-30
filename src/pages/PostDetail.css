@@ -75,3 +75,32 @@
 .post-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .meta-text { font-size: 12px; color: var(--text-muted); }
 .meta-text strong { color: var(--text-secondary); font-weight: 500; }
+
+.comments-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  margin-bottom: 16px;
+}
+.comments-header h2 {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 0;
+}
+.comment-sort-bar {
+  display: flex; gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.comment-sort-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-muted);
+  font-family: var(--font);
+  transition: all 0.15s;
+}
+.comment-sort-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.comment-sort-btn.active { background: var(--accent-soft); color: var(--accent); }

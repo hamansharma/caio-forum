@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowUp, ArrowDown, ArrowLeft, MessageSquare } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowLeft, MessageSquare, Clock, TrendingUp, History } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
 import CommentThread from '../components/CommentThread';
@@ -8,10 +8,31 @@ import MarkdownRenderer from '../components/MarkdownRenderer';
 import MarkdownEditor from '../components/MarkdownEditor';
 import './PostDetail.css';
 
+const SORT_OPTS = [
+  { key: 'newest', label: 'Newest', icon: Clock },
+  { key: 'oldest', label: 'Oldest', icon: History },
+  { key: 'top', label: 'Top Voted', icon: TrendingUp },
+];
+
+function sortComments(comments, sort) {
+  const topLevel = comments.filter(c => !c.parentId);
+  const rest = comments.filter(c => c.parentId);
+
+  const sorted = [...topLevel].sort((a, b) => {
+    if (sort === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sort === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+    if (sort === 'top') return (b.votes || 0) - (a.votes || 0);
+    return 0;
+  });
+
+  return [...sorted, ...rest];
+}
+
 export default function PostDetail() {
   const { id } = useParams();
   const { posts, user, votePost, votedPosts, addComment } = useForum();
   const [comment, setComment] = useState('');
+  const [commentSort, setCommentSort] = useState('newest');
   const post = posts.find(p => p.id === id);
 
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
@@ -24,6 +45,8 @@ export default function PostDetail() {
     addComment(post.id, comment.trim(), null);
     setComment('');
   };
+
+  const sortedComments = sortComments(post.comments || [], commentSort);
 
   return (
     <div className="detail-page">
@@ -56,7 +79,19 @@ export default function PostDetail() {
       </article>
 
       <section className="comments-section">
-        <h2><MessageSquare size={16} /> {post.comments.length} Comments</h2>
+        <div className="comments-header">
+          <h2><MessageSquare size={16} /> {post.comments.length} Comments</h2>
+          <div className="comment-sort-bar">
+            {SORT_OPTS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                className={`comment-sort-btn ${commentSort === key ? 'active' : ''}`}
+                onClick={() => setCommentSort(key)}>
+                <Icon size={13} /> {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {user ? (
           <form className="comment-form" onSubmit={handleComment}>
@@ -72,7 +107,7 @@ export default function PostDetail() {
           <div className="login-prompt">Sign in to leave a comment</div>
         )}
 
-        <CommentThread postId={post.id} comments={post.comments || []} />
+        <CommentThread postId={post.id} comments={sortedComments} />
       </section>
     </div>
   );
