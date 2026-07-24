@@ -1,70 +1,109 @@
-# Getting Started with Create React App
+# caio-forum
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A small Create React App single-page forum demo using Firebase (Firestore + Auth). Posts, comments, and votes are stored in Firestore; authentication uses Firebase Auth. The UI uses react-markdown for post content and react-router for navigation.
 
-## Available Scripts
+## Features
+- Real-time posts list (Firestore onSnapshot)
+- Client-side auth (signup/login) with profile docs in users collection
+- Inline comments stored on the post document
+- Upvote/downvote with optimistic UI backed by Firestore increment()
+- Markdown editor and renderer with GFM support
+- Seed data available in src/data/seed.js (optional)
 
-In the project directory, you can run:
+## Tech stack
+- React (Create React App)
+- Firebase: Firestore + Auth
+- react-router, react-markdown, remark-gfm
+- Testing libs: @testing-library/react, jest
+- Small CSS files alongside components (no CSS frameworks)
 
-### `npm start`
+## Quick start (local)
+1. Clone:
+   git clone <repo-url>
+   cd caio-forum
+2. Install:
+   npm install
+3. Environment:
+   Create a .env.local with:
+   REACT_APP_FIREBASE_API_KEY=
+   REACT_APP_FIREBASE_AUTH_DOMAIN=
+   REACT_APP_FIREBASE_PROJECT_ID=
+   REACT_APP_FIREBASE_STORAGE_BUCKET=
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
+   REACT_APP_FIREBASE_APP_ID=
+4. Run dev server:
+   npm start
+   Open http://localhost:3000
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Build & deploy
+- Build for production:
+  npm run build
+- Deploy the build folder to any static host (Netlify, Vercel, Firebase Hosting, etc.)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tests & lint
+- Run tests (watch):
+  npm test
+- Run a single test file (watch):
+  npm test -- src/components/PostCard.test.jsx
+- Run a test by name:
+  npm test -- -t "renders post title"
+- Run tests once (CI):
+  CI=true npm test -- --watchAll=false
+- No lint npm script provided, but ESLint config extends react-app. Run:
+  npx eslint "src/**/*.{js,jsx}" --ext .js,.jsx
 
-### `npm test`
+## High-level architecture
+- src/App.js: Router and route definitions:
+  - / → Home
+  - /post/:id → PostDetail
+  - /create → CreatePost
+- src/context/ForumContext.js: central provider and API surface (useForum hook). Handles:
+  - Auth state (onAuthStateChanged)
+  - Real-time posts subscription (onSnapshot)
+  - Methods: signup, login, logout, addPost, votePost, addComment, voteComment
+  - Persists user vote state to users/<uid> document
+- src/firebase.js: initializes Firebase using REACT_APP_FIREBASE_* env vars
+- Pages: src/pages/*
+- Components: src/components/* (MarkdownEditor, MarkdownRenderer, Navbar, PostCard, CommentThread, AuthModal, etc.)
+- Data: src/data/seed.js contains initial posts/categories; App has a commented seed button for manual seeding.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Data model & important runtime notes
+- Firestore collections:
+  - posts — fields: title, body, category, author, authorFullName, createdAt (serverTimestamp), votes (number), comments (array)
+  - users — keyed by uid: email, fullName, username, votedPosts, votedComments
+- Comments: stored inline in the post document as an array (not a separate collection). Comment shape: { id, postId, parentId, author, body, votes, createdAt }.
+- Timestamps:
+  - Posts use serverTimestamp() (Firestore Timestamp).
+  - Some comment code uses ISO strings (Date.toISOString()). When sorting/comparing, account for mixed timestamp types.
+- Voting:
+  - Posts use Firestore increment() for atomic updates.
+  - User vote state is stored in users/<uid> and mirrored locally for optimistic UI.
+- Auth:
+  - Signup creates a users doc with profile fields; onAuthStateChanged fetches that profile.
 
-### `npm run build`
+## Seeding the DB
+- Seed data: src/data/seed.js.
+- A seed helper exists (commented button in App.js). If seeding into a live Firestore:
+  - Verify env vars point to a test project.
+  - Consider writing a small script to call addDoc/setDoc and avoid UI-triggered accidental seeds.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Contributing / changes that affect data model
+- Avoid moving comments out of the posts document to a new collection without:
+  1. A migration path to update existing documents.
+  2. Updating all consumers (ForumContext, PostDetail rendering, seed data).
+- If changing Firestore usage (batched reads, new collections), update tests and provide a migration plan.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Security & env
+- Never commit Firebase keys/secrets. Use .env.local or CI secrets.
+- Test any Firestore writes against a development project first.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Files to inspect first (for newcomers)
+- src/context/ForumContext.js
+- src/firebase.js
+- src/pages/Home.jsx, PostDetail.jsx, CreatePost.jsx
+- src/components/PostCard.jsx, CommentThread.jsx, MarkdownEditor.jsx
+- src/data/seed.js
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Would you like this draft saved to the repository as README.md and committed?
