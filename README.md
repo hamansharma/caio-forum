@@ -105,5 +105,3 @@ A small Create React App single-page forum demo using Firebase (Firestore + Auth
 - src/data/seed.js
 
 ---
-
-Would you like this draft saved to the repository as README.md and committed?
