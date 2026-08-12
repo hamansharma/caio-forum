@@ -104,3 +104,64 @@
 }
 .comment-sort-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
 .comment-sort-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+.edited-badge {
+  font-size: 10px; color: var(--text-muted);
+  background: var(--bg-hover); padding: 2px 6px;
+  border-radius: 4px; border: 1px solid var(--border);
+  font-style: italic;
+}
+
+.post-author-actions {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 16px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.author-action-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; padding: 4px 10px;
+  border-radius: 6px; font-family: var(--font);
+  transition: all 0.15s;
+}
+.author-action-btn.edit {
+  color: var(--text-muted); border: 1px solid var(--border);
+}
+.author-action-btn.edit:hover {
+  color: var(--accent); border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.author-action-btn.delete {
+  color: var(--text-muted); border: 1px solid var(--border);
+}
+.author-action-btn.delete:hover {
+  color: #f87171; border-color: #f8717140;
+  background: #f8717110;
+}
+
+.edit-post-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.edit-title-input {
+  background: var(--bg-input); border: 1px solid var(--border);
+  color: var(--text-primary); border-radius: var(--radius);
+  padding: 10px 14px; font-size: 18px; font-weight: 600;
+  outline: none; font-family: var(--font);
+  transition: border-color 0.15s; width: 100%;
+}
+.edit-title-input:focus { border-color: var(--accent); }
+.edit-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+.btn-cancel-edit {
+  padding: 8px 16px; border-radius: var(--radius);
+  font-size: 13px; color: var(--text-secondary);
+  border: 1px solid var(--border); font-family: var(--font);
+  transition: all 0.15s;
+}
+.btn-cancel-edit:hover { color: var(--text-primary); border-color: var(--border-light); }
+.btn-save-edit {
+  padding: 8px 20px; border-radius: var(--radius);
+  background: var(--accent); color: white;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  transition: background 0.15s;
+}
+.btn-save-edit:hover { background: var(--accent-hover); }

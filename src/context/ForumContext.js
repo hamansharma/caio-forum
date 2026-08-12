@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   collection, doc, addDoc, updateDoc, onSnapshot,
-  query, orderBy, serverTimestamp, increment, getDoc, setDoc
+  query, orderBy, serverTimestamp, increment, getDoc, setDoc,
+  getDocs, writeBatch, deleteDoc
 } from 'firebase/firestore';
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updatePassword as firebaseUpdatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  deleteUser,
 } from 'firebase/auth';
+
 import { db, auth } from '../firebase';
 
 const ForumContext = createContext();
@@ -163,10 +170,101 @@ export function ForumProvider({ children }) {
     if (user) await saveUserData(user.uid, { votedComments: newVoted });
   };
 
+  const editPost = async (postId, newTitle, newBody) => {
+    await updateDoc(doc(db, 'posts', postId), {
+      title: newTitle,
+      body: newBody,
+      editedAt: new Date().toISOString(),
+    });
+  };
+
+  const deletePost = async (postId) => {
+    await updateDoc(doc(db, 'posts', postId), {
+      deleted: true,
+      deletedAt: new Date().toISOString(),
+      body: '[deleted]',
+      title: '[deleted]',
+    });
+  };
+
+  const editComment = async (postId, commentId, newBody) => {
+    const postRef = doc(db, 'posts', postId);
+    const postSnap = await getDoc(postRef);
+    const comments = postSnap.data().comments.map(c =>
+      c.id === commentId
+        ? { ...c, body: newBody, editedAt: new Date().toISOString() }
+        : c
+    );
+    await updateDoc(postRef, { comments });
+  };
+
+  const deleteComment = async (postId, commentId) => {
+    const postRef = doc(db, 'posts', postId);
+    const postSnap = await getDoc(postRef);
+    const comments = postSnap.data().comments.map(c =>
+      c.id === commentId
+        ? { ...c, body: '[deleted]', author: '[deleted]', deleted: true }
+        : c
+    );
+    await updateDoc(postRef, { comments });
+  };
+
+  const updateAlias = async (newAlias, useAlias) => {
+    await saveUserData(user.uid, { username: newAlias, useAlias });
+    setUser(prev => ({ ...prev, username: newAlias, useAlias }));
+  };
+
+  const updatePassword = async (currentPassword, newPassword) => {
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    await firebaseUpdatePassword(auth.currentUser, newPassword);
+  };
+
+  const deleteAccount = async () => {
+    const uid = user.uid;
+    const username = user.username;
+
+    const allPosts = await getDocs(collection(db, 'posts'));
+    const batch = writeBatch(db);
+
+    allPosts.docs.forEach(postDoc => {
+      const data = postDoc.data();
+      let changed = false;
+
+      if (data.author === username) {
+        batch.update(postDoc.ref, {
+          author: '[deleted]', body: '[deleted]',
+          title: '[deleted]', deleted: true,
+        });
+        changed = true;
+      }
+
+      const updatedComments = (data.comments || []).map(c => {
+        if (c.author === username) {
+          changed = true;
+          return { ...c, author: '[deleted]', body: '[deleted]', deleted: true };
+        }
+        return c;
+      });
+
+      if (changed && data.author !== username) {
+        batch.update(postDoc.ref, { comments: updatedComments });
+      }
+    });
+
+    await batch.commit();
+    await deleteDoc(doc(db, 'users', uid));
+    await deleteUser(auth.currentUser);
+    setUser(null);
+  };
+
+
   return (
     <ForumContext.Provider value={{
       user, login, logout, signup, posts, loading, authLoading,
-      addPost, votePost, addComment, voteComment, votedPosts, votedComments
+      addPost, votePost, addComment, voteComment, votedPosts, votedComments,
+      editPost, deletePost, editComment, deleteComment,
+      updateAlias, updatePassword, deleteAccount
     }}>
       {children}
     </ForumContext.Provider>

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
+import Profile from './pages/Profile';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -22,6 +23,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/post/:id" element={<PostDetail />} />
           <Route path="/create" element={<CreatePost />} />
+          <Route path="/profile" element={<Profile />} />
+          
         </Routes>
         <Chatbot />
         {/* Your comment here 

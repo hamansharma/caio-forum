@@ -63,10 +63,10 @@ export default function Navbar() {
               <button className="btn-create" onClick={() => navigate('/create')}>
                 <PlusCircle size={16} /> Create Post
               </button>
-              <div className="navbar-user" title={user.fullName}>
+              <Link to="/profile" className="navbar-user" title={user.fullName}>
                 <User size={15} />
                 <span>u/{user.username}</span>
-              </div>
+              </Link>
               <button className="btn-icon" onClick={logout} title="Sign out">
                 <LogOut size={16} />
               </button>
