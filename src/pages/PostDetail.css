@@ -165,3 +165,12 @@
   transition: background 0.15s;
 }
 .btn-save-edit:hover { background: var(--accent-hover); }
+
+.comment-form-footer {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-top: 8px;
+  flex-wrap: wrap; gap: 8px;
+}
+.comment-form-right {
+  display: flex; align-items: center; gap: 10px; margin-left: auto;
+}

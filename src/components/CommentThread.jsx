@@ -6,6 +6,8 @@ import MarkdownRenderer from './MarkdownRenderer';
 import MarkdownEditor from './MarkdownEditor';
 import InlineConfirm from './InlineConfirm';
 import './CommentThread.css';
+import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
+import CharCount from './CharCount';
 
 function CommentNode({ comment, postId, allComments, depth = 0 }) {
   const { user, voteComment, votedComments, addComment,
@@ -16,6 +18,7 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [replyError, setReplyError] = useState('');
 
   const key = `${postId}-${comment.id}`;
   const voted = votedComments[key] || 0;
@@ -25,10 +28,16 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
 
   const handleReply = async (e) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
-    await addComment(postId, replyText.trim(), comment.id);
-    setReplyText('');
-    setReplyOpen(false);
+    const err = validateComment(replyText);
+    if (err) { setReplyError(err); return; }
+    try {
+      await addComment(postId, sanitizeText(replyText), comment.id);
+      setReplyText('');
+      setReplyOpen(false);
+      setReplyError('');
+    } catch {
+      setReplyError('Failed to post reply. Please try again.');
+    }
   };
 
   const handleEdit = () => {
@@ -160,15 +169,19 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
                   placeholder={`Replying to u/${comment.author}…`}
                   rows={3}
                 />
-                <div className="inline-reply-actions">
-                  <button type="button" className="btn-cancel-reply"
-                    onClick={() => { setReplyOpen(false); setReplyText(''); }}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-submit-reply"
-                    disabled={!replyText.trim()}>
-                    Reply
-                  </button>
+                <div className="inline-reply-footer">
+                  {replyError && <span className="reply-field-error">{replyError}</span>}
+                  <div className="inline-reply-actions">
+                    <CharCount current={replyText.length} max={LIMITS.COMMENT_MAX} />
+                    <button type="button" className="btn-cancel-reply"
+                      onClick={() => { setReplyOpen(false); setReplyText(''); setReplyError(''); }}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn-submit-reply"
+                      disabled={!replyText.trim() || replyText.length > LIMITS.COMMENT_MAX}>
+                      Reply
+                    </button>
+                  </div>
                 </div>
               </form>
             )}

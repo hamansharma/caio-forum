@@ -53,12 +53,14 @@ export default function AuthModal({ onClose }) {
     } catch (err) {
       const code = err?.code || '';
       const msg = typeof err?.message === 'string' ? err.message : '';
-      if (code.includes('email-already-in-use') || msg.includes('email-already-in-use')) setError('An account with this email already exists.');
-      else if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) setError('Invalid email or password.');
-      else if (code.includes('invalid-email') || msg.includes('invalid-email')) setError('Please enter a valid email address.');
-      else if (code.includes('weak-password') || msg.includes('weak-password')) setError('Password must be at least 6 characters.');
-      else setError(typeof err?.message === 'string' ? err.message : 'Something went wrong. Please try again.');
-    } finally {
+      
+      if (msg.includes('USERNAME_TAKEN')) setError('That username is already taken. Please choose a different one.');
+        else if (code.includes('email-already-in-use') || msg.includes('email-already-in-use')) setError('An account with this email already exists.');
+        else if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) setError('Invalid email or password.');
+        else if (code.includes('invalid-email') || msg.includes('invalid-email')) setError('Please enter a valid email address.');
+        else if (code.includes('weak-password') || msg.includes('weak-password')) setError('Password must be at least 6 characters.');
+        else setError(typeof err?.message === 'string' ? err.message : 'Something went wrong. Please try again.');
+      } finally {
       setSubmitting(false);
     }
   };

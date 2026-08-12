@@ -43,3 +43,20 @@
 .create-gate h2 { font-size: 20px; margin-bottom: 8px; }
 .create-gate p { color: var(--text-secondary); margin-bottom: 20px; }
 .create-gate button { background: var(--accent); color: white; padding: 10px 20px; border-radius: var(--radius); font-weight: 600; }
+
+.form-label-row {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 6px;
+}
+.form-label-row label { margin-bottom: 0; }
+.field-error {
+  font-size: 12px; color: #f87171; margin-top: 4px; display: block;
+}
+.submit-error {
+  background: #2a1010; border: 1px solid #f8717140;
+  color: #f87171; border-radius: var(--radius);
+  padding: 10px 14px; font-size: 13px;
+}
+.input-error {
+  border-color: #f87171 !important;
+}

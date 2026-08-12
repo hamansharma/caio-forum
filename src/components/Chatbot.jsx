@@ -84,8 +84,8 @@ export default function Chatbot() {
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'API error');
+        const errData  = await response.json();
+        throw new Error(errData.error || 'API error');
       }
 
       const data = await response.json();
@@ -94,7 +94,7 @@ export default function Chatbot() {
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, chat is unavailable right now. Someone forgot to pay Claude AI bill and I am out of credits!',
+        content: err.message || 'Sorry, chat is unavailable right now. Someone forgot to pay Claude AI bill and I am out of credits!',
       }]);
     } finally {
       setLoading(false);

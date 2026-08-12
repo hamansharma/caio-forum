@@ -69,29 +69,62 @@ export function ForumProvider({ children }) {
     await setDoc(doc(db, 'users', uid), data, { merge: true });
   };
 
+  const checkUsernameAvailable = async (username) => {
+    const normalized = username.toLowerCase().trim();
+    try {
+      const snap = await getDoc(doc(db, 'usernames', normalized));
+      return !snap.exists();
+    } catch {
+      return false;
+    }
+  };
+
+  const claimUsername = async (uid, username) => {
+    const normalized = username.toLowerCase().trim();
+    await setDoc(doc(db, 'usernames', normalized), { uid });
+  };
+
   const signup = async ({ email, password, fullName, username }) => {
-      let credential;
-      try {
-        credential = await createUserWithEmailAndPassword(auth, email, password);
-      } catch (err) {
-        throw err;
-      }
-      const uid = credential.user.uid;
-      try {
-        await setDoc(doc(db, 'users', uid), {
-          email: String(email),
-          fullName: String(fullName),
-          username: String(username),
-          votedPosts: {},
-          votedComments: {},
-          createdAt: new Date().toISOString(),
-        });
-      } catch (firestoreErr) {
-        console.error('Firestore write failed:', firestoreErr);
-        throw new Error('Account created but profile save failed. Please try signing in.');
-      }
-      setUser({ uid, email: String(email), fullName: String(fullName), username: String(username) });
-    };
+    // Check username availability before creating auth account
+    const available = await checkUsernameAvailable(username);
+    if (!available) {
+      throw new Error('USERNAME_TAKEN');
+    }
+
+    let credential;
+    try {
+      credential = await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      throw err;
+    }
+
+    const uid = credential.user.uid;
+
+    try {
+      // Claim the username in the index
+      await claimUsername(uid, username);
+
+      // Save user profile
+      await setDoc(doc(db, 'users', uid), {
+        email: String(email),
+        fullName: String(fullName),
+        username: String(username),
+        votedPosts: {},
+        votedComments: {},
+        createdAt: new Date().toISOString(),
+      });
+    } catch (firestoreErr) {
+      console.error('Firestore write failed:', firestoreErr);
+      throw new Error('Account created but profile save failed. Please try signing in.');
+    }
+
+    setUser({
+      uid,
+      email: String(email),
+      fullName: String(fullName),
+      username: String(username),
+    });
+  };
 
   const login = async ({ email, password }) => {
     const credential = await signInWithEmailAndPassword(auth, email, password);
@@ -209,7 +242,19 @@ export function ForumProvider({ children }) {
     await updateDoc(postRef, { comments });
   };
 
-  const updateAlias = async (newAlias, useAlias) => {
+const updateAlias = async (newAlias, useAlias) => {
+    // Check new alias isn't taken by someone else
+    const normalized = newAlias.toLowerCase().trim();
+    const snap = await getDoc(doc(db, 'usernames', normalized));
+    if (snap.exists() && snap.data().uid !== user.uid) {
+      throw new Error('USERNAME_TAKEN');
+    }
+
+    // Claim new username in index (if not already claimed by this user)
+    if (!snap.exists()) {
+      await setDoc(doc(db, 'usernames', normalized), { uid: user.uid });
+    }
+
     await saveUserData(user.uid, { username: newAlias, useAlias });
     setUser(prev => ({ ...prev, username: newAlias, useAlias }));
   };

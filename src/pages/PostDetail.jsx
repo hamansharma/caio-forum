@@ -8,6 +8,8 @@ import MarkdownRenderer from '../components/MarkdownRenderer';
 import MarkdownEditor from '../components/MarkdownEditor';
 import InlineConfirm from '../components/InlineConfirm';
 import './PostDetail.css';
+import CharCount from '../components/CharCount';
+import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
 
 const SORT_OPTS = [
   { key: 'newest', label: 'Newest', icon: Clock },
@@ -38,6 +40,7 @@ export default function PostDetail() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
+  const [commentError, setCommentError] = useState('');
 
   const post = posts.find(p => p.id === id);
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
@@ -45,11 +48,17 @@ export default function PostDetail() {
   const voted = votedPosts[post.id] || 0;
   const isAuthor = user?.username === post.author;
 
-  const handleComment = (e) => {
+  const handleComment = async (e) => {
     e.preventDefault();
-    if (!comment.trim()) return;
-    addComment(post.id, comment.trim(), null);
-    setComment('');
+    const err = validateComment(comment);
+    if (err) { setCommentError(err); return; }
+    try {
+      await addComment(post.id, sanitizeText(comment), null);
+      setComment('');
+      setCommentError('');
+    } catch {
+      setCommentError('Failed to post comment. Please try again.');
+    }
   };
 
   const handleEdit = () => {
@@ -168,11 +177,22 @@ export default function PostDetail() {
           <form className="comment-form" onSubmit={handleComment}>
             <MarkdownEditor
               value={comment}
-              onChange={setComment}
+              onChange={(val) => { setComment(val); setCommentError(''); }}
               placeholder={`Comment as u/${user.username}`}
               rows={4}
             />
-            <button type="submit" disabled={!comment.trim()}>Add Comment</button>
+            <div className="comment-form-footer">
+              <div>
+                {commentError && <span className="field-error">{commentError}</span>}
+              </div>
+              <div className="comment-form-right">
+                <CharCount current={comment.length} max={LIMITS.COMMENT_MAX} />
+                <button type="submit"
+                  disabled={!comment.trim() || comment.length > LIMITS.COMMENT_MAX}>
+                  Add Comment
+                </button>
+              </div>
+            </div>
           </form>
         ) : (
           <div className="login-prompt">Sign in to leave a comment</div>

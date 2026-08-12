@@ -55,7 +55,9 @@ export default function Profile() {
       await updateAlias(alias.trim(), useAliasForPosts);
       showSaved('Display name updated — applies to future posts.');
     } catch (err) {
-      setError(err.message || 'Failed to update display name.');
+      if (err.message?.includes('USERNAME_TAKEN'))
+        setError('That username is already taken. Please choose a different one.');
+      else setError(err.message || 'Failed to update display name.');
     }
   };
 
