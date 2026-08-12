@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Pencil, Trash2, RefreshCw, Lock, Check } from 'lucide-react';
+import { User, Trash2, RefreshCw, Lock, Check } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import { generateUsername } from '../utils/usernameGenerator';
 import InlineConfirm from '../components/InlineConfirm';
 import './Profile.css';
 
-const SECTIONS = ['display', 'alias', 'password', 'danger'];
 
 export default function Profile() {
   const { user, posts, updateAlias, updatePassword, deleteAccount } = useForum();
