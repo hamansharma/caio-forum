@@ -23,7 +23,7 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
   const key = `${postId}-${comment.id}`;
   const voted = votedComments[key] || 0;
   const replies = allComments.filter(c => c.parentId === comment.id);
-  const isAuthor = user?.username === comment.author;
+  const isAuthor = user?.uid && user.uid === comment.authorUid;
   const isDeleted = comment.deleted;
 
   const handleReply = async (e) => {

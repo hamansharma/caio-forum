@@ -46,7 +46,7 @@ export default function PostDetail() {
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
 
   const voted = votedPosts[post.id] || 0;
-  const isAuthor = user?.username === post.author;
+  const isAuthor = user?.uid && user.uid === post.authorUid;
 
   const handleComment = async (e) => {
     e.preventDefault();

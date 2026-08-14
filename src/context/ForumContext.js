@@ -155,6 +155,7 @@ export function ForumProvider({ children }) {
     const ref = await addDoc(collection(db, 'posts'), {
       ...postData,
       author: user?.username || 'anonymous',
+      authorUid: user?.uid || null,
       authorFullName: user?.fullName || '',
       createdAt: serverTimestamp(),
       votes: 1,
@@ -164,11 +165,17 @@ export function ForumProvider({ children }) {
   };
 
   const votePost = async (postId, dir) => {
+    if (!user) return;
     const prev = votedPosts[postId] || 0;
     if (prev === dir) return;
+    const delta = dir - prev;
+    if (delta < -2 || delta > 2) return; // sanity check
     const newVoted = { ...votedPosts, [postId]: dir };
     setVotedPosts(newVoted);
-    await updateDoc(doc(db, 'posts', postId), { votes: increment(dir - prev) });
+    await updateDoc(doc(db, 'posts', postId), {
+      votes: increment(delta),
+      [`userVotes.${user.uid}`]: dir === 0 ? null : dir,
+    });
     if (user) await saveUserData(user.uid, { votedPosts: newVoted });
   };
 
@@ -181,6 +188,7 @@ export function ForumProvider({ children }) {
       postId,
       parentId,
       author: user?.username || 'anonymous',
+      authorUid: user?.uid || null,
       body,
       votes: 1,
       createdAt: new Date().toISOString(),
@@ -204,6 +212,8 @@ export function ForumProvider({ children }) {
   };
 
   const editPost = async (postId, newTitle, newBody) => {
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+    if (postSnap.data().authorUid !== user?.uid) throw new Error('Not authorized.');
     await updateDoc(doc(db, 'posts', postId), {
       title: newTitle,
       body: newBody,
@@ -212,6 +222,8 @@ export function ForumProvider({ children }) {
   };
 
   const deletePost = async (postId) => {
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+    if (postSnap.data().authorUid !== user?.uid) throw new Error('Not authorized.');
     await updateDoc(doc(db, 'posts', postId), {
       deleted: true,
       deletedAt: new Date().toISOString(),
@@ -223,22 +235,22 @@ export function ForumProvider({ children }) {
   const editComment = async (postId, commentId, newBody) => {
     const postRef = doc(db, 'posts', postId);
     const postSnap = await getDoc(postRef);
-    const comments = postSnap.data().comments.map(c =>
-      c.id === commentId
-        ? { ...c, body: newBody, editedAt: new Date().toISOString() }
-        : c
-    );
+    const comments = postSnap.data().comments.map(c => {
+      if (c.id !== commentId) return c;
+      if (c.authorUid !== user?.uid) throw new Error('Not authorized.');
+      return { ...c, body: newBody, editedAt: new Date().toISOString() };
+    });
     await updateDoc(postRef, { comments });
   };
 
   const deleteComment = async (postId, commentId) => {
     const postRef = doc(db, 'posts', postId);
     const postSnap = await getDoc(postRef);
-    const comments = postSnap.data().comments.map(c =>
-      c.id === commentId
-        ? { ...c, body: '[deleted]', author: '[deleted]', deleted: true }
-        : c
-    );
+    const comments = postSnap.data().comments.map(c => {
+      if (c.id !== commentId) return c;
+      if (c.authorUid !== user?.uid) throw new Error('Not authorized.');
+      return { ...c, body: '[deleted]', author: '[deleted]', deleted: true };
+    });
     await updateDoc(postRef, { comments });
   };
 
