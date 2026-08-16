@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ForumProvider } from './context/ForumContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -29,6 +30,7 @@ export default function App() {
         </Routes>
         <Chatbot />
         <Analytics />
+        <SpeedInsights />
         {/* Your comment here 
         <button onClick={seedFirestore} style={{position:'fixed',bottom:20,right:20,zIndex:999,background:'red',color:'white',padding:'10px',borderRadius:'8px'}}>
         Seed DB
