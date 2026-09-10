@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, LogOut, User } from 'lucide-react';
+import { Activity, PlusCircle, LogOut, User } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import AuthModal from './AuthModal';
 import SearchBar from './SearchBar';
@@ -56,6 +56,9 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
+          <button className="btn-playground" onClick={() => navigate('/playground')}>
+            <Activity size={16} /> AI Playground
+          </button>
           {authLoading ? (
             <span className="nav-loading">Loading…</span>
           ) : user ? (

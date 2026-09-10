@@ -35,6 +35,42 @@ A small Create React App single-page forum demo using Firebase (Firestore + Auth
    npm start
    Open http://localhost:3000
 
+## Google Health connection (private beta)
+
+The `/health` page is a private, signed-in user flow. It starts Google OAuth for Google Health on the server, encrypts access and refresh tokens before they are saved, and only returns connection status or an identity-verification result to the browser. It does not yet sync or chart health measurements.
+
+Create a Google Cloud OAuth client for the Google Health API and register this exact callback URL:
+
+```
+https://<your-domain>/api/google-health/callback
+```
+
+Google Health requires Google OAuth and HTTPS. Add the following **server-only** variables to Vercel (and to a local server environment). Do not prefix them with `REACT_APP_`, and never commit them:
+
+```
+GOOGLE_HEALTH_CLIENT_ID=
+GOOGLE_HEALTH_CLIENT_SECRET=
+GOOGLE_HEALTH_REDIRECT_URI=https://<your-domain>/api/google-health/callback
+HEALTH_TOKEN_ENCRYPTION_KEY=   # base64 encoding of exactly 32 random bytes
+APP_URL=https://<your-domain>
+
+# Firebase Admin service account — server-only
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=    # preserve escaped \\n characters in Vercel
+```
+
+Generate the encryption key locally with `openssl rand -base64 32`; store the result only in your deployment secret manager. Rotating this key makes previously stored Google Health tokens unreadable, so use a deliberate key-rotation migration later.
+
+### Firestore access requirement
+
+The server stores encrypted credentials in `healthConnections/{uid}` and temporary OAuth state in `healthOAuthStates/{state}`. Add explicit **deny** rules for both collections to the Firestore rules deployed in Firebase. They must be readable and writable only through the Admin SDK; browser clients must never access them.
+
+```
+match /healthConnections/{document=**} { allow read, write: if false; }
+match /healthOAuthStates/{document=**} { allow read, write: if false; }
+```
+
 ## Build & deploy
 - Build for production:
   npm run build
