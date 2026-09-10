@@ -1,0 +1,36 @@
+.signals-dashboard { margin-top: 42px; }
+.signals-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.signals-heading h2 { margin: 4px 0 5px; font-size: 24px; letter-spacing: -.03em; }
+.signals-heading p { max-width: 620px; margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+.signals-heading > svg { margin-top: 8px; color: var(--accent); }
+.signals-eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.signal-summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+.signal-summary-card { min-height: 138px; padding: 17px; border: 1px solid var(--border); border-radius: 13px; background: var(--bg-card); box-shadow: var(--shadow-sm); }
+.signal-summary-card > span:not(.signal-summary-icon), .signal-summary-card small { display: block; color: var(--text-muted); font-size: 12px; font-weight: 650; }
+.signal-summary-card strong { display: block; margin: 9px 0 5px; font-size: 22px; letter-spacing: -.03em; }
+.signal-summary-card small { font-weight: 500; }
+.signal-summary-icon, .health-chart-icon { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-bottom: 9px; border-radius: 8px; color: var(--signal-color); background: color-mix(in srgb, var(--signal-color) 14%, transparent); }
+.health-chart-stack { display: grid; gap: 18px; }
+.health-chart-panel { padding: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-card); box-shadow: var(--shadow-sm); }
+.health-chart-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 13px; }
+.health-chart-title { display: flex; gap: 10px; align-items: flex-start; }
+.health-chart-title .health-chart-icon { flex: 0 0 auto; margin: 0; }
+.health-chart-title h3 { margin: 1px 0 3px; font-size: 16px; }
+.health-chart-title p { margin: 0; color: var(--text-muted); font-size: 12px; }
+.health-chart-reading { min-width: 112px; text-align: right; }
+.health-chart-reading strong, .health-chart-reading span { display: block; }
+.health-chart-reading strong { font-size: 16px; letter-spacing: -.02em; }
+.health-chart-reading span { margin-top: 3px; color: var(--text-muted); font-size: 12px; }
+.health-chart-canvas { cursor: crosshair; touch-action: pan-y; user-select: none; }
+.health-chart-canvas svg { display: block; width: 100%; height: auto; overflow: visible; }
+.health-chart-plot { fill: color-mix(in srgb, var(--bg-hover) 72%, transparent); stroke: var(--border); stroke-width: 1; }
+.health-chart-grid { stroke: var(--border); stroke-dasharray: 3 5; stroke-width: 1; }
+.health-chart-y-label, .health-chart-x-label, .health-chart-axis-title { fill: var(--text-muted); font-family: inherit; font-size: 11px; }
+.health-chart-y-label { text-anchor: end; }.health-chart-x-label { text-anchor: middle; }.health-chart-axis-title { text-anchor: middle; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.health-chart-tick { stroke: var(--text-muted); stroke-width: 1; }
+.health-chart-bar { opacity: .86; }.health-chart-bar:hover { opacity: 1; }
+.health-chart-area { opacity: .14; }.health-chart-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.health-chart-crosshair { stroke: var(--text-primary); stroke-opacity: .24; stroke-dasharray: 3 4; pointer-events: none; }.health-chart-marker { stroke: var(--bg-card); stroke-width: 3; pointer-events: none; }
+.health-chart-caption { margin: 2px 0 0 43px; color: var(--text-muted); font-size: 11px; }
+.health-chart-no-data { display: grid; min-height: 180px; place-items: center; margin-top: 16px; border: 1px dashed var(--border); border-radius: 9px; color: var(--text-muted); font-size: 14px; }
+@media (max-width: 680px) { .signal-summary-cards { grid-template-columns: 1fr; }.health-chart-panel { padding: 15px 10px; }.health-chart-header { padding: 0 6px; }.health-chart-reading { min-width: 92px; }.health-chart-title p { display: none; }.health-chart-caption { margin-left: 6px; }.health-chart-y-label, .health-chart-x-label { font-size: 12px; } }
