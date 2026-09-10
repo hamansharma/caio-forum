@@ -4,10 +4,13 @@ import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import './Health.css';
 
-async function authenticatedFetch(path) {
+async function authenticatedFetch(path, options = {}) {
   const token = await auth.currentUser?.getIdToken();
   if (!token) throw new Error('Your session has expired. Please sign in again.');
-  return fetch(path, { headers: { Authorization: `Bearer ${token}` } });
+  return fetch(path, {
+    ...options,
+    headers: { Authorization: `Bearer ${token}`, ...options.headers },
+  });
 }
 
 export default function Health() {
@@ -35,7 +38,7 @@ export default function Health() {
     setConnecting(true);
     setError('');
     try {
-      const response = await authenticatedFetch('/api/google-health/connect');
+      const response = await authenticatedFetch('/api/google-health/connect', { method: 'POST' });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error);
       window.location.assign(body.authorizationUrl);
