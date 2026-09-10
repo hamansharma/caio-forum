@@ -2,6 +2,7 @@ import { adminDb, requireUser } from '../_lib/firebaseAdmin';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed.' });
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
   try {
     const user = await requireUser(req);
     const connection = await adminDb.collection('healthConnections').doc(user.uid).get();

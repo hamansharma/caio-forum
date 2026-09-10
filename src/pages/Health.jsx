@@ -9,6 +9,7 @@ async function authenticatedFetch(path, options = {}) {
   if (!token) throw new Error('Your session has expired. Please sign in again.');
   return fetch(path, {
     ...options,
+    cache: 'no-store',
     headers: { Authorization: `Bearer ${token}`, ...options.headers },
   });
 }
@@ -20,6 +21,11 @@ export default function Health() {
   const [error, setError] = useState('');
   const [connecting, setConnecting] = useState(false);
   const queryStatus = new URLSearchParams(window.location.search).get('connection');
+  const connectionMessage = {
+    cancelled: 'Google consent was cancelled. You can try connecting again whenever you are ready.',
+    expired: 'The connection window expired. Please start the connection again.',
+    error: 'Google could not complete the connection. Check the secure Vercel function log for the callback error.',
+  }[queryStatus];
 
   useEffect(() => {
     if (!user) return;
@@ -82,7 +88,7 @@ export default function Health() {
         </div>
 
         {queryStatus === 'connected' && <p className="health-success"><CheckCircle2 size={17} /> Your health account is connected. Verify it below.</p>}
-        {queryStatus && queryStatus !== 'connected' && <p className="health-error">Connection was not completed. Please try again.</p>}
+        {connectionMessage && <p className="health-error">{connectionMessage}</p>}
         {error && <p className="health-error">{error}</p>}
 
         {status?.connected ? (
