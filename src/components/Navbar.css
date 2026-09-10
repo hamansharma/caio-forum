@@ -31,6 +31,12 @@
   transition: background 0.15s;
 }
 .btn-create:hover { background: var(--accent-hover); }
+.btn-playground {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-secondary); padding: 7px 10px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; transition: color .15s, background .15s;
+}
+.btn-playground:hover { color: var(--text-primary); background: var(--bg-hover); }
 .navbar-user {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; color: var(--text-secondary);

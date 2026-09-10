@@ -8,6 +8,8 @@ import Home from './pages/Home';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
+import Health from './pages/Health';
+import Playground from './pages/Playground';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/post/:id" element={<PostDetail />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/health" element={<Health />} />
+          <Route path="/playground" element={<Playground />} />
           
         </Routes>
         <Chatbot />
