@@ -4,10 +4,21 @@ import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import './Health.css';
 
-async function authenticatedFetch(path) {
+async function authenticatedFetch(path, options = {}) {
   const token = await auth.currentUser?.getIdToken();
-  if (!token) throw new Error('Your session has expired. Please sign in again.');
-  return fetch(path, { headers: { Authorization: `Bearer ${token}` } });
+
+  if (!token) {
+    throw new Error('Your session has expired. Please sign in again.');
+  }
+
+  return fetch(path, {
+    ...options,
+    cache: options.cache ?? 'no-store',
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
 export default function Health() {
