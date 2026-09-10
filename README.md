@@ -52,6 +52,7 @@ GOOGLE_HEALTH_CLIENT_ID=
 GOOGLE_HEALTH_CLIENT_SECRET=
 GOOGLE_HEALTH_REDIRECT_URI=https://<your-domain>/api/google-health/callback
 HEALTH_TOKEN_ENCRYPTION_KEY=   # base64 encoding of exactly 32 random bytes
+CRON_SECRET=                   # a separate long random secret for Vercel Cron
 APP_URL=https://<your-domain>
 
 # Firebase Admin service account — server-only
@@ -69,7 +70,12 @@ The server stores encrypted credentials in `healthConnections/{uid}` and tempora
 ```
 match /healthConnections/{document=**} { allow read, write: if false; }
 match /healthOAuthStates/{document=**} { allow read, write: if false; }
+match /healthDailyMetrics/{document=**} { allow read, write: if false; }
 ```
+
+The first sync stores only daily summaries for steps, total sleep duration, and
+resting heart rate in server-only `healthDailyMetrics` documents. A Vercel Cron
+job runs daily at 11:00 UTC; `CRON_SECRET` is required for it to run securely.
 
 ## Build & deploy
 - Build for production:

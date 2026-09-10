@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, CheckCircle2, Link2, Loader, ShieldCheck } from 'lucide-react';
+import { Activity, CheckCircle2, Link2, Loader, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import './Health.css';
@@ -16,6 +16,8 @@ export default function Health() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
   const queryStatus = new URLSearchParams(window.location.search).get('connection');
 
   useEffect(() => {
@@ -59,6 +61,22 @@ export default function Health() {
     }
   };
 
+  const syncNow = async () => {
+    setSyncing(true);
+    setError('');
+    setSyncMessage('');
+    try {
+      const response = await authenticatedFetch('/api/google-health/sync', { method: 'POST' });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error);
+      setSyncMessage(`Synced ${body.daysSynced} days of private health summaries.`);
+    } catch (err) {
+      setError(err.message || 'Unable to sync health metrics.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (authLoading) return <main className="health-page"><p>Loading…</p></main>;
   if (!user) {
     return <main className="health-page"><section className="health-card"><h1>Personal Signals</h1><p>Please sign in to connect a Fitbit. Your health data is private to your account.</p></section></main>;
@@ -86,7 +104,9 @@ export default function Health() {
           <div className="health-connected">
             <p><CheckCircle2 size={18} /> Connected securely</p>
             <button className="health-secondary" onClick={verifyConnection}>Verify connection</button>
+            <button className="health-secondary" onClick={syncNow} disabled={syncing}>{syncing ? <><Loader className="spin" size={15} /> Syncing…</> : <><RefreshCw size={15} /> Sync last 30 days</>}</button>
             {profile && <p className="health-verified">Google Health connection verified.</p>}
+            {syncMessage && <p className="health-verified">{syncMessage}</p>}
           </div>
         ) : (
           <button className="health-connect" onClick={connect} disabled={connecting || !status}>
