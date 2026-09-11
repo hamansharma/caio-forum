@@ -32,6 +32,7 @@ export default function Health() {
   const [syncMessage, setSyncMessage] = useState('');
   const [metrics, setMetrics] = useState([]);
   const [metricsLoading, setMetricsLoading] = useState(false);
+  const [workouts, setWorkouts] = useState([]);
   const queryStatus = new URLSearchParams(window.location.search).get('connection');
 
   useEffect(() => {
@@ -51,11 +52,15 @@ export default function Health() {
     if (!status?.connected) return;
     let active = true;
     setMetricsLoading(true);
-    authenticatedFetch('/api/google-health/metrics?days=30')
-      .then(async response => {
-        const body = await response.json();
-        if (!response.ok) throw new Error(body.error);
-        if (active) setMetrics(body.days || []);
+    Promise.all([authenticatedFetch('/api/google-health/metrics?days=30'), authenticatedFetch('/api/google-health/workouts')])
+      .then(async ([metricsResponse, workoutsResponse]) => {
+        const [metricsBody, workoutsBody] = await Promise.all([metricsResponse.json(), workoutsResponse.json()]);
+        if (!metricsResponse.ok) throw new Error(metricsBody.error);
+        if (!workoutsResponse.ok) throw new Error(workoutsBody.error);
+        if (active) {
+          setMetrics(metricsBody.days || []);
+          setWorkouts(workoutsBody.workouts || []);
+        }
       })
       .catch(err => active && setError(err.message || 'Unable to load your health summaries.'))
       .finally(() => active && setMetricsLoading(false));
@@ -102,6 +107,9 @@ export default function Health() {
       const metricsResponse = await authenticatedFetch('/api/google-health/metrics?days=30');
       const metricsBody = await metricsResponse.json();
       if (metricsResponse.ok) setMetrics(metricsBody.days || []);
+      const workoutsResponse = await authenticatedFetch('/api/google-health/workouts');
+      const workoutsBody = await workoutsResponse.json();
+      if (workoutsResponse.ok) setWorkouts(workoutsBody.workouts || []);
     } catch (err) {
       setError(err.message || 'Unable to sync health metrics.');
     } finally {
@@ -147,7 +155,7 @@ export default function Health() {
         )}
       </section>
 
-      {status?.connected && <HealthCharts metrics={metrics} loading={metricsLoading} />}
+      {status?.connected && <HealthCharts metrics={metrics} workouts={workouts} loading={metricsLoading} />}
 
       <section className="health-privacy">
         <ShieldCheck size={20} />

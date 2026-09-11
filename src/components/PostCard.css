@@ -55,3 +55,9 @@
   transition: color 0.15s, background 0.15s;
 }
 .action-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+@media (max-width: 480px) {
+  .vote-col { min-width: 44px; padding: 12px 7px; }
+  .post-body { padding: 13px 12px; }
+  .post-title { font-size: 16px; }
+  .post-excerpt { font-size: 13px; }
+}

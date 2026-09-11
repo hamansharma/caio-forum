@@ -44,7 +44,7 @@ export default function Navbar() {
       <nav className="navbar">
         <Link to="/" className="navbar-brand">
           <img src={logo} alt="CAIO Forum" className="navbar-logo" />
-          <span>CAIO Forum</span>
+          <span className="navbar-title">CAIO Forum</span>
           <span className="navbar-badge">Roadmap to Chief AI Officer</span>
         </Link>
 
@@ -57,14 +57,14 @@ export default function Navbar() {
 
         <div className="navbar-actions">
           <button className="btn-playground" onClick={() => navigate('/playground')}>
-            <Activity size={16} /> AI Playground
+            <Activity size={16} /> <span className="nav-label">AI Playground</span>
           </button>
           {authLoading ? (
             <span className="nav-loading">Loading…</span>
           ) : user ? (
             <>
               <button className="btn-create" onClick={() => navigate('/create')}>
-                <PlusCircle size={16} /> Create Post
+                <PlusCircle size={16} /> <span className="nav-label">Create Post</span>
               </button>
               <Link to="/profile" className="navbar-user" title={user.fullName}>
                 <User size={15} />

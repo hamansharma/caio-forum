@@ -174,3 +174,11 @@
 .comment-form-right {
   display: flex; align-items: center; gap: 10px; margin-left: auto;
 }
+@media (max-width: 480px) {
+  .detail-page { padding: 16px 12px; }
+  .detail-vote { min-width: 45px; padding: 13px 7px; }
+  .detail-content { padding: 16px 12px; }
+  .detail-title { font-size: 20px; }
+  .comment { gap: 8px; padding: 12px; }
+  .comment-form-right { width: 100%; margin-left: 0; justify-content: space-between; }
+}

@@ -11,3 +11,13 @@
 .health-connect { background: var(--accent); color: white; }.health-connect:disabled { opacity: .6; cursor: wait; }.health-secondary { color: var(--accent); background: var(--bg-hover); }
 .health-connected > p:first-child, .health-success { display: flex; gap: 8px; align-items: center; color: #198754; font-weight: 600; }.health-success { margin: 0 0 18px; }.health-error { color: #c63838; margin: 0 0 18px; }.health-verified { color: var(--text-secondary); font-size: 14px; }
 .health-privacy { display: flex; gap: 13px; margin-top: 26px; padding: 18px; border-radius: 10px; color: var(--text-secondary); background: var(--bg-hover); }.health-privacy svg { color: var(--accent); flex: 0 0 auto; }.health-privacy strong { color: var(--text-primary); }.health-privacy p { margin: 5px 0 0; line-height: 1.55; font-size: 14px; }
+@media (max-width: 680px) {
+  .health-page { padding: 32px 16px 64px; }
+  .health-hero h1 { font-size: 30px; }
+  .health-card { padding: 20px 16px; }
+  .health-card-heading { align-items: flex-start; margin-bottom: 20px; }
+  .health-connected { display: grid; gap: 9px; }
+  .health-connected > p:first-child { margin-bottom: 4px; }
+  .health-secondary, .health-connect { justify-content: center; width: 100%; min-height: 44px; }
+  .health-privacy { padding: 16px; }
+}

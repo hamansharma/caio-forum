@@ -93,5 +93,17 @@
   margin: 0 16px;
 }
 @media (max-width: 600px) {
-  .navbar-search { display: none; }
+  .navbar { height: 60px; padding: 0 12px; }
+  .navbar-search, .navbar-badge { display: none; }
+  .navbar-actions { gap: 2px; }
+  .btn-playground, .btn-create { padding: 8px; }
+  .nav-label, .navbar-user span { display: none; }
+  .navbar-user { padding: 7px; }
+  .btn-icon { padding: 8px; }
+  .btn-login { padding: 7px 12px; }
+  .modal { width: calc(100% - 32px); padding: 24px 20px; }
+}
+@media (max-width: 390px) {
+  .navbar-logo { height: 32px; }
+  .navbar-title { display: none; }
 }

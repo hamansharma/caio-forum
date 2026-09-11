@@ -11,6 +11,15 @@
 .signal-summary-card small { font-weight: 500; }
 .signal-summary-icon, .health-chart-icon { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-bottom: 9px; border-radius: 8px; color: var(--signal-color); background: color-mix(in srgb, var(--signal-color) 14%, transparent); }
 .health-chart-stack { display: grid; gap: 18px; }
+.health-chart-group { margin-top: 34px; }
+.health-chart-group-heading { margin-bottom: 14px; }
+.health-chart-group-heading span { color: var(--text-primary); font-size: 18px; font-weight: 750; letter-spacing: -.02em; }
+.health-chart-group-heading p { margin: 3px 0 0; color: var(--text-muted); font-size: 13px; }
+.health-workouts { margin-top: 34px; }
+.health-workout-list { display: grid; gap: 8px; }
+.health-workout { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); }
+.health-workout-icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 8px; color: #a78bfa; background: #a78bfa1d; }
+.health-workout strong, .health-workout span { display: block; }.health-workout strong { font-size: 14px; }.health-workout > div > span { color: var(--text-muted); font-size: 12px; }.health-workout-metrics { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }.health-workout-metrics span { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 .health-chart-panel { padding: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-card); box-shadow: var(--shadow-sm); }
 .health-chart-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 13px; }
 .health-chart-title { display: flex; gap: 10px; align-items: flex-start; }
@@ -33,4 +42,4 @@
 .health-chart-crosshair { stroke: var(--text-primary); stroke-opacity: .24; stroke-dasharray: 3 4; pointer-events: none; }.health-chart-marker { stroke: var(--bg-card); stroke-width: 3; pointer-events: none; }
 .health-chart-caption { margin: 2px 0 0 43px; color: var(--text-muted); font-size: 11px; }
 .health-chart-no-data { display: grid; min-height: 180px; place-items: center; margin-top: 16px; border: 1px dashed var(--border); border-radius: 9px; color: var(--text-muted); font-size: 14px; }
-@media (max-width: 680px) { .signal-summary-cards { grid-template-columns: 1fr; }.health-chart-panel { padding: 15px 10px; }.health-chart-header { padding: 0 6px; }.health-chart-reading { min-width: 92px; }.health-chart-title p { display: none; }.health-chart-caption { margin-left: 6px; }.health-chart-y-label, .health-chart-x-label { font-size: 12px; } }
+@media (max-width: 680px) { .signal-summary-cards { grid-template-columns: 1fr; }.health-chart-panel { padding: 15px 10px; }.health-chart-header { padding: 0 6px; }.health-chart-reading { min-width: 92px; }.health-chart-title p { display: none; }.health-chart-caption { margin-left: 6px; }.health-chart-y-label, .health-chart-x-label { font-size: 12px; }.health-workout { grid-template-columns: auto minmax(0, 1fr); }.health-workout-metrics { grid-column: 2; justify-content: flex-start; gap: 8px; } }

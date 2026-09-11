@@ -4,6 +4,12 @@
   display: grid; grid-template-columns: 1fr 300px; gap: 24px;
 }
 @media (max-width: 768px) { .home { grid-template-columns: 1fr; } .home-sidebar { display: none; } }
+@media (max-width: 480px) {
+  .home { padding: 16px 12px; }
+  .sort-bar { align-items: stretch; padding: 9px; }
+  .filter-pills { width: 100%; margin-left: 0; }
+  .filter-pill { flex: 1 0 auto; }
+}
 
 .sort-bar {
   display: flex; align-items: center; gap: 4px;

@@ -21,11 +21,12 @@
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
   overflow: hidden;
 }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .chatbot-window {
     width: calc(100vw - 24px); right: 12px;
-    bottom: 80px; height: 70vh;
+    bottom: 80px; height: min(70vh, 560px);
   }
+  .chatbot-fab { right: 14px; bottom: 14px; }
 }
 
 .chatbot-header {
