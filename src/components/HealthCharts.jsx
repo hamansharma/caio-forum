@@ -41,10 +41,6 @@ function formatSleep(minutes) {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-function latestValue(metrics, key) {
-  return [...metrics].reverse().find(day => Number.isFinite(day[key]))?.[key];
-}
-
 function makeTicks(min, max, field, zeroBaseline) {
   if (field === 'sleepMinutes') {
     const hours = Math.max(1, Math.ceil(max / 60));
@@ -86,19 +82,47 @@ function segments(points) {
   return result;
 }
 
-function SnapshotCards({ metrics }) {
+function MiniTrend({ metrics, field, color }) {
+  const values = metrics.map(day => day[field]);
+  const available = values.filter(Number.isFinite);
+  if (!available.length) return null;
+  const min = Math.min(...available);
+  const max = Math.max(...available);
+  const points = values.map((value, index) => {
+    if (!Number.isFinite(value)) return null;
+    const x = values.length === 1 ? 50 : (index / (values.length - 1)) * 100;
+    const y = max === min ? 50 : 82 - ((value - min) / (max - min)) * 64;
+    return { x, y };
+  });
+  return <svg className="signal-tile-trend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{segments(points).map((segment, index) => <polyline key={index} points={segment.map(point => `${point.x},${point.y}`).join(' ')} fill="none" stroke={color} strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />)}</svg>;
+}
+
+function SignalTile({ metrics, definition, active, onSelect }) {
+  const { field, title, color, icon: Icon, format } = definition;
+  const latestDay = [...metrics].reverse().find(day => Number.isFinite(day[field]));
   return (
-    <div className="signal-summary-cards">
-      {coreCharts.map(({ field, title, color, icon: Icon, format }) => {
-        const value = latestValue(metrics, field);
-        return (
-          <article className="signal-summary-card" key={field}>
-            <span className="signal-summary-icon" style={{ '--signal-color': color }}><Icon size={17} /></span>
-            <span>{title}</span>
-            <strong>{Number.isFinite(value) ? format(value) : '—'}</strong>
-            <small>Most recent available day</small>
-          </article>
-        );
+    <button type="button" className={`signal-tile${active ? ' active' : ''}`} aria-pressed={active} onClick={onSelect} style={{ '--signal-color': color }}>
+      <span className="signal-tile-top"><span className="signal-tile-icon"><Icon size={16} /></span><span className="signal-tile-open">View chart</span></span>
+      <span className="signal-tile-title">{title}</span>
+      <strong>{latestDay ? format(latestDay[field]) : '—'}</strong>
+      <span className="signal-tile-date">{latestDay ? formatDay(latestDay.date) : 'No recorded day'}</span>
+      <MiniTrend metrics={metrics} field={field} color={color} />
+    </button>
+  );
+}
+
+function SignalExplorer({ metrics, selectedField, onSelect }) {
+  const groups = [
+    { title: 'Core signals', definitions: coreCharts },
+    { title: 'Activity & energy', definitions: activityCharts },
+    { title: 'Recovery context', definitions: recoveryCharts },
+  ];
+  return (
+    <div className="signal-explorer">
+      {groups.map(group => {
+        const definitions = group.definitions.filter(({ field }) => metrics.some(day => Number.isFinite(day[field])));
+        if (!definitions.length) return null;
+        return <section className="signal-tile-group" key={group.title}><h3>{group.title}</h3><div className="signal-tile-grid">{definitions.map(definition => <SignalTile key={definition.field} metrics={metrics} definition={definition} active={selectedField === definition.field} onSelect={() => onSelect(definition.field)} />)}</div></section>;
       })}
     </div>
   );
@@ -201,17 +225,15 @@ function WorkoutTimeline({ workouts }) {
 }
 
 export default function HealthCharts({ metrics, workouts = [], loading }) {
-  const availableCharts = definitions => definitions.filter(({ field }) => metrics.some(day => Number.isFinite(day[field])));
-  const activity = availableCharts(activityCharts);
-  const recovery = availableCharts(recoveryCharts);
+  const availableDefinitions = [...coreCharts, ...activityCharts, ...recoveryCharts].filter(({ field }) => metrics.some(day => Number.isFinite(day[field])));
+  const [selectedField, setSelectedField] = useState(null);
+  const selectedDefinition = availableDefinitions.find(definition => definition.field === selectedField) || availableDefinitions[0];
   return (
     <section className="signals-dashboard" aria-labelledby="signals-heading">
-      <div className="signals-heading"><div><span className="signals-eyebrow">Your health signals</span><h2 id="signals-heading">Last 30 days, at a glance</h2><p>Each chart uses your secure Fitbit-backed Google Health data. Select any day for its reading.</p></div>{loading && <Loader className="spin" size={18} />}</div>
-      <SnapshotCards metrics={metrics} />
-      <div className="health-chart-stack">{coreCharts.map(definition => <HealthChart key={definition.field} metrics={metrics} definition={definition} />)}</div>
-      {activity.length > 0 && <section className="health-chart-group"><div className="health-chart-group-heading"><span>Activity & energy</span><p>Movement, effort, and workout totals from Fitbit.</p></div><div className="health-chart-stack">{activity.map(definition => <HealthChart key={definition.field} metrics={metrics} definition={definition} />)}</div></section>}
+      <div className="signals-heading"><div><span className="signals-eyebrow">Your health signals</span><h2 id="signals-heading">Your signal explorer</h2><p>Choose a tile to open one detailed chart. Every chart remains private to your account.</p></div>{loading && <Loader className="spin" size={18} />}</div>
+      <SignalExplorer metrics={metrics} selectedField={selectedDefinition?.field} onSelect={setSelectedField} />
+      {selectedDefinition && <div className="health-chart-stack"><HealthChart key={selectedDefinition.field} metrics={metrics} definition={selectedDefinition} /></div>}
       <WorkoutTimeline workouts={workouts} />
-      {recovery.length > 0 && <section className="health-chart-group"><div className="health-chart-group-heading"><span>Recovery context</span><p>Available overnight and fitness trends from your device. These are not medical assessments.</p></div><div className="health-chart-stack">{recovery.map(definition => <HealthChart key={definition.field} metrics={metrics} definition={definition} />)}</div></section>}
     </section>
   );
 }
