@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, Dumbbell, Flame, Footprints, Gauge, HeartPulse, Loader, Moon, Route, Wind } from 'lucide-react';
+import { Activity, ChevronLeft, ChevronRight, Dumbbell, Flame, Footprints, Gauge, HeartPulse, Loader, Moon, Route, Wind, X } from 'lucide-react';
 import './HealthCharts.css';
 
 const INITIAL_CHART_WIDTH = 760;
@@ -128,6 +128,35 @@ function SignalExplorer({ metrics, selectedField, onSelect }) {
   );
 }
 
+function ChartSheet({ definition, definitions, metrics, onClose, onSelect }) {
+  const selectedIndex = definitions.findIndex(item => item.field === definition.field);
+  const previous = definitions[(selectedIndex - 1 + definitions.length) % definitions.length];
+  const next = definitions[(selectedIndex + 1) % definitions.length];
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const onKeyDown = event => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="signal-chart-sheet" role="dialog" aria-modal="true" aria-label={`${definition.title} chart`}>
+      <button className="signal-chart-sheet-backdrop" type="button" aria-label="Close chart" onClick={onClose} />
+      <section className="signal-chart-sheet-panel">
+        <header className="signal-chart-sheet-header"><div><span>Detailed signal</span><strong>{definition.title}</strong></div><button type="button" className="signal-chart-sheet-close" onClick={onClose} aria-label="Close chart"><X size={19} /></button></header>
+        <div className="signal-chart-sheet-chart"><HealthChart metrics={metrics} definition={definition} /></div>
+        {definitions.length > 1 && <footer className="signal-chart-sheet-controls"><button type="button" onClick={() => onSelect(previous.field)}><ChevronLeft size={17} /> Previous</button><span>{selectedIndex + 1} of {definitions.length}</span><button type="button" onClick={() => onSelect(next.field)}>Next <ChevronRight size={17} /></button></footer>}
+      </section>
+    </div>
+  );
+}
+
 function HealthChart({ metrics, definition }) {
   const { field, title, axis, color, kind, format, icon: Icon } = definition;
   const [selectedIndex, setSelectedIndex] = useState(Math.max(metrics.length - 1, 0));
@@ -227,12 +256,20 @@ function WorkoutTimeline({ workouts }) {
 export default function HealthCharts({ metrics, workouts = [], loading }) {
   const availableDefinitions = [...coreCharts, ...activityCharts, ...recoveryCharts].filter(({ field }) => metrics.some(day => Number.isFinite(day[field])));
   const [selectedField, setSelectedField] = useState(null);
+  const [mobileChartOpen, setMobileChartOpen] = useState(false);
   const selectedDefinition = availableDefinitions.find(definition => definition.field === selectedField) || availableDefinitions[0];
+  const selectDefinition = field => {
+    setSelectedField(field);
+    if (window.matchMedia('(max-width: 899px)').matches) setMobileChartOpen(true);
+  };
   return (
     <section className="signals-dashboard" aria-labelledby="signals-heading">
       <div className="signals-heading"><div><span className="signals-eyebrow">Your health signals</span><h2 id="signals-heading">Your signal explorer</h2><p>Choose a tile to open one detailed chart. Every chart remains private to your account.</p></div>{loading && <Loader className="spin" size={18} />}</div>
-      <SignalExplorer metrics={metrics} selectedField={selectedDefinition?.field} onSelect={setSelectedField} />
-      {selectedDefinition && <div className="health-chart-stack"><HealthChart key={selectedDefinition.field} metrics={metrics} definition={selectedDefinition} /></div>}
+      <div className="signal-explorer-layout">
+        <SignalExplorer metrics={metrics} selectedField={selectedDefinition?.field} onSelect={selectDefinition} />
+        {selectedDefinition && <aside className="signal-chart-desktop"><HealthChart key={selectedDefinition.field} metrics={metrics} definition={selectedDefinition} /></aside>}
+      </div>
+      {mobileChartOpen && selectedDefinition && <ChartSheet definition={selectedDefinition} definitions={availableDefinitions} metrics={metrics} onClose={() => setMobileChartOpen(false)} onSelect={setSelectedField} />}
       <WorkoutTimeline workouts={workouts} />
     </section>
   );
