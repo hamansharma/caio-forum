@@ -3,6 +3,7 @@ import { Activity, CheckCircle2, Link2, Loader, RefreshCw, ShieldCheck } from 'l
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import HealthCharts from '../components/HealthCharts';
+import HealthInsights from '../components/HealthInsights';
 import './Health.css';
 
 async function authenticatedFetch(path, options = {}) {
@@ -33,6 +34,7 @@ export default function Health() {
   const [metrics, setMetrics] = useState([]);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [workouts, setWorkouts] = useState([]);
+  const [insights, setInsights] = useState([]);
   const queryStatus = new URLSearchParams(window.location.search).get('connection');
 
   useEffect(() => {
@@ -52,14 +54,16 @@ export default function Health() {
     if (!status?.connected) return;
     let active = true;
     setMetricsLoading(true);
-    Promise.all([authenticatedFetch('/api/google-health/metrics?days=30'), authenticatedFetch('/api/google-health/workouts')])
-      .then(async ([metricsResponse, workoutsResponse]) => {
-        const [metricsBody, workoutsBody] = await Promise.all([metricsResponse.json(), workoutsResponse.json()]);
+    Promise.all([authenticatedFetch('/api/google-health/metrics?days=30'), authenticatedFetch('/api/google-health/workouts'), authenticatedFetch('/api/google-health/insights')])
+      .then(async ([metricsResponse, workoutsResponse, insightsResponse]) => {
+        const [metricsBody, workoutsBody, insightsBody] = await Promise.all([metricsResponse.json(), workoutsResponse.json(), insightsResponse.json()]);
         if (!metricsResponse.ok) throw new Error(metricsBody.error);
         if (!workoutsResponse.ok) throw new Error(workoutsBody.error);
+        if (!insightsResponse.ok) throw new Error(insightsBody.error);
         if (active) {
           setMetrics(metricsBody.days || []);
           setWorkouts(workoutsBody.workouts || []);
+          setInsights(insightsBody.insights || []);
         }
       })
       .catch(err => active && setError(err.message || 'Unable to load your health summaries.'))
@@ -110,6 +114,9 @@ export default function Health() {
       const workoutsResponse = await authenticatedFetch('/api/google-health/workouts');
       const workoutsBody = await workoutsResponse.json();
       if (workoutsResponse.ok) setWorkouts(workoutsBody.workouts || []);
+      const insightsResponse = await authenticatedFetch('/api/google-health/insights');
+      const insightsBody = await insightsResponse.json();
+      if (insightsResponse.ok) setInsights(insightsBody.insights || []);
     } catch (err) {
       setError(err.message || 'Unable to sync health metrics.');
     } finally {
@@ -156,6 +163,7 @@ export default function Health() {
       </section>
 
       {status?.connected && <HealthCharts metrics={metrics} workouts={workouts} loading={metricsLoading} />}
+      {status?.connected && <HealthInsights insights={insights} />}
 
       <section className="health-privacy">
         <ShieldCheck size={20} />

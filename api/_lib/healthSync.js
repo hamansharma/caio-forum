@@ -98,7 +98,11 @@ export async function syncHealthMetrics(adminDb, uid) {
   const connectionSnap = await connectionRef.get();
   if (!connectionSnap.exists || connectionSnap.data().provider !== 'google-health') throw new Error('No Google Health connection found.');
   const accessToken = await accessTokenFor(connectionRef, connectionSnap.data());
+  // Google Health date ranges are end-exclusive. Use tomorrow as the end of the
+  // civil-date range so the current, in-progress day is included and refreshed
+  // by each subsequent sync.
   const end = new Date();
+  end.setUTCDate(end.getUTCDate() + 1);
   const start = new Date(end);
   start.setUTCDate(start.getUTCDate() - 30);
   const startDate = isoDate(start);
