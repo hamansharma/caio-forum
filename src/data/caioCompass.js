@@ -14,12 +14,38 @@ export const compassDimensions = [
 
 export const maturityLabels = ['Aware', 'Reactive', 'Proactive', 'Managed', 'Optimized'];
 
-export const roadmapActions = {
-  vision: ['Name an executive AI sponsor and establish a monthly AI steering cadence.', 'Publish a one-page AI ambition that connects priority outcomes, guardrails, and decision rights.'],
-  strategy: ['Create a ranked use-case portfolio with value, feasibility, risk, and accountable business owner for every item.', 'Fund the next 90 days around a small number of measurable outcomes rather than disconnected pilots.'],
-  metrics: ['Define baselines, target outcomes, and a realization owner before approving the next AI initiative.', 'Review realized value monthly and stop or redesign initiatives that do not meet their learning or value threshold.'],
-  governance: ['Establish a lightweight intake and risk-tiering process for every AI use case.', 'Assign named owners for privacy, security, model risk, and business accountability before deployment.'],
-  people: ['Identify the priority roles that need AI fluency, practical guidance, and adoption support.', 'Form a cross-functional delivery squad for the highest-value use case.'],
-  processes: ['Document one repeatable lifecycle from use-case intake through monitoring and improvement.', 'Create a shared library for approved patterns, prompts, data sources, and lessons learned.'],
-  technology: ['Map the minimum data, integration, and platform capabilities needed for the top use cases.', 'Standardize secure integration patterns before scaling new tools across teams.'],
+export const resultRoutes = {
+  'transformation-operating-model': {
+    title: 'Transformation operating model',
+    reason: 'Your results indicate that the enterprise foundations for coordinated AI transformation need attention.',
+    sourceLabel: 'AI Transformation Framework',
+    sourceUrl: '/post/tmIjJVnIyixaoP3Iau1R',
+    phases: [
+      ['Days 1–30 · Align', ['Name an executive sponsor and define the AI ambition.', 'Create a cross-functional transformation cadence and decision rights.']],
+      ['Days 31–60 · Prioritize', ['Rank use cases by business value, feasibility, risk, and owner.', 'Set measurable outcomes and a funded transformation roadmap.']],
+      ['Days 61–90 · Mobilize', ['Launch a focused delivery squad around the highest-value use case.', 'Review capability, governance, and value progress with leadership.']],
+    ],
+  },
+  'data-foundation': {
+    title: 'Data foundation',
+    reason: 'Data readiness or risk controls could limit safe, scalable AI delivery.',
+    sourceLabel: 'A CAIO’s First 90 Days of AI Data Strategy',
+    sourceUrl: '/post/eiuwbmVkSyQcnv4hor8i',
+    phases: [
+      ['Days 1–30 · Discover', ['Inventory the data flows that touch AI systems and their vendors.', 'Classify regulatory risk, privacy sensitivity, AI risk tier, and data residency.']],
+      ['Days 31–60 · Design', ['Establish data lineage for priority AI workloads.', 'Create reusable model-card and privacy-assessment templates.']],
+      ['Days 61–90 · Deploy', ['Require a model card before production deployment.', 'Brief leadership on data risks, controls, and remaining gaps.']],
+    ],
+  },
+  'ai-lifecycle': {
+    title: 'AI delivery lifecycle',
+    reason: 'Your results point to gaps in repeatable delivery, measurement, evaluation, or post-launch learning.',
+    sourceLabel: 'The AI Lifecycle: From Experimentation to Continuous Learning',
+    sourceUrl: '/post/2BvFsSi24YtzkhlEckEJ',
+    phases: [
+      ['Days 1–30 · Plan and prepare', ['Define the business objective, success metrics, data strategy, and governance requirements.', 'Assess data quality, legal use, bias, and ground truth for the priority use case.']],
+      ['Days 31–60 · Build and evaluate', ['Choose the right architecture, integration pattern, and security controls.', 'Establish baselines and test quality, fairness, latency, robustness, and human experience.']],
+      ['Days 61–90 · Deploy and learn', ['Use controlled deployment with validation, human oversight, and operational readiness checks.', 'Monitor performance, drift, feedback, business KPIs, cost, and safety—then feed learning back into delivery.']],
+    ],
+  },
 };

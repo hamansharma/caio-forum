@@ -92,5 +92,17 @@ export function calculateCompassAssessment(rawAnswers) {
       : overallScore >= 3.5 ? { label: 'Healthy', summary: 'Core capabilities are working together; focus on disciplined scale and optimization.' }
         : { label: 'Developing', summary: 'The foundation is taking shape; focused sequencing can turn momentum into repeatable capability.' };
 
-  return { answers: normalizedAnswers, domains, overallScore, stage, health, priorityDomainIds: lowest.slice(0, 3).map(domain => domain.id) };
+  const recommendedRouteIds = [];
+  if (normalizedAnswers['vision-shared-direction'] <= 3 || normalizedAnswers['strategy-portfolio'] <= 3 || normalizedAnswers['people-capability'] <= 3) {
+    recommendedRouteIds.push('transformation-operating-model');
+  }
+  if (normalizedAnswers['technology-data'] <= 3 || normalizedAnswers['governance-risk'] <= 2) {
+    recommendedRouteIds.push('data-foundation');
+  }
+  if (normalizedAnswers['processes-lifecycle'] <= 3 || normalizedAnswers['processes-production'] <= 3 || normalizedAnswers['metrics-outcomes'] <= 3) {
+    recommendedRouteIds.push('ai-lifecycle');
+  }
+  if (!recommendedRouteIds.length) recommendedRouteIds.push('transformation-operating-model');
+
+  return { answers: normalizedAnswers, domains, overallScore, stage, health, priorityDomainIds: lowest.slice(0, 3).map(domain => domain.id), recommendedRouteIds };
 }

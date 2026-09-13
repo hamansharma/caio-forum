@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, LockKeyhole, RotateCcw, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, Layers3, LockKeyhole, RotateCcw, Sparkles, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
-import { compassDimensions, maturityLabels, roadmapActions } from '../data/caioCompass';
+import { compassDimensions, maturityLabels, resultRoutes } from '../data/caioCompass';
 import './CaioCompass.css';
 
 const DRAFT_KEY = 'caio-compass-draft-v1';
@@ -181,6 +181,8 @@ export default function CaioCompass() {
 
 function Results({ assessment, priorities, onRestart }) {
   const maxScore = 5;
+  const routeIds = assessment.recommendedRouteIds || ['transformation-operating-model'];
+  const routes = routeIds.map(id => resultRoutes[id]).filter(Boolean);
   return <main className="compass-page compass-results-page">
     <section className="compass-hero compact">
       <span className="compass-kicker"><Sparkles size={15} /> Saved assessment</span>
@@ -192,13 +194,14 @@ function Results({ assessment, priorities, onRestart }) {
       <div className="compass-health"><span>Program health</span><strong>{assessment.health.label}</strong><p>Based on your current maturity level and how balanced the seven capabilities are.</p></div>
     </section>
     <section className="compass-results-grid">
-      <div className="compass-domain-card"><h2><BarChart3 size={18} /> Capability profile</h2><p>Each score comes directly from your answers.</p>
+      <div className="compass-domain-card"><h2><BarChart3 size={18} /> Capability profile</h2><p>Each score comes directly from your answers. Data is a cross-cutting foundation for every capability shown here.</p>
         <div className="compass-bars">{assessment.domains.map(domain => <div className="compass-bar" key={domain.id}><div><span>{domain.label}</span><strong>{domain.score.toFixed(1)}</strong></div><i><b style={{ width: `${(domain.score / maxScore) * 100}%` }} /></i></div>)}</div>
       </div>
-      <div className="compass-roadmap-card"><h2><Target size={18} /> Your first 90 days</h2><p>Start with the weakest capabilities; they are most likely to constrain safe, repeatable scale.</p>
-        <ol>{priorities.map((domain, index) => <li key={domain.id}><span>{index + 1}</span><div><strong>{domain.label}</strong><p>{roadmapActions[domain.id][0]}</p><p>{roadmapActions[domain.id][1]}</p></div></li>)}</ol>
+      <div className="compass-roadmap-card"><h2><Target size={18} /> Priority capabilities</h2><p>These are the three lowest-scoring building blocks—the likely constraints on safe, repeatable scale.</p>
+        <ol>{priorities.map((domain, index) => <li key={domain.id}><span>{index + 1}</span><div><strong>{domain.label}</strong><p>Use the recommended playbooks below to turn this gap into sequenced action.</p></div></li>)}</ol>
       </div>
     </section>
+    <section className="compass-playbooks"><div className="compass-playbooks-intro"><Layers3 size={18} /><div><h2>Recommended 90-day playbooks</h2><p>Selected from your assessment answers and grounded in the CAIO Leadership frameworks.</p></div></div><div className="compass-playbook-grid">{routes.map(route => <article className="compass-playbook" key={route.title}><div><h3>{route.title}</h3><p>{route.reason}</p></div><div className="compass-phases">{route.phases.map(([phase, actions]) => <section key={phase}><h4>{phase}</h4>{actions.map(action => <p key={action}>{action}</p>)}</section>)}</div><Link to={route.sourceUrl}>Read the source framework <ArrowRight size={14} /></Link></article>)}</div></section>
     <section className="compass-next"><div><h2>What this assessment does—and does not—say</h2><p>This is a transparent starting point, not a certification. Use it to structure leadership conversations, gather evidence, and reassess after the roadmap work is underway.</p></div><button className="compass-secondary" onClick={onRestart}><RotateCcw size={16} /> Start a new assessment</button></section>
   </main>;
 }
