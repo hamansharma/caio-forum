@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, Layers3, LockKeyhole, RotateCcw, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, History as HistoryIcon, Layers3, LockKeyhole, RotateCcw, Sparkles, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
@@ -36,6 +36,7 @@ export default function CaioCompass() {
   const [organizationName, setOrganizationName] = useState('');
   const [answers, setAnswers] = useState({});
   const [assessment, setAssessment] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -117,14 +118,14 @@ export default function CaioCompass() {
     </main>
   );
 
-  if (assessment) return <Results assessment={assessment} priorities={priorities} onRestart={restart} />;
+  if (showHistory) return <AssessmentHistory history={history} loading={loadingHistory} onBack={() => setShowHistory(false)} onOpen={item => { setAssessment(item); setShowHistory(false); }} onStart={() => { restart(); setShowHistory(false); }} />;
+  if (assessment) return <Results assessment={assessment} priorities={priorities} onRestart={restart} onHistory={() => setShowHistory(true)} />;
 
   return (
     <main className="compass-page">
-      <section className="compass-hero compact">
-        <span className="compass-kicker"><Target size={15} /> CAIO Leadership Lab</span>
-        <h1>CAIO Compass</h1>
-        <p>Assess your current AI capability, see the shape of your maturity, and leave with a practical place to begin.</p>
+      <section className="compass-hero compact compass-hero-with-action">
+        <div><span className="compass-kicker"><Target size={15} /> CAIO Leadership Lab</span><h1>CAIO Compass</h1><p>Assess your current AI capability, see the shape of your maturity, and leave with a practical place to begin.</p></div>
+        <button className="compass-history-button" onClick={() => setShowHistory(true)}><HistoryIcon size={16} /> Assessment history{history.length ? <span>{history.length}</span> : null}</button>
       </section>
 
       <section className="compass-shell">
@@ -174,20 +175,18 @@ export default function CaioCompass() {
         </section>
       </section>
 
-      <History history={history} loading={loadingHistory} onOpen={setAssessment} />
     </main>
   );
 }
 
-function Results({ assessment, priorities, onRestart }) {
+function Results({ assessment, priorities, onRestart, onHistory }) {
   const maxScore = 5;
   const routeIds = assessment.recommendedRouteIds || ['transformation-operating-model'];
   const routes = routeIds.map(id => resultRoutes[id]).filter(Boolean);
   return <main className="compass-page compass-results-page">
-    <section className="compass-hero compact">
-      <span className="compass-kicker"><Sparkles size={15} /> Saved assessment</span>
-      <h1>{assessment.organizationName || 'Your'} AI maturity profile</h1>
-      <p>{assessment.health.summary}</p>
+    <section className="compass-hero compact compass-hero-with-action">
+      <div><span className="compass-kicker"><Sparkles size={15} /> Saved assessment</span><h1>{assessment.organizationName || 'Your'} AI maturity profile</h1><p>{assessment.health.summary}</p></div>
+      <button className="compass-history-button" onClick={onHistory}><HistoryIcon size={16} /> Assessment history</button>
     </section>
     <section className="compass-result-summary">
       <div className="compass-score"><span>Overall maturity</span><strong>{assessment.overallScore.toFixed(1)}</strong><small>out of 5 · {assessment.stage.label}</small></div>
@@ -206,7 +205,14 @@ function Results({ assessment, priorities, onRestart }) {
   </main>;
 }
 
-function History({ history, loading, onOpen }) {
-  if (loading || !history.length) return null;
-  return <section className="compass-history"><h2>Previous assessments</h2><div>{history.slice(0, 4).map(item => <button key={item.id} onClick={() => onOpen(item)}><span>{item.organizationName || 'Untitled assessment'}</span><small>{formatDate(item.createdAt)} · {item.overallScore.toFixed(1)} / 5 · {item.stage.label}</small><ArrowRight size={16} /></button>)}</div></section>;
+function AssessmentHistory({ history, loading, onBack, onOpen, onStart }) {
+  return <main className="compass-page compass-history-page">
+    <section className="compass-history-header"><button className="compass-back" onClick={onBack}><ArrowLeft size={16} /> Back to assessment</button><button className="compass-primary" onClick={onStart}><ClipboardCheck size={16} /> Start new assessment</button></section>
+    <section className="compass-hero compact"><span className="compass-kicker"><HistoryIcon size={15} /> CAIO Compass</span><h1>Assessment history</h1><p>Review prior maturity profiles and revisit the roadmap that was generated from each assessment.</p></section>
+    {loading ? <p className="compass-history-state">Loading your saved assessments…</p> : !history.length ? <section className="compass-empty-history"><HistoryIcon size={22} /><h2>No saved assessments yet</h2><p>Complete your first CAIO Compass assessment to establish a baseline.</p><button className="compass-primary" onClick={onStart}>Start assessment</button></section> : <section className="compass-history-list">{history.map((item, index) => {
+      const prior = history[index + 1];
+      const delta = prior ? Math.round((item.overallScore - prior.overallScore) * 10) / 10 : null;
+      return <button key={item.id} onClick={() => onOpen(item)}><div className="compass-history-main"><span className="compass-history-date">{formatDate(item.createdAt)}</span><strong>{item.organizationName || 'Untitled assessment'}</strong><small>{item.stage.label} · {item.health?.label || 'Developing'}</small></div><div className="compass-history-score"><strong>{item.overallScore.toFixed(1)}</strong><span>/ 5</span>{delta !== null && <small className={delta >= 0 ? 'positive' : 'negative'}>{delta >= 0 ? '+' : ''}{delta.toFixed(1)} from prior</small>}</div><ArrowRight size={18} /></button>;
+    })}</section>}
+  </main>;
 }
