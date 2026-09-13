@@ -10,6 +10,7 @@ import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
 import Health from './pages/Health';
 import Playground from './pages/Playground';
+import CaioCompass from './pages/CaioCompass';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/health" element={<Health />} />
           <Route path="/playground" element={<Playground />} />
+          <Route path="/playground/caio-compass" element={<CaioCompass />} />
           
         </Routes>
         <Chatbot />

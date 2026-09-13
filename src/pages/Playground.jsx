@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, FlaskConical, LockKeyhole, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, ClipboardCheck, FlaskConical, LockKeyhole, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
@@ -35,6 +35,21 @@ export default function Playground() {
       </section>
 
       <section className="playground-grid" aria-label="AI Playground apps">
+        <article className="playground-card compass-card">
+          <div className="playground-icon compass"><ClipboardCheck size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">Private assessment</div>
+            <h2>CAIO Compass</h2>
+            <p>Assess AI maturity across vision, strategy, metrics, governance, people, processes, and technology—then get a focused 90-day starting point.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span><LockKeyhole size={14} /> Saved to your account</span>
+            <button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>
+              {user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} />
+            </button>
+          </div>
+        </article>
+
         <article className="playground-card featured">
           <div className="playground-icon signals"><Activity size={22} /></div>
           <div className="playground-card-copy">
