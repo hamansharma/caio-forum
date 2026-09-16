@@ -13,10 +13,13 @@ import {
   updatePassword as firebaseUpdatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  GoogleAuthProvider,
+  signInWithPopup,
   deleteUser,
 } from 'firebase/auth';
 
 import { db, auth } from '../firebase';
+import { generateUsername } from '../utils/usernameGenerator';
 
 const ForumContext = createContext();
 
@@ -142,6 +145,52 @@ export function ForumProvider({ children }) {
     } else {
       throw new Error('User profile not found. Please sign up first.');
     }
+  };
+
+  const googleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const credential = await signInWithPopup(auth, provider);
+    const firebaseUser = credential.user;
+    const userRef = doc(db, 'users', firebaseUser.uid);
+    const existingProfile = await getDoc(userRef);
+
+    if (existingProfile.exists()) {
+      const data = existingProfile.data();
+      setUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        fullName: data.fullName || firebaseUser.displayName || '',
+        username: data.username || '',
+      });
+      setVotedPosts(data.votedPosts || {});
+      setVotedComments(data.votedComments || {});
+      return;
+    }
+
+    let username = '';
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const candidate = generateUsername();
+      if (await checkUsernameAvailable(candidate)) {
+        username = candidate;
+        break;
+      }
+    }
+    if (!username) throw new Error('Unable to create an available forum username. Please try Google sign-in again.');
+
+    await claimUsername(firebaseUser.uid, username);
+    const fullName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'CAIO member';
+    const profile = {
+      email: String(firebaseUser.email || ''),
+      fullName: String(fullName),
+      username,
+      votedPosts: {},
+      votedComments: {},
+      createdAt: new Date().toISOString(),
+      authProvider: 'google.com',
+    };
+    await setDoc(userRef, profile);
+    setUser({ uid: firebaseUser.uid, email: profile.email, fullName: profile.fullName, username });
   };
 
   const logout = async () => {
@@ -318,7 +367,7 @@ const updateAlias = async (newAlias, useAlias) => {
 
   return (
     <ForumContext.Provider value={{
-      user, login, logout, signup, posts, loading, authLoading,
+      user, login, logout, signup, googleSignIn, posts, loading, authLoading,
       addPost, votePost, addComment, voteComment, votedPosts, votedComments,
       editPost, deletePost, editComment, deleteComment,
       updateAlias, updatePassword, deleteAccount

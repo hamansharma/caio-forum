@@ -5,7 +5,7 @@ import { generateUsername } from '../utils/usernameGenerator';
 import './AuthModal.css';
 
 export default function AuthModal({ onClose }) {
-  const { login, signup } = useForum();
+  const { login, signup, googleSignIn } = useForum();
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -65,6 +65,28 @@ export default function AuthModal({ onClose }) {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setSubmitting(true);
+    try {
+      await googleSignIn();
+      onClose();
+    } catch (err) {
+      const code = err?.code || '';
+      if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) {
+        setError('Google sign-in was cancelled.');
+      } else if (code.includes('account-exists-with-different-credential')) {
+        setError('An account with this email already uses email and password. Sign in with your password first.');
+      } else if (code.includes('operation-not-allowed')) {
+        setError('Google sign-in is not enabled yet. Enable Google in Firebase Authentication, then try again.');
+      } else {
+        setError(typeof err?.message === 'string' ? err.message : 'Unable to sign in with Google. Please try again.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="auth-overlay" onClick={onClose}>
       <div className="auth-modal" onClick={e => e.stopPropagation()}>
@@ -81,6 +103,13 @@ export default function AuthModal({ onClose }) {
           <button className={mode === 'signup' ? 'active' : ''} onClick={() => { setMode('signup'); setError(''); }}>
             Create Account
           </button>
+        </div>
+
+        <div className="auth-google-section">
+          <button type="button" className="auth-google-button" onClick={handleGoogleSignIn} disabled={submitting}>
+            <GoogleIcon /> Continue with Google
+          </button>
+          <div className="auth-divider"><span>or use email</span></div>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -190,4 +219,8 @@ export default function AuthModal({ onClose }) {
       </div>
     </div>
   );
+}
+
+function GoogleIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.22-.2-1.76H12v3.44h5.52c-.11.86-.72 2.15-2.07 3.02l-.02.12 3.01 2.28.21.02c1.91-1.73 2.95-4.27 2.95-7.12Z"/><path fill="#34A853" d="M12 21.75c2.7 0 4.96-.87 6.61-2.37l-3.2-2.42c-.86.59-2.01 1-3.41 1-2.64 0-4.88-1.73-5.68-4.12l-.12.01-3.13 2.37-.04.11A9.98 9.98 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M6.32 13.84A5.98 5.98 0 0 1 6 12c0-.64.12-1.26.31-1.84v-.13L3.14 7.62l-.1.04A9.64 9.64 0 0 0 2 12c0 1.56.37 3.04 1.04 4.34l3.28-2.5Z"/><path fill="#EA4335" d="M12 6.04c1.77 0 2.97.75 3.65 1.38l2.67-2.56C16.95 3.6 14.7 2.25 12 2.25a9.98 9.98 0 0 0-8.96 5.41l3.28 2.5C7.12 7.77 9.36 6.04 12 6.04Z"/></svg>;
 }
