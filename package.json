@@ -26,6 +26,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "import:certifications": "node --env-file=.env.local scripts/import-certifications.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

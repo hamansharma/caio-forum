@@ -1,27 +1,60 @@
+import { FieldPath } from 'firebase-admin/firestore';
 import { adminDb, requireUser } from './_lib/firebaseAdmin';
 import { isCertificationAdmin, requireCertificationAdmin } from './_lib/certificationAdmin';
-import { certifications } from '../src/data/certifications';
 
 const clean = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
+const PAGE_SIZE = 24;
+const SCAN_BATCH_SIZE = 60;
+const MAX_SEARCH_SCAN = 1200;
+
+const encodeCursor = document => Buffer.from(JSON.stringify({ name: document.get('name'), id: document.id })).toString('base64url');
+const decodeCursor = value => {
+  if (!value || typeof value !== 'string') return null;
+  try {
+    const cursor = JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
+    return typeof cursor.name === 'string' && typeof cursor.id === 'string' ? cursor : null;
+  } catch {
+    return null;
+  }
+};
+const searchMatches = (entry, search) => {
+  if (!search) return true;
+  const text = [entry.name, entry.authority, entry.category, ...(entry.skills || []), ...(entry.targetRoles || [])].join(' ').toLowerCase();
+  return search.split(/\s+/).every(term => text.includes(term));
+};
 
 async function listCatalog(req, res) {
   res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=3600');
-  const snapshot = await adminDb.collection('certifications').where('status', '==', 'Active').get();
-  const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name));
-  return res.status(200).json({ entries });
-}
+  const category = clean(req.query.category, 100);
+  const level = clean(req.query.level, 30);
+  const search = clean(req.query.q, 160).toLowerCase();
+  const cursor = decodeCursor(req.query.cursor);
+  let query = adminDb.collection('certifications').orderBy('name').orderBy(FieldPath.documentId());
+  if (cursor) query = query.startAfter(cursor.name, cursor.id);
 
-async function seedCatalog(user, res) {
-  requireCertificationAdmin(user);
-  const now = new Date().toISOString();
-  for (let index = 0; index < certifications.length; index += 400) {
-    const batch = adminDb.batch();
-    certifications.slice(index, index + 400).forEach(entry => {
-      batch.set(adminDb.collection('certifications').doc(entry.id), { ...entry, createdAt: now, updatedAt: now }, { merge: true });
-    });
-    await batch.commit();
+  const entries = [];
+  let lastDocument = null;
+  let scanned = 0;
+  let hasMore = false;
+  while (entries.length < PAGE_SIZE && scanned < MAX_SEARCH_SCAN) {
+    const snapshot = await query.limit(SCAN_BATCH_SIZE).get();
+    if (snapshot.empty) break;
+    scanned += snapshot.size;
+    for (let index = 0; index < snapshot.docs.length; index += 1) {
+      const document = snapshot.docs[index];
+      lastDocument = document;
+      const entry = { id: document.id, ...document.data() };
+      if (entry.status !== 'Active' || (category && entry.category !== category) || (level && entry.level !== level) || !searchMatches(entry, search)) continue;
+      entries.push(entry);
+      if (entries.length === PAGE_SIZE) {
+        hasMore = index < snapshot.docs.length - 1 || snapshot.size === SCAN_BATCH_SIZE;
+        break;
+      }
+    }
+    if (entries.length === PAGE_SIZE || snapshot.size < SCAN_BATCH_SIZE) break;
+    query = adminDb.collection('certifications').orderBy('name').orderBy(FieldPath.documentId()).startAfter(lastDocument.get('name'), lastDocument.id);
   }
-  return res.status(200).json({ seeded: certifications.length });
+  return res.status(200).json({ entries, nextCursor: hasMore && lastDocument ? encodeCursor(lastDocument) : null, pageSize: PAGE_SIZE });
 }
 
 async function createSubmission(user, req, res) {
@@ -57,7 +90,6 @@ export default async function handler(req, res) {
     const user = await requireUser(req);
     if (req.method === 'GET' && action === 'admin') return res.status(200).json({ isAdmin: isCertificationAdmin(user) });
     if (req.method === 'GET' && action === 'submissions') return await listSubmissions(user, res);
-    if (req.method === 'POST' && action === 'seed') return await seedCatalog(user, res);
     if (req.method === 'POST' && action === 'submission') return await createSubmission(user, req, res);
     if (req.method === 'PATCH' && action === 'submission') return await updateSubmission(user, req, res);
     return res.status(405).json({ error: 'Method not allowed.' });

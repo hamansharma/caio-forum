@@ -35,6 +35,38 @@ A small Create React App single-page forum demo using Firebase (Firestore + Auth
    npm start
    Open http://localhost:3000
 
+## Private certification catalog import
+
+Certification records live in Firestore; the production API does not contain the catalog seed data. Use the local importer with a private JSON file or a JavaScript module that exports `certifications`.
+
+1. Pull the server-only Firebase Admin variables into an untracked local file:
+
+   ```bash
+   npx vercel env pull .env.local
+   ```
+
+   Confirm that `FIREBASE_ADMIN_PRIVATE_KEY` contains the real PEM key, not `[redacted]`. If Vercel does not download a secret value, create a new service-account key in Firebase Console → Project settings → Service accounts → Generate new private key, then place its `project_id`, `client_email`, and `private_key` values in `.env.local`. Keep this file private; it is ignored by Git.
+
+2. Validate an import without writing data:
+
+   ```bash
+   npm run import:certifications -- --input /absolute/path/to/certifications.json
+   ```
+
+3. Upload after the dry run succeeds:
+
+   ```bash
+   npm run import:certifications -- --input /absolute/path/to/certifications.json --apply
+   ```
+
+4. To deliberately delete that exact local input file after a successful upload, add `--delete-input`. This action is irreversible outside version control:
+
+   ```bash
+   npm run import:certifications -- --input /absolute/path/to/certifications.json --apply --delete-input
+   ```
+
+The importer performs Firestore upserts by certification ID and does not delete catalog records that are absent from the input file.
+
 ## Google Health connection (private beta)
 
 The `/health` page is a private, signed-in user flow. It starts Google OAuth for Google Health on the server, encrypts access and refresh tokens before they are saved, and only returns connection status or an identity-verification result to the browser. It does not yet sync or chart health measurements.
