@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, ClipboardCheck, FlaskConical, LockKeyhole, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
@@ -35,6 +35,21 @@ export default function Playground() {
       </section>
 
       <section className="playground-grid" aria-label="AI Playground apps">
+        <article className="playground-card certifications-card">
+          <div className="playground-icon certifications"><Award size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">Career intelligence</div>
+            <h2>Certification Navigator</h2>
+            <p>Explore verified certifications across technology, finance, insurance, teaching, quality, and more—organized by level, requirements, cost, and authority.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span>Official issuer sources</span>
+            <button onClick={() => navigate('/certifications')}>
+              Explore catalog <ArrowRight size={16} />
+            </button>
+          </div>
+        </article>
+
         <article className="playground-card compass-card">
           <div className="playground-icon compass"><ClipboardCheck size={22} /></div>
           <div className="playground-card-copy">

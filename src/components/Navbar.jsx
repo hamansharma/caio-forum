@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, PlusCircle, LogOut, User } from 'lucide-react';
+import { Activity, PlusCircle, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import AuthModal from './AuthModal';
 import SearchBar from './SearchBar';
@@ -14,6 +14,7 @@ export default function Navbar() {
   const [showAuth, setShowAuth] = useState(false);
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [daylight, setDaylight] = useState(() => window.localStorage.getItem('caio-theme') === 'daylight');
   const searchRef = useRef();
   const navigate = useNavigate();
 
@@ -28,6 +29,11 @@ export default function Navbar() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = daylight ? 'daylight' : 'dark';
+    window.localStorage.setItem('caio-theme', daylight ? 'daylight' : 'dark');
+  }, [daylight]);
 
   const handleQueryChange = (val) => {
     setQuery(val);
@@ -58,6 +64,9 @@ export default function Navbar() {
         <div className="navbar-actions">
           <button className="btn-playground" onClick={() => navigate('/playground')}>
             <Activity size={16} /> <span className="nav-label">AI Playground</span>
+          </button>
+          <button className="btn-icon theme-toggle" onClick={() => setDaylight(current => !current)} title={daylight ? 'Use dark theme' : 'Use daylight theme'} aria-label={daylight ? 'Use dark theme' : 'Use daylight theme'}>
+            {daylight ? <Moon size={16} /> : <Sun size={16} />}
           </button>
           {authLoading ? (
             <span className="nav-loading">Loading…</span>

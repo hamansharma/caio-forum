@@ -48,6 +48,8 @@
   border-radius: var(--radius); transition: color 0.15s;
 }
 .btn-icon:hover { color: var(--text-primary); }
+.theme-toggle { border: 1px solid var(--border); }
+:root[data-theme='daylight'] .navbar { background: rgba(255,255,255,0.72); border-bottom-color: rgba(209,209,214,.74); }
 .btn-login {
   background: transparent; border: 1px solid var(--border-light);
   color: var(--text-primary); padding: 7px 16px;

@@ -11,6 +11,8 @@ import Profile from './pages/Profile';
 import Health from './pages/Health';
 import Playground from './pages/Playground';
 import CaioCompass from './pages/CaioCompass';
+import Certifications from './pages/Certifications';
+import CertificationAdmin from './pages/CertificationAdmin';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="/health" element={<Health />} />
           <Route path="/playground" element={<Playground />} />
           <Route path="/playground/caio-compass" element={<CaioCompass />} />
+          <Route path="/certifications" element={<Certifications />} />
+          <Route path="/certifications/admin" element={<CertificationAdmin />} />
           
         </Routes>
         <Chatbot />
