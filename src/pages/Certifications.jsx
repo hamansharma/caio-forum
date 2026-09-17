@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Award, BookOpenCheck, CheckCircle2, Filter, Search, SlidersHorizontal, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Award, BookOpenCheck, CheckCircle2, Filter, Search, SlidersHorizontal, Scale, X } from 'lucide-react';
 import { certificationCategories } from '../data/certificationCategories';
 import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
@@ -20,10 +20,39 @@ export default function Certifications() {
   const [cursors, setCursors] = useState([null]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
+  const [catalogTotal, setCatalogTotal] = useState(null);
+  const [comparison, setComparison] = useState([]);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [comparisonError, setComparisonError] = useState('');
+  const [comparisonReady, setComparisonReady] = useState(false);
   const [showSuggestion, setShowSuggestion] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
   const visibleQuery = query.trim();
+
+  useEffect(() => {
+    const ids = [...new Set((new URLSearchParams(window.location.search).get('compare') || '').split(',').filter(id => /^[a-z0-9-]{1,160}$/i.test(id)))].slice(0, 3);
+    if (!ids.length) {
+      setComparisonReady(true);
+      return;
+    }
+    fetch(`/api/certifications?ids=${encodeURIComponent(ids.join(','))}`)
+      .then(async response => {
+        if (!response.ok) throw new Error('Unable to load the shared comparison.');
+        return response.json();
+      })
+      .then(body => setComparison(body.entries || []))
+      .catch(() => setComparisonError('Unable to load the shared comparison.'))
+      .finally(() => setComparisonReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (!comparisonReady) return;
+    const url = new URL(window.location.href);
+    if (comparison.length) url.searchParams.set('compare', comparison.map(item => item.id).join(','));
+    else url.searchParams.delete('compare');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }, [comparison, comparisonReady]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -49,6 +78,7 @@ export default function Certifications() {
       if (!active) return;
       setCatalog(body.entries || []);
       setNextCursor(body.nextCursor || null);
+      setCatalogTotal(Number.isInteger(body.totalEntries) ? body.totalEntries : null);
     }).catch(() => {
       if (!active) return;
       setCatalog([]);
@@ -63,16 +93,30 @@ export default function Certifications() {
     setCursors(current => [...current.slice(0, page), nextCursor]);
     setPage(current => current + 1);
   };
+  const toggleComparison = item => {
+    setComparisonError('');
+    setComparison(current => {
+      if (current.some(entry => entry.id === item.id)) return current.filter(entry => entry.id !== item.id);
+      if (current.length === 3) {
+        setComparisonError('You can compare up to three certifications at a time.');
+        return current;
+      }
+      return [...current, item];
+    });
+  };
 
   return <main className="certifications-page">
     <section className="certifications-hero"><span><Award size={15} /> CAIO Leadership Lab</span><h1>Certification Navigator</h1><p>Find credible credentials across technology, finance, education, operations, and more—then compare requirements, cost, authority, and renewal commitment before you invest.</p><button className="cert-suggest-button" onClick={() => user ? setShowSuggestion(true) : setShowAuth(true)}>Suggest a certification <ArrowUpRight size={15} /></button></section>
     <section className="cert-methodology"><h2>How this catalog is maintained</h2><p>We use direct links to issuing authorities and show the date each record was checked. Costs, requirements, and credential status can change; confirm details with the issuer before registering. Community suggestions are reviewed before publication.</p></section>
     <section className="certifications-toolbar" aria-label="Certification filters"><label className="cert-search"><Search size={18} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search certifications, skills, or roles" /></label><div className="cert-filter"><Filter size={15} /><select value={category} onChange={event => setCategory(event.target.value)}><option>All</option>{certificationCategories.map(item => <option key={item}>{item}</option>)}</select></div><div className="cert-filter"><SlidersHorizontal size={15} /><select value={level} onChange={event => setLevel(event.target.value)}><option>All</option>{levels.map(item => <option key={item}>{item}</option>)}</select></div></section>
-    <section className="cert-results-head"><p><strong>{catalog.length}</strong> entries on page {page}{catalogLoading ? ' · Updating…' : ''}{catalogError ? ' · Catalog temporarily unavailable' : ''}</p><span>Every entry links directly to its issuing authority.</span></section>
-    <section className="cert-grid" aria-busy={catalogLoading}>{catalog.map(item => <article className="cert-card" key={item.id}><div className="cert-card-top"><span className={`cert-level ${item.level.toLowerCase()}`}>{item.level}</span><div><span className="cert-status">{item.status || 'Active'}</span><span className="cert-type">{item.credentialType}</span></div></div><h2>{item.name}</h2><p className="cert-authority">{item.authority}</p><p className="cert-description">{item.description}</p><div className="cert-tags">{item.skills.slice(0, 3).map(skill => <span key={skill}>{skill}</span>)}</div><button onClick={() => setSelected(item)}>View credential <ArrowUpRight size={15} /></button></article>)}</section>
+    <section className="cert-compare-bar"><div><Scale size={17} /><strong>Compare credentials</strong><span>Select up to three to weigh the commitment side by side.</span></div><button onClick={() => setComparisonOpen(true)} disabled={!comparison.length}>Compare {comparison.length}/3 <ArrowRight size={15} /></button></section>
+    {comparisonError && <p className="cert-compare-error">{comparisonError}</p>}
+    <section className="cert-results-head"><p><strong>{visibleQuery || category !== 'All' || level !== 'All' || !catalogTotal ? `${catalog.length} entries` : `${catalog.length} of ${catalogTotal} entries`}</strong> · Page {page}{!visibleQuery && category === 'All' && level === 'All' && catalogTotal ? ` of ${Math.ceil(catalogTotal / 24)}` : ''}{catalogLoading ? ' · Updating…' : ''}{catalogError ? ' · Catalog temporarily unavailable' : ''}</p><span>Every entry links directly to its issuing authority.</span></section>
+    <section className="cert-grid" aria-busy={catalogLoading}>{catalog.map(item => <article className="cert-card" key={item.id}><div className="cert-card-top"><span className={`cert-level ${item.level.toLowerCase()}`}>{item.level}</span><div><span className="cert-status">{item.status || 'Active'}</span><span className="cert-type">{item.credentialType}</span></div></div><h2>{item.name}</h2><p className="cert-authority">{item.authority}</p><p className="cert-description">{item.description}</p><div className="cert-tags">{item.skills.slice(0, 3).map(skill => <span key={skill}>{skill}</span>)}</div><label className="cert-compare-select"><input type="checkbox" checked={comparison.some(entry => entry.id === item.id)} onChange={() => toggleComparison(item)} disabled={comparison.length === 3 && !comparison.some(entry => entry.id === item.id)} /> Compare</label><button onClick={() => setSelected(item)}>View credential <ArrowUpRight size={15} /></button></article>)}</section>
     {!catalogLoading && !catalog.length && <section className="cert-empty"><BookOpenCheck size={22} /><h2>No certifications match those filters</h2><p>Try a broader role, skill, or category.</p></section>}
     {(page > 1 || nextCursor) && <nav className="cert-pagination" aria-label="Certification catalog pages"><button onClick={() => setPage(current => current - 1)} disabled={page === 1}><ArrowLeft size={15} /> Previous</button><span>Page {page}</span><button onClick={goNext} disabled={!nextCursor}>Next <ArrowRight size={15} /></button></nav>}
     {selected && <CertificationDetail certification={selected} onClose={() => setSelected(null)} />}
+    {comparisonOpen && <CertificationComparison entries={comparison} onClose={() => setComparisonOpen(false)} onRemove={toggleComparison} />}
     {showSuggestion && <CertificationSuggestion onClose={() => setShowSuggestion(false)} />}
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
   </main>;
@@ -81,6 +125,22 @@ export default function Certifications() {
 function CertificationDetail({ certification, onClose }) {
   const lastChecked = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(`${certification.lastVerified}T12:00:00`));
   return <div className="cert-detail-overlay" onClick={onClose}><aside className="cert-detail" onClick={event => event.stopPropagation()} aria-label={`${certification.name} details`}><button className="cert-close" onClick={onClose} aria-label="Close details"><X size={19} /></button><span className={`cert-level ${certification.level.toLowerCase()}`}>{certification.level}</span><h2>{certification.name}</h2><p className="cert-authority">Issued by {certification.authority}</p><p className="cert-detail-description">{certification.description}</p><dl><div><dt>Catalog status</dt><dd>{certification.status || 'Active'} · {certification.sourceType || 'Official issuer source'}</dd></div><div><dt>Credential type</dt><dd>{certification.credentialType}</dd></div><div><dt>Typical exam cost</dt><dd>{certification.cost}</dd></div><div><dt>Prerequisites</dt><dd>{certification.prerequisites}</dd></div><div><dt>Validity / renewal</dt><dd>{certification.validity}</dd></div><div><dt>Where it applies</dt><dd>{certification.geography}</dd></div><div><dt>Best for</dt><dd>{certification.targetRoles.join(' · ')}</dd></div></dl><section className="cert-detail-skills"><h3>Skills covered</h3>{certification.skills.map(skill => <span key={skill}>{skill}</span>)}</section><a className="cert-official-link" href={certification.officialUrl} target="_blank" rel="noreferrer">View official credential page <ArrowUpRight size={16} /></a><p className="cert-verified"><CheckCircle2 size={14} /> Official source last checked {lastChecked}</p></aside></div>;
+}
+
+function CertificationComparison({ entries, onClose, onRemove }) {
+  const fields = [
+    ['Level', entry => entry.level],
+    ['Issued by', entry => entry.authority],
+    ['Credential type', entry => entry.credentialType],
+    ['Typical exam cost', entry => entry.cost],
+    ['Prerequisites', entry => entry.prerequisites],
+    ['Validity / renewal', entry => entry.validity],
+    ['Where it applies', entry => entry.geography],
+    ['Best for', entry => entry.targetRoles.join(' · ')],
+    ['Skills covered', entry => entry.skills.join(' · ')],
+  ];
+  const gridStyle = { '--comparison-count': entries.length };
+  return <div className="cert-detail-overlay" onClick={onClose}><section className="cert-comparison" onClick={event => event.stopPropagation()} aria-label="Certification comparison"><button className="cert-close" onClick={onClose} aria-label="Close comparison"><X size={19} /></button><span className="cert-comparison-kicker"><Scale size={15} /> Certification comparison</span><h2>Make the trade-offs visible</h2><p>Compare the investment, eligibility, and career fit before committing to a credential.</p><div className="cert-comparison-table"><div className="cert-comparison-row cert-comparison-heading" style={gridStyle}><div>What to compare</div>{entries.map(entry => <div key={entry.id}><strong>{entry.name}</strong><button onClick={() => onRemove(entry)}>Remove</button></div>)}</div>{fields.map(([label, value]) => <div className="cert-comparison-row" style={gridStyle} key={label}><div>{label}</div>{entries.map(entry => <div key={entry.id}>{value(entry)}</div>)}</div>)}</div><div className="cert-comparison-links">{entries.map(entry => <a key={entry.id} href={entry.officialUrl} target="_blank" rel="noreferrer">Official {entry.authority} page <ArrowUpRight size={14} /></a>)}</div></section></div>;
 }
 
 function CertificationSuggestion({ onClose }) {

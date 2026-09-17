@@ -25,6 +25,13 @@ const searchMatches = (entry, search) => {
 
 async function listCatalog(req, res) {
   res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=3600');
+  const requestedIds = clean(req.query.ids, 600).split(',').filter(id => /^[a-z0-9-]{1,160}$/i.test(id)).slice(0, 3);
+  if (requestedIds.length) {
+    const documents = await adminDb.getAll(...requestedIds.map(id => adminDb.collection('certifications').doc(id)));
+    const byId = new Map(documents.filter(document => document.exists && document.data().status === 'Active').map(document => [document.id, { id: document.id, ...document.data() }]));
+    return res.status(200).json({ entries: requestedIds.map(id => byId.get(id)).filter(Boolean) });
+  }
+  const metadataPromise = adminDb.collection('catalogMetadata').doc('certifications').get();
   const category = clean(req.query.category, 100);
   const level = clean(req.query.level, 30);
   const search = clean(req.query.q, 160).toLowerCase();
@@ -54,7 +61,8 @@ async function listCatalog(req, res) {
     if (entries.length === PAGE_SIZE || snapshot.size < SCAN_BATCH_SIZE) break;
     query = adminDb.collection('certifications').orderBy('name').orderBy(FieldPath.documentId()).startAfter(lastDocument.get('name'), lastDocument.id);
   }
-  return res.status(200).json({ entries, nextCursor: hasMore && lastDocument ? encodeCursor(lastDocument) : null, pageSize: PAGE_SIZE });
+  const metadata = await metadataPromise;
+  return res.status(200).json({ entries, nextCursor: hasMore && lastDocument ? encodeCursor(lastDocument) : null, pageSize: PAGE_SIZE, totalEntries: Number.isInteger(metadata.data()?.activeCount) ? metadata.data().activeCount : null });
 }
 
 async function createSubmission(user, req, res) {

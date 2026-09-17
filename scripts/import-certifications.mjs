@@ -19,7 +19,8 @@ if (deleteInput && !apply) throw new Error('--delete-input is allowed only with 
 
 const inputPath = resolve(projectRoot, inputArgument);
 const inputRelative = relative(projectRoot, inputPath);
-if (!inputRelative || inputRelative.startsWith('..') || inputRelative.includes('/../')) throw new Error('The input file must be inside this repository.');
+const isTemporaryInput = inputPath.startsWith('/private/tmp/');
+if ((!inputRelative || inputRelative.startsWith('..') || inputRelative.includes('/../')) && !isTemporaryInput) throw new Error('The input file must be inside this repository or /private/tmp.');
 if (inputPath === new URL(import.meta.url).pathname) throw new Error('The importer cannot be its own input.');
 
 async function loadEntries(path) {
@@ -60,7 +61,9 @@ for (let index = 0; index < entries.length; index += 400) {
   });
   await batch.commit();
 }
-console.info(`Uploaded ${entries.length} certification records to Firestore.`);
+const activeCount = (await db.collection('certifications').where('status', '==', 'Active').count().get()).data().count;
+await db.collection('catalogMetadata').doc('certifications').set({ activeCount, updatedAt: now }, { merge: true });
+console.info(`Uploaded ${entries.length} certification records to Firestore. Active catalog total: ${activeCount}.`);
 if (deleteInput) {
   await rm(inputPath);
   console.info(`Deleted local input file: ${inputRelative}`);
