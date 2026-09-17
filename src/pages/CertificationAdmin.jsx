@@ -22,17 +22,17 @@ export default function CertificationAdmin() {
 
   const load = async () => {
     try {
-      const access = await api('/api/certifications/admin');
+      const access = await api('/api/certifications?action=admin');
       setAllowed(access.isAdmin);
       if (access.isAdmin) {
-        const result = await api('/api/certifications/submissions');
+        const result = await api('/api/certifications?action=submissions');
         setSubmissions(result.submissions || []);
       }
     } catch (error) { setMessage(error.message); setAllowed(false); }
   };
   useEffect(() => { if (user) load(); }, [user]);
-  const seed = async () => { setWorking(true); setMessage(''); try { const result = await api('/api/certifications/seed', { method: 'POST' }); setMessage(`${result.seeded} catalog entries seeded to Firestore.`); } catch (error) { setMessage(error.message); } finally { setWorking(false); } };
-  const setStatus = async (id, status) => { try { await api('/api/certifications/submissions', { method: 'PATCH', body: JSON.stringify({ id, status }) }); setSubmissions(current => current.map(item => item.id === id ? { ...item, status } : item)); } catch (error) { setMessage(error.message); } };
+  const seed = async () => { setWorking(true); setMessage(''); try { const result = await api('/api/certifications?action=seed', { method: 'POST' }); setMessage(`${result.seeded} catalog entries seeded to Firestore.`); } catch (error) { setMessage(error.message); } finally { setWorking(false); } };
+  const setStatus = async (id, status) => { try { await api('/api/certifications?action=submission', { method: 'PATCH', body: JSON.stringify({ id, status }) }); setSubmissions(current => current.map(item => item.id === id ? { ...item, status } : item)); } catch (error) { setMessage(error.message); } };
 
   if (authLoading || (user && allowed === null)) return <main className="cert-admin-page"><p>Loading…</p></main>;
   if (!user || !allowed) return <main className="cert-admin-page"><section className="cert-admin-empty"><ShieldCheck size={22} /><h1>Certification catalog administration</h1><p>{message || 'This area is available only to configured catalog administrators.'}</p></section></main>;

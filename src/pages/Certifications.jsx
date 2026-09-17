@@ -61,7 +61,7 @@ function CertificationSuggestion({ onClose }) {
     event.preventDefault(); setSaving(true); setStatus('');
     try {
       const token = await auth.currentUser?.getIdToken();
-      const response = await fetch('/api/certifications/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
+      const response = await fetch('/api/certifications?action=submission', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error);
       setStatus('Thank you—your suggestion is queued for official-source review.');
