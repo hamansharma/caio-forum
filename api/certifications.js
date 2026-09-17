@@ -158,6 +158,17 @@ async function buildPathway(user, req, res) {
   const experience = clean(req.body?.experience, 30);
   if (!targetRole || !domain || !['New', 'Some experience', 'Experienced'].includes(experience)) return res.status(400).json({ error: 'Choose a target role, domain, and experience level.' });
   const date = new Date().toISOString().slice(0, 10);
+  // Rank before consuming a credit so a transient catalog-read failure never
+  // charges the member for a pathway we could not produce.
+  const snapshot = await adminDb.collection('certifications').where('status', '==', 'Active').get();
+  const target = `${targetRole} ${domain}`.toLowerCase();
+  const preferredLevels = experience === 'New' ? ['Beginner', 'Intermediate'] : experience === 'Some experience' ? ['Intermediate', 'Advanced'] : ['Advanced', 'Intermediate'];
+  const recommendations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).map(entry => {
+    const text = [entry.name, entry.category, entry.authority, ...(entry.skills || []), ...(entry.targetRoles || [])].join(' ').toLowerCase();
+    const matches = target.split(/\s+/).filter(word => word.length > 2 && text.includes(word)).length;
+    const score = matches * 10 + (preferredLevels.indexOf(entry.level) === 0 ? 5 : preferredLevels.includes(entry.level) ? 2 : 0);
+    return { ...entry, score };
+  }).filter(entry => entry.score > 0).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name)).slice(0, 4);
   const usageRef = adminDb.collection('certificationPathUsage').doc(user.uid).collection('days').doc(date);
   const remaining = await adminDb.runTransaction(async transaction => {
     const usage = await transaction.get(usageRef);
@@ -170,16 +181,23 @@ async function buildPathway(user, req, res) {
     transaction.set(usageRef, { used: used + 1, updatedAt: new Date().toISOString() }, { merge: true });
     return 1 - used;
   });
-  const snapshot = await adminDb.collection('certifications').where('status', '==', 'Active').get();
-  const target = `${targetRole} ${domain}`.toLowerCase();
-  const preferredLevels = experience === 'New' ? ['Beginner', 'Intermediate'] : experience === 'Some experience' ? ['Intermediate', 'Advanced'] : ['Advanced', 'Intermediate'];
-  const recommendations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).map(entry => {
-    const text = [entry.name, entry.category, entry.authority, ...(entry.skills || []), ...(entry.targetRoles || [])].join(' ').toLowerCase();
-    const matches = target.split(/\s+/).filter(word => word.length > 2 && text.includes(word)).length;
-    const score = matches * 10 + (preferredLevels.indexOf(entry.level) === 0 ? 5 : preferredLevels.includes(entry.level) ? 2 : 0);
-    return { ...entry, score };
-  }).filter(entry => entry.score > 0).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name)).slice(0, 4);
-  return res.status(200).json({ recommendations, remaining, rationale: `Ranked from the verified catalog for ${targetRole} in ${domain}, prioritizing ${experience.toLowerCase()} candidates.` });
+  const createdAt = new Date().toISOString();
+  const rationale = `Ranked from the verified catalog for ${targetRole} in ${domain}, prioritizing ${experience.toLowerCase()} candidates.`;
+  const history = { targetRole, domain, experience, recommendations, remaining, rationale, createdAt };
+  await adminDb.collection('certificationPathways').doc(user.uid).collection('history').add(history);
+  return res.status(200).json(history);
+}
+
+async function pathwayStatus(user, res) {
+  const date = new Date().toISOString().slice(0, 10);
+  const usage = await adminDb.collection('certificationPathUsage').doc(user.uid).collection('days').doc(date).get();
+  const used = usage.exists ? Math.min(2, Number(usage.data().used || 0)) : 0;
+  return res.status(200).json({ used, remaining: Math.max(0, 2 - used) });
+}
+
+async function pathwayHistory(user, res) {
+  const snapshot = await adminDb.collection('certificationPathways').doc(user.uid).collection('history').orderBy('createdAt', 'desc').limit(30).get();
+  return res.status(200).json({ pathways: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
 }
 
 export default async function handler(req, res) {
@@ -191,6 +209,8 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && action === 'admin') return res.status(200).json({ isAdmin: isCertificationAdmin(user) });
     if (req.method === 'GET' && action === 'submissions') return await listSubmissions(user, res);
     if (req.method === 'GET' && action === 'reports') return await listReports(user, res);
+    if (req.method === 'GET' && action === 'pathway-status') return await pathwayStatus(user, res);
+    if (req.method === 'GET' && action === 'pathway-history') return await pathwayHistory(user, res);
     if (req.method === 'POST' && action === 'submission') return await createSubmission(user, req, res);
     if (req.method === 'POST' && action === 'publish-submission') return await publishSubmission(user, req, res);
     if (req.method === 'POST' && action === 'report') return await createReport(user, req, res);
