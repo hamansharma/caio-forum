@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   collection, doc, addDoc, updateDoc, onSnapshot,
   query, orderBy, serverTimestamp, increment, getDoc, setDoc,
-  getDocs, writeBatch, deleteDoc
+  getDocs, writeBatch, deleteDoc, runTransaction
 } from 'firebase/firestore';
 
 import {
@@ -84,30 +84,29 @@ export function ForumProvider({ children }) {
 
   const claimUsername = async (uid, username) => {
     const normalized = username.toLowerCase().trim();
-    await setDoc(doc(db, 'usernames', normalized), { uid });
+    const usernameRef = doc(db, 'usernames', normalized);
+    await runTransaction(db, async transaction => {
+      if ((await transaction.get(usernameRef)).exists()) throw new Error('USERNAME_TAKEN');
+      transaction.set(usernameRef, { uid });
+    });
   };
 
   const signup = async ({ email, password, fullName, username }) => {
-    // Check username availability before creating auth account
-    const available = await checkUsernameAvailable(username);
-    if (!available) {
-      throw new Error('USERNAME_TAKEN');
-    }
-
-    let credential;
-    try {
-      credential = await createUserWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      throw err;
-    }
-
+    // Firestore rules deliberately prohibit username-index reads before sign-in.
+    // Create the Auth account first, then claim the name atomically as that user.
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = credential.user.uid;
 
     try {
-      // Claim the username in the index
       await claimUsername(uid, username);
+    } catch (usernameError) {
+      // Do not leave an unusable Auth account behind when another member won the
+      // username race between form entry and account creation.
+      await deleteUser(credential.user).catch(() => {});
+      throw usernameError;
+    }
 
-      // Save user profile
+    try {
       await setDoc(doc(db, 'users', uid), {
         email: String(email),
         fullName: String(fullName),
