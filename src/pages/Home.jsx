@@ -14,8 +14,9 @@ export default function Home() {
   const { posts, loading } = useForum();
   const [sort, setSort] = useState('hot');
   const [filter, setFilter] = useState('all');
+  const forumPosts = posts.filter(post => !post.playground);
 
-  const sorted = [...posts]
+  const sorted = [...forumPosts]
     .filter(p => filter === 'all' || p.category === filter)
     .sort((a, b) => {
       if (sort === 'new') return new Date(b.createdAt) - new Date(a.createdAt);
@@ -56,8 +57,8 @@ export default function Home() {
           <h3>About CAIO Forum</h3>
           <p>A discussion space for Chief AI Officer topics. Do not post copyright material without proper consent.</p>
           <div className="sidebar-stats">
-            <div><strong>{posts.length}</strong><span>Posts</span></div>
-            <div><strong>{posts.reduce((a, p) => a + p.comments.length, 0)}</strong><span>Comments</span></div>
+            <div><strong>{forumPosts.length}</strong><span>Posts</span></div>
+            <div><strong>{forumPosts.reduce((a, p) => a + p.comments.length, 0)}</strong><span>Comments</span></div>
           </div>
         </div>
         <div className="sidebar-card">

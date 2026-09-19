@@ -44,9 +44,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>Official issuer sources</span>
-            <button onClick={() => navigate('/certifications')}>
-              Explore catalog <ArrowRight size={16} />
-            </button>
+            <div className="playground-card-actions"><button onClick={() => navigate('/certifications')}>Explore catalog <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=certifications')}>Discuss</button></div>
           </div>
         </article>
 
@@ -59,9 +57,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span><LockKeyhole size={14} /> Saved to your account</span>
-            <button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>
-              {user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} />
-            </button>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>{user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=compass')}>Discuss</button></div>
           </div>
         </article>
 
@@ -74,20 +70,23 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span><LockKeyhole size={14} /> Sign-in required</span>
-            <button onClick={openPersonalSignals} disabled={authLoading}>
-              {user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} />
-            </button>
+            <div className="playground-card-actions"><button onClick={openPersonalSignals} disabled={authLoading}>{user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=health')}>Discuss</button></div>
           </div>
         </article>
 
-        <article className="playground-card muted">
+        <article className="playground-card community-card">
           <div className="playground-icon projects"><Sparkles size={22} /></div>
           <div className="playground-card-copy">
-            <div className="playground-label">Coming next</div>
-            <h2>AI Project Showcase</h2>
-            <p>Share the experiments you are running, what you learned, and the outcomes that matter—with the CAIO community.</p>
+            <div className="playground-label">Community workspace</div>
+            <h2>Playground Community</h2>
+            <p>Suggest new tools, ask questions, and share practical learnings from every AI Playground experiment.</p>
           </div>
-          <span className="playground-soon">In design</span>
+          <div className="playground-card-footer">
+            <span>Ideas, questions &amp; learnings</span>
+            <button onClick={() => navigate('/playground/community')}>
+              Join the discussion <ArrowRight size={16} />
+            </button>
+          </div>
         </article>
       </section>
 

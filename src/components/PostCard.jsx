@@ -23,7 +23,8 @@ export default function PostCard({ post }) {
 
       <div className="post-body">
         <div className="post-meta">
-          <span className={`tag tag-${post.category}`}>{post.category}</span>
+          <span className={`tag tag-${post.category}`}>{post.playgroundType || post.category}</span>
+          {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
           <span className="meta-text">Posted by <strong>u/{post.author}</strong></span>
           <span className="meta-dot">·</span>
           <span className="meta-text">{post.createdAt ? formatDistanceToNow(post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt)) : 'just now'} ago</span>

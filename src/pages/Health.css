@@ -21,3 +21,4 @@
   .health-secondary, .health-connect { justify-content: center; width: 100%; min-height: 44px; }
   .health-privacy { padding: 16px; }
 }
+.health-discuss-link{display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:var(--accent);font-size:12px;font-weight:750}.health-discuss-link:hover{text-decoration:underline;text-underline-offset:3px}

@@ -13,6 +13,7 @@ import Playground from './pages/Playground';
 import CaioCompass from './pages/CaioCompass';
 import Certifications from './pages/Certifications';
 import CertificationAdmin from './pages/CertificationAdmin';
+import PlaygroundCommunity from './pages/PlaygroundCommunity';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/health" element={<Health />} />
           <Route path="/playground" element={<Playground />} />
+          <Route path="/playground/community" element={<PlaygroundCommunity />} />
           <Route path="/playground/caio-compass" element={<CaioCompass />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/admin" element={<CertificationAdmin />} />

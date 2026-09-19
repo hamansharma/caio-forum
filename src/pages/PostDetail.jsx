@@ -100,7 +100,8 @@ export default function PostDetail() {
 
         <div className="detail-content">
           <div className="post-meta">
-            <span className={`tag tag-${post.category}`}>{post.category}</span>
+            <span className={`tag tag-${post.category}`}>{post.playgroundType || post.category}</span>
+            {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
             <span className="meta-text">
               u/<strong>{post.author}</strong> · {post.createdAt
                 ? formatDistanceToNow(post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt))

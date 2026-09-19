@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, History as HistoryIcon, Layers3, LockKeyhole, RotateCcw, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BarChart3, Check, ClipboardCheck, History as HistoryIcon, Layers3, LockKeyhole, MessageCircle, RotateCcw, Sparkles, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
@@ -112,6 +112,7 @@ export default function CaioCompass() {
         <h1>CAIO Compass</h1>
         <p>A private, evidence-led AI maturity assessment across the seven building blocks of a healthy AI program.</p>
         <button className="compass-primary" onClick={() => setShowAuth(true)}><LockKeyhole size={16} /> Sign in to start</button>
+        <Link className="compass-discuss-link" to="/playground/community?tool=compass"><MessageCircle size={14} /> Discuss CAIO Compass</Link>
         <Link className="compass-text-link" to="/playground">Back to AI Playground</Link>
       </section>
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
@@ -125,7 +126,7 @@ export default function CaioCompass() {
     <main className="compass-page">
       <section className="compass-hero compact compass-hero-with-action">
         <div><span className="compass-kicker"><Target size={15} /> CAIO Leadership Lab</span><h1>CAIO Compass</h1><p>Assess your current AI capability, see the shape of your maturity, and leave with a practical place to begin.</p></div>
-        <button className="compass-history-button" onClick={() => setShowHistory(true)}><HistoryIcon size={16} /> Assessment history{history.length ? <span>{history.length}</span> : null}</button>
+        <div className="compass-hero-tools"><Link className="compass-discuss-link" to="/playground/community?tool=compass"><MessageCircle size={14} /> Discuss CAIO Compass</Link><button className="compass-history-button" onClick={() => setShowHistory(true)}><HistoryIcon size={16} /> Assessment history{history.length ? <span>{history.length}</span> : null}</button></div>
       </section>
 
       <section className="compass-shell">

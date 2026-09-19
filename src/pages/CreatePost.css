@@ -60,3 +60,4 @@
 .input-error {
   border-color: #f87171 !important;
 }
+.create-playground-context{margin:10px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5}.create-playground-context strong{color:var(--accent)}

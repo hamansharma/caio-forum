@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import MarkdownEditor from '../components/MarkdownEditor';
 import CharCount from '../components/CharCount';
 import { validatePostTitle, validatePostBody, sanitizeText, LIMITS } from '../utils/validate';
+import { playgroundPostTypes, playgroundTools } from '../data/playgroundCommunity';
 import './CreatePost.css';
 
 const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics', 'links'];
@@ -11,7 +12,13 @@ const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics', 'links'];
 export default function CreatePost() {
   const { user, addPost } = useForum();
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const isPlaygroundDiscussion = params.get('space') === 'playground';
+  const playgroundTool = playgroundTools[params.get('tool')] && params.get('tool') !== 'all' ? params.get('tool') : 'general';
+  const initialPlaygroundType = playgroundPostTypes.some(item => item.key === params.get('type')) ? params.get('type') : 'question';
   const [form, setForm] = useState({ title: '', body: '', category: 'discussion' });
+  const [playgroundType, setPlaygroundType] = useState(initialPlaygroundType);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,7 +26,7 @@ export default function CreatePost() {
     <div className="create-gate">
       <h2>Sign in to create a post</h2>
       <p>You need to be signed in to start a discussion.</p>
-      <button onClick={() => navigate('/')}>Back to Forum</button>
+      <button onClick={() => navigate(isPlaygroundDiscussion ? '/playground/community' : '/')}>Back to Forum</button>
     </div>
   );
 
@@ -45,6 +52,9 @@ export default function CreatePost() {
     try {
       const id = await addPost({
         ...form,
+        playground: isPlaygroundDiscussion,
+        playgroundTool: isPlaygroundDiscussion ? playgroundTool : null,
+        playgroundType: isPlaygroundDiscussion ? playgroundType : null,
         title: sanitizeText(form.title),
         body: sanitizeText(form.body),
       });
@@ -61,20 +71,15 @@ export default function CreatePost() {
 
   return (
     <div className="create-page">
-      <h1>Create a Discussion</h1>
+      <h1>{isPlaygroundDiscussion ? 'Start a Playground Discussion' : 'Create a Discussion'}</h1>
       <form className="create-form" onSubmit={handleSubmit}>
 
         <div className="form-group">
-          <label>Category</label>
+          <label>{isPlaygroundDiscussion ? 'What are you contributing?' : 'Category'}</label>
           <div className="cat-pills">
-            {CATEGORIES.map(cat => (
-              <button type="button" key={cat}
-                className={`cat-pill tag-${cat} ${form.category === cat ? 'active' : ''}`}
-                onClick={() => set('category', cat)}>
-                {cat}
-              </button>
-            ))}
+            {isPlaygroundDiscussion ? playgroundPostTypes.map(item => <button type="button" key={item.key} className={`cat-pill ${playgroundType === item.key ? 'active' : ''}`} onClick={() => setPlaygroundType(item.key)}>{item.shortLabel}</button>) : CATEGORIES.map(cat => <button type="button" key={cat} className={`cat-pill tag-${cat} ${form.category === cat ? 'active' : ''}`} onClick={() => set('category', cat)}>{cat}</button>)}
           </div>
+          {isPlaygroundDiscussion && <p className="create-playground-context">Posting to <strong>{playgroundTools[playgroundTool].label}</strong> · {playgroundPostTypes.find(item => item.key === playgroundType).prompt}</p>}
         </div>
 
         <div className="form-group">
@@ -110,7 +115,7 @@ export default function CreatePost() {
 
         <div className="form-actions">
           <button type="button" className="btn-cancel"
-            onClick={() => navigate('/')}>Cancel</button>
+            onClick={() => navigate(isPlaygroundDiscussion ? '/playground/community' : '/')}>Cancel</button>
           <button type="submit" className="btn-post"
             disabled={submitting || isOver}>
             {submitting ? 'Posting…' : 'Post Discussion'}
