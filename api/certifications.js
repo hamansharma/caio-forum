@@ -29,6 +29,13 @@ async function refreshCatalogMetadata() {
   await adminDb.collection('catalogMetadata').doc('certifications').set({ activeCount, updatedAt: new Date().toISOString() }, { merge: true });
 }
 
+async function attachAchievementCounts(entries) {
+  if (!entries.length) return entries;
+  const snapshots = await adminDb.getAll(...entries.map(entry => adminDb.collection('certificationSignals').doc(entry.id)));
+  const counts = new Map(snapshots.filter(snapshot => snapshot.exists).map(snapshot => [snapshot.id, Math.max(0, Number(snapshot.data().achievedCount || 0))]));
+  return entries.map(entry => ({ ...entry, achievedCount: counts.get(entry.id) || 0 }));
+}
+
 async function listCatalog(req, res) {
   // Catalog edits are imported directly into Firestore. Avoid serving a stale
   // edge-cached page after an administrator publishes new credentials.
@@ -37,7 +44,7 @@ async function listCatalog(req, res) {
   if (requestedIds.length) {
     const documents = await adminDb.getAll(...requestedIds.map(id => adminDb.collection('certifications').doc(id)));
     const byId = new Map(documents.filter(document => document.exists && document.data().status === 'Active').map(document => [document.id, { id: document.id, ...document.data() }]));
-    return res.status(200).json({ entries: requestedIds.map(id => byId.get(id)).filter(Boolean) });
+    return res.status(200).json({ entries: await attachAchievementCounts(requestedIds.map(id => byId.get(id)).filter(Boolean)) });
   }
   const metadataPromise = adminDb.collection('catalogMetadata').doc('certifications').get();
   const category = clean(req.query.category, 100);
@@ -70,7 +77,30 @@ async function listCatalog(req, res) {
     query = adminDb.collection('certifications').orderBy('name').orderBy(FieldPath.documentId()).startAfter(lastDocument.get('name'), lastDocument.id);
   }
   const metadata = await metadataPromise;
-  return res.status(200).json({ entries, nextCursor: hasMore && lastDocument ? encodeCursor(lastDocument) : null, pageSize: PAGE_SIZE, totalEntries: Number.isInteger(metadata.data()?.activeCount) ? metadata.data().activeCount : null });
+  return res.status(200).json({ entries: await attachAchievementCounts(entries), nextCursor: hasMore && lastDocument ? encodeCursor(lastDocument) : null, pageSize: PAGE_SIZE, totalEntries: Number.isInteger(metadata.data()?.activeCount) ? metadata.data().activeCount : null });
+}
+
+async function toggleAchievement(user, req, res) {
+  const certificationId = clean(req.body?.certificationId, 160);
+  if (!certificationId) return res.status(400).json({ error: 'A certification is required.' });
+  const certification = await adminDb.collection('certifications').doc(certificationId).get();
+  if (!certification.exists || certification.data().status !== 'Active') return res.status(404).json({ error: 'Certification not found.' });
+  const signalRef = adminDb.collection('certificationSignals').doc(certificationId);
+  const memberRef = signalRef.collection('members').doc(user.uid);
+  const result = await adminDb.runTransaction(async transaction => {
+    const [signal, member] = await Promise.all([transaction.get(signalRef), transaction.get(memberRef)]);
+    const currentCount = signal.exists ? Math.max(0, Number(signal.data().achievedCount || 0)) : 0;
+    const now = new Date().toISOString();
+    if (member.exists) {
+      transaction.delete(memberRef);
+      transaction.set(signalRef, { achievedCount: Math.max(0, currentCount - 1), updatedAt: now }, { merge: true });
+      return { achieved: false, achievedCount: Math.max(0, currentCount - 1) };
+    }
+    transaction.set(memberRef, { achievedAt: now, isAnonymous: user.firebase?.sign_in_provider === 'anonymous' });
+    transaction.set(signalRef, { achievedCount: currentCount + 1, updatedAt: now }, { merge: true });
+    return { achieved: true, achievedCount: currentCount + 1 };
+  });
+  return res.status(200).json(result);
 }
 
 async function createSubmission(user, req, res) {
@@ -200,6 +230,44 @@ async function pathwayHistory(user, res) {
   return res.status(200).json({ pathways: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
 }
 
+const planStatuses = ['Exploring', 'Studying', 'Scheduled', 'Completed'];
+
+async function listPlan(user, res) {
+  const snapshot = await adminDb.collection('certificationPlans').doc(user.uid).collection('items').orderBy('updatedAt', 'desc').limit(100).get();
+  return res.status(200).json({ items: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
+}
+
+async function savePlanItems(user, req, res) {
+  const ids = Array.isArray(req.body?.certificationIds) ? [...new Set(req.body.certificationIds.filter(id => typeof id === 'string' && /^[a-z0-9-]{1,160}$/i.test(id)))].slice(0, 12) : [];
+  if (!ids.length) return res.status(400).json({ error: 'Select at least one certification to save.' });
+  const documents = await adminDb.getAll(...ids.map(id => adminDb.collection('certifications').doc(id)));
+  const valid = documents.filter(document => document.exists && document.data().status === 'Active');
+  if (!valid.length) return res.status(400).json({ error: 'The selected credentials are no longer available.' });
+  const now = new Date().toISOString();
+  const batch = adminDb.batch();
+  valid.forEach(document => {
+    const entry = document.data();
+    batch.set(adminDb.collection('certificationPlans').doc(user.uid).collection('items').doc(document.id), {
+      certificationId: document.id, name: entry.name, authority: entry.authority, officialUrl: entry.officialUrl,
+      cost: entry.cost || 'See official issuer pricing', validity: entry.validity || 'See official issuer policy',
+      level: entry.level, status: 'Exploring', targetDate: '', createdAt: now, updatedAt: now,
+    }, { merge: true });
+  });
+  await batch.commit();
+  return res.status(201).json({ saved: valid.map(document => document.id) });
+}
+
+async function updatePlanItem(user, req, res) {
+  const id = clean(req.body?.certificationId, 160);
+  const status = clean(req.body?.status, 30);
+  const targetDate = clean(req.body?.targetDate, 10);
+  if (!id || !planStatuses.includes(status) || (targetDate && !/^\d{4}-\d{2}-\d{2}$/.test(targetDate))) return res.status(400).json({ error: 'A valid plan status and target date are required.' });
+  const reference = adminDb.collection('certificationPlans').doc(user.uid).collection('items').doc(id);
+  if (!(await reference.get()).exists) return res.status(404).json({ error: 'Plan item not found.' });
+  await reference.update({ status, targetDate, updatedAt: new Date().toISOString() });
+  return res.status(200).json({ ok: true });
+}
+
 export default async function handler(req, res) {
   const action = req.query.action || '';
   try {
@@ -211,12 +279,16 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && action === 'reports') return await listReports(user, res);
     if (req.method === 'GET' && action === 'pathway-status') return await pathwayStatus(user, res);
     if (req.method === 'GET' && action === 'pathway-history') return await pathwayHistory(user, res);
+    if (req.method === 'GET' && action === 'plan') return await listPlan(user, res);
     if (req.method === 'POST' && action === 'submission') return await createSubmission(user, req, res);
     if (req.method === 'POST' && action === 'publish-submission') return await publishSubmission(user, req, res);
     if (req.method === 'POST' && action === 'report') return await createReport(user, req, res);
     if (req.method === 'POST' && action === 'pathway') return await buildPathway(user, req, res);
+    if (req.method === 'POST' && action === 'plan') return await savePlanItems(user, req, res);
+    if (req.method === 'POST' && action === 'achievement') return await toggleAchievement(user, req, res);
     if (req.method === 'PATCH' && action === 'submission') return await updateSubmission(user, req, res);
     if (req.method === 'PATCH' && action === 'report') return await updateReport(user, req, res);
+    if (req.method === 'PATCH' && action === 'plan') return await updatePlanItem(user, req, res);
     return res.status(405).json({ error: 'Method not allowed.' });
   } catch (error) {
     console.error('Unable to process certification request:', error.message);
