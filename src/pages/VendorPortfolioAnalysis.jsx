@@ -20,7 +20,7 @@ async function authenticatedRequest(path, options = {}) {
 }
 
 export default function VendorPortfolioAnalysis() {
-  usePageMeta('Vendor Overlap Analysis | Free Open-Source Portfolio Mapper', 'Identify software overlap hypotheses and validate renewal decisions with a free, open-source vendor portfolio analysis workspace.');
+  usePageMeta('Vendor Overlap Analysis | Free Open-Source Portfolio Mapper', 'Identify software overlap hypotheses and validate renewal decisions with a free, open-source vendor portfolio analysis workspace.', { canonicalPath: '/playground/vendor-portfolio/analysis', noIndex: true });
   const { user, authLoading } = useForum();
   const [tools, setTools] = useState([]);
   const [analyses, setAnalyses] = useState([]);

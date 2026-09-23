@@ -17,6 +17,7 @@ import PlaygroundCommunity from './pages/PlaygroundCommunity';
 import VendorPortfolio from './pages/VendorPortfolio';
 import VendorPortfolioProfiles from './pages/VendorPortfolioProfiles';
 import VendorPortfolioAnalysis from './pages/VendorPortfolioAnalysis';
+import NotFound from './pages/NotFound';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/playground/caio-compass" element={<CaioCompass />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/admin" element={<CertificationAdmin />} />
+          <Route path="*" element={<NotFound />} />
           
         </Routes>
         <Chatbot />

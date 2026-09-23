@@ -4,6 +4,7 @@ import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import { certificationCategories } from '../data/certificationCategories';
 import './CertificationAdmin.css';
+import usePageMeta from '../hooks/usePageMeta';
 
 async function api(path, options = {}) {
   const token = await auth.currentUser?.getIdToken();
@@ -15,6 +16,7 @@ async function api(path, options = {}) {
 }
 
 export default function CertificationAdmin() {
+  usePageMeta('Certification Catalog Administration | CAIO Forum', 'Private certification catalog administration.', { canonicalPath: '/certifications/admin', noIndex: true });
   const { user, authLoading } = useForum();
   const [allowed, setAllowed] = useState(null);
   const [submissions, setSubmissions] = useState([]);

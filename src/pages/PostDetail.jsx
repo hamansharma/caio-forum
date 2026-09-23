@@ -10,6 +10,7 @@ import InlineConfirm from '../components/InlineConfirm';
 import './PostDetail.css';
 import CharCount from '../components/CharCount';
 import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
+import usePageMeta from '../hooks/usePageMeta';
 
 const SORT_OPTS = [
   { key: 'newest', label: 'Newest', icon: Clock },
@@ -43,6 +44,8 @@ export default function PostDetail() {
   const [commentError, setCommentError] = useState('');
 
   const post = posts.find(p => p.id === id);
+  const postDescription = post ? String(post.body || '').replace(/[#*_`>[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155) : 'Read a community discussion on AI leadership, strategy, and technology.';
+  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: `/post/${id}` });
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
 
   const voted = votedPosts[post.id] || 0;

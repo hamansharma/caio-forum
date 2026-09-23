@@ -5,11 +5,13 @@ import MarkdownEditor from '../components/MarkdownEditor';
 import CharCount from '../components/CharCount';
 import { validatePostTitle, validatePostBody, sanitizeText, LIMITS } from '../utils/validate';
 import { playgroundPostTypes, playgroundTools } from '../data/playgroundCommunity';
+import usePageMeta from '../hooks/usePageMeta';
 import './CreatePost.css';
 
 const CATEGORIES = ['concepts', 'discussion', 'strategy', 'ethics', 'links'];
 
 export default function CreatePost() {
+  usePageMeta('Create a Discussion | CAIO Forum', 'Create a discussion for the CAIO Forum community.', { canonicalPath: '/create', noIndex: true });
   const { user, addPost } = useForum();
   const navigate = useNavigate();
   const location = useLocation();

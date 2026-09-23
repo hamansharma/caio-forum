@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
 import { compassDimensions, maturityLabels, resultRoutes } from '../data/caioCompass';
+import usePageMeta from '../hooks/usePageMeta';
 import './CaioCompass.css';
 
 const DRAFT_KEY = 'caio-compass-draft-v1';
@@ -30,6 +31,7 @@ function formatDate(value) {
 }
 
 export default function CaioCompass() {
+  usePageMeta('CAIO Compass | AI Maturity Assessment & Roadmap', 'Assess your organization’s AI maturity across strategy, data, operating model, governance, and delivery—then identify practical next steps.', { canonicalPath: '/playground/caio-compass' });
   const { user, authLoading } = useForum();
   const [showAuth, setShowAuth] = useState(false);
   const [step, setStep] = useState(0);

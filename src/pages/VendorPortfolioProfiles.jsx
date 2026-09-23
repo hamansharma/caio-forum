@@ -32,7 +32,7 @@ const combineInventoryAndProfiles = (inventory, savedProfiles) => {
 };
 
 export default function VendorPortfolioProfiles() {
-  usePageMeta('Capability Profiles | Vendor Portfolio Mapper', 'Review reusable catalog profiles and AI-generated software capability profiles in the free, open-source Vendor Portfolio Mapper.');
+  usePageMeta('Capability Profiles | Vendor Portfolio Mapper', 'Review reusable catalog profiles and AI-generated software capability profiles in the free, open-source Vendor Portfolio Mapper.', { canonicalPath: '/playground/vendor-portfolio/profiles', noIndex: true });
   const [searchParams] = useSearchParams();
   const { user, authLoading } = useForum();
   const [category, setCategory] = useState('All');

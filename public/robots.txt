@@ -1,3 +1,11 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /create
+Disallow: /profile
+Disallow: /health
+Disallow: /certifications/admin
+Disallow: /playground/vendor-portfolio/profiles
+Disallow: /playground/vendor-portfolio/analysis
+
+Sitemap: https://caioleadership.com/sitemap.xml

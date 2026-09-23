@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/sitemap-posts.xml",
+      "destination": "/api/sitemap-posts"
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/health-sync",

@@ -3,9 +3,11 @@ import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole,
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
+import usePageMeta from '../hooks/usePageMeta';
 import './Playground.css';
 
 export default function Playground() {
+  usePageMeta('AI Playground | Practical AI Tools & Experiments', 'Explore practical AI tools, experiments, and decision-support projects from CAIO Leadership Lab, including certification planning and vendor portfolio mapping.', { canonicalPath: '/playground' });
   const { user, authLoading } = useForum();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);

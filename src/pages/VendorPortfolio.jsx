@@ -20,7 +20,7 @@ async function authenticatedRequest(path, options = {}) {
 }
 
 export default function VendorPortfolio() {
-  usePageMeta('Vendor Portfolio Mapper | Free Open-Source SaaS Portfolio Tool', 'A free, open-source workspace for startups and small teams to inventory software, identify potential overlap, and prepare better renewal decisions.');
+  usePageMeta('Vendor Portfolio Mapper | Free Open-Source SaaS Portfolio Tool', 'A free, open-source workspace for startups and small teams to inventory software, identify potential overlap, and prepare better renewal decisions.', { canonicalPath: '/playground/vendor-portfolio' });
   const { user, authLoading } = useForum();
   const [rows, setRows] = useState(() => [blankRow('new-1')]);
   const [pasteOpen, setPasteOpen] = useState(false);

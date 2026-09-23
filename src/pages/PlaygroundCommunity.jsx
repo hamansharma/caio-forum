@@ -5,11 +5,13 @@ import { useForum } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import AuthModal from '../components/AuthModal';
 import { playgroundPostTypes, playgroundTools } from '../data/playgroundCommunity';
+import usePageMeta from '../hooks/usePageMeta';
 import './PlaygroundCommunity.css';
 
 const promptIcons = [Lightbulb, MessageCircleQuestion, Sparkles];
 
 export default function PlaygroundCommunity() {
+  usePageMeta('AI Playground Community | Ideas, Questions & Learnings', 'Discuss AI Playground tools, suggest experiments, ask practical questions, and share what you learned with the CAIO community.', { canonicalPath: '/playground/community' });
   const { posts, user, loading } = useForum();
   const navigate = useNavigate();
   const location = useLocation();

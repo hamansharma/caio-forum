@@ -4,10 +4,12 @@ import { User, Trash2, RefreshCw, Lock, Check } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import { generateUsername } from '../utils/usernameGenerator';
 import InlineConfirm from '../components/InlineConfirm';
+import usePageMeta from '../hooks/usePageMeta';
 import './Profile.css';
 
 
 export default function Profile() {
+  usePageMeta('Your Profile | CAIO Forum', 'Manage your CAIO Forum account.', { canonicalPath: '/profile', noIndex: true });
   const { user, posts, updateAlias, updatePassword, deleteAccount } = useForum();
   const navigate = useNavigate();
 

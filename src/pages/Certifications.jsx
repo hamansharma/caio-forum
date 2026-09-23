@@ -6,11 +6,13 @@ import { signInAnonymously } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
+import usePageMeta from '../hooks/usePageMeta';
 import './Certifications.css';
 
 const levels = ['Beginner', 'Intermediate', 'Advanced'];
 
 export default function Certifications() {
+  usePageMeta('Certification Navigator | Compare Professional Certifications', 'Explore and compare professional certifications across cloud, AI, cybersecurity, finance, Agile, education, operations, and more before you invest.', { canonicalPath: '/certifications' });
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [level, setLevel] = useState('All');

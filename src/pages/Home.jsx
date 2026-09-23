@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Flame, Clock, TrendingUp } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
+import usePageMeta from '../hooks/usePageMeta';
 import './Home.css';
 
 const SORT_OPTS = [
@@ -11,6 +12,7 @@ const SORT_OPTS = [
 ];
 
 export default function Home() {
+  usePageMeta('CAIO Forum | AI Leadership, Strategy & Technology Community', 'Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community.', { canonicalPath: '/' });
   const { posts, loading } = useForum();
   const [sort, setSort] = useState('hot');
   const [filter, setFilter] = useState('all');
@@ -27,6 +29,7 @@ export default function Home() {
   return (
     <div className="home">
       <div className="home-main">
+        <header className="home-page-header"><h1>AI leadership discussions</h1><p>Practical ideas on AI strategy, technology, governance, and responsible adoption.</p></header>
         <div className="sort-bar">
           {SORT_OPTS.map(({ key, label, icon: Icon }) => (
             <button key={key} className={`sort-btn ${sort === key ? 'active' : ''}`} onClick={() => setSort(key)}>

@@ -5,6 +5,7 @@ import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import HealthCharts from '../components/HealthCharts';
 import HealthInsights from '../components/HealthInsights';
+import usePageMeta from '../hooks/usePageMeta';
 import './Health.css';
 
 async function authenticatedFetch(path, options = {}) {
@@ -25,6 +26,7 @@ async function authenticatedFetch(path, options = {}) {
 }
 
 export default function Health() {
+  usePageMeta('Personal Signals | CAIO Leadership Lab', 'Private Fitbit health analytics for the signed-in account.', { canonicalPath: '/health', noIndex: true });
   const { user, authLoading } = useForum();
   const [status, setStatus] = useState(null);
   const [profile, setProfile] = useState(null);
