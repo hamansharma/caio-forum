@@ -3,6 +3,7 @@ export const playgroundTools = {
   certifications: { label: 'Certification Navigator', shortLabel: 'Certifications' },
   compass: { label: 'CAIO Compass', shortLabel: 'CAIO Compass' },
   health: { label: 'Fitbit Health Analytics', shortLabel: 'Health Analytics' },
+  vendors: { label: 'Vendor Portfolio Mapper', shortLabel: 'Vendor Mapper' },
   general: { label: 'AI Playground', shortLabel: 'General' },
 };
 

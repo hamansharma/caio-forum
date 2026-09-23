@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Network, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
@@ -35,6 +35,19 @@ export default function Playground() {
       </section>
 
       <section className="playground-grid" aria-label="AI Playground apps">
+        <article className="playground-card vendor-card">
+          <div className="playground-icon vendors"><Network size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">Private workspace</div>
+            <h2>Vendor Portfolio Mapper</h2>
+            <p>Add the tools your company uses, confirm AI-generated capability profiles, and identify overlap hypotheses before a renewal conversation.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span><LockKeyhole size={14} /> Sign-in required</span>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/vendor-portfolio')} disabled={authLoading}>{user ? 'Map portfolio' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=vendors')}>Discuss</button></div>
+          </div>
+        </article>
+
         <article className="playground-card certifications-card">
           <div className="playground-icon certifications"><Award size={22} /></div>
           <div className="playground-card-copy">
