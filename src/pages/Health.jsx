@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, CheckCircle2, Link2, Loader, MessageCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Activity, ArrowLeft, CheckCircle2, Link2, Loader, MessageCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
@@ -129,16 +129,16 @@ export default function Health() {
 
   if (authLoading) return <main className="health-page"><p>Loading…</p></main>;
   if (!user) {
-    return <main className="health-page"><section className="health-card"><h1>Personal Signals</h1><p>Please sign in to connect a Fitbit. Your health data is private to your account.</p><Link className="health-discuss-link" to="/playground/community?tool=health"><MessageCircle size={14} /> Discuss this tool</Link></section></main>;
+    return <main className="health-page"><div className="health-feature-nav"><Link to="/playground"><ArrowLeft size={15} /> AI Playground</Link><Link to="/playground/community?tool=health"><MessageCircle size={15} /> Discuss this tool</Link></div><section className="health-card"><h1>Personal Signals</h1><p>Please sign in to connect a Fitbit. Your health data is private to your account.</p></section></main>;
   }
 
   return (
     <main className="health-page">
+      <div className="health-feature-nav"><Link to="/playground"><ArrowLeft size={15} /> AI Playground</Link><Link to="/playground/community?tool=health"><MessageCircle size={15} /> Discuss this tool</Link></div>
       <section className="health-hero">
         <span className="health-kicker"><Activity size={15} /> CAIO Leadership Lab</span>
         <h1>Personal Signals</h1>
         <p>Connect Fitbit once. We’ll use your data only for your private dashboard and future personal insights.</p>
-        <Link className="health-discuss-link" to="/playground/community?tool=health"><MessageCircle size={14} /> Discuss this tool</Link>
       </section>
 
       <section className="health-card">

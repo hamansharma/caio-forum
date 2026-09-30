@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useLayoutEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ForumProvider } from './context/ForumContext';
@@ -18,17 +18,28 @@ import VendorPortfolio from './pages/VendorPortfolio';
 import VendorPortfolioProfiles from './pages/VendorPortfolioProfiles';
 import VendorPortfolioAnalysis from './pages/VendorPortfolioAnalysis';
 import NotFound from './pages/NotFound';
+import BuildBuyDecision from './pages/BuildBuyDecision';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
 // Inside App(), add this button temporarily:
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 export default function App() {
   return (
     
     <ForumProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Navbar />
         <Routes>
 
@@ -43,6 +54,7 @@ export default function App() {
           <Route path="/playground/vendor-portfolio/profiles" element={<VendorPortfolioProfiles />} />
           <Route path="/playground/vendor-portfolio/analysis" element={<VendorPortfolioAnalysis />} />
           <Route path="/playground/caio-compass" element={<CaioCompass />} />
+          <Route path="/playground/build-vs-buy" element={<BuildBuyDecision />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/certifications/admin" element={<CertificationAdmin />} />
           <Route path="*" element={<NotFound />} />

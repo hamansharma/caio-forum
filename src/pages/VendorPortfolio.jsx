@@ -77,9 +77,9 @@ export default function VendorPortfolio() {
   };
 
   return <main className="vendor-page">
-    <Link className="vendor-back" to="/playground"><ArrowLeft size={15} /> AI Playground</Link>
+    <div className="vendor-feature-nav"><Link to="/playground"><ArrowLeft size={15} /> AI Playground</Link><Link to="/playground/community?tool=vendors"><MessageCircle size={15} /> Discuss this tool</Link></div>
     <VendorJourney current="inventory" />
-    <section className="vendor-hero"><div><span className="vendor-eyebrow"><Network size={15} /> Portfolio intake</span><h1>Vendor Portfolio Mapper</h1><p>Start with a clear inventory. Add the tools your company uses and the job each one does—then we will layer in capability mapping later.</p></div><Link className="vendor-discuss-link" to="/playground/community?tool=vendors"><MessageCircle size={16} /> Discuss this tool</Link></section>
+    <section className="vendor-hero"><div><span className="vendor-eyebrow"><Network size={15} /> Portfolio intake</span><h1>Vendor Portfolio Mapper</h1><p>Start with a clear inventory. Add the tools your company uses and the job each one does—then we will layer in capability mapping later.</p></div></section>
     {error && <div className="vendor-error">{error}</div>}{saveMessage && <div className="vendor-save-message">{saveMessage}</div>}
     <section className="vendor-intake-card">
       <div className="vendor-intake-heading"><div><span className="vendor-step-label">Step 1 · Portfolio intake</span><h2>Your tool inventory <b>{populatedRows.length}</b></h2><p>Keep it simple: product name, how it is used, and an optional official URL. Open details to add ownership and renewal context.</p></div><div className="vendor-intake-actions"><button className="vendor-secondary" onClick={() => setPasteOpen(value => !value)}><ClipboardPaste size={16} /> Paste several</button><button className="vendor-primary" onClick={addRow}><Plus size={17} /> Add tool</button></div></div>

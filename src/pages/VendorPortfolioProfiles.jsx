@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronRight, CircleAlert, CircleHelp, ExternalLink, LoaderCircle, Network, Search, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronRight, CircleAlert, CircleHelp, ExternalLink, LoaderCircle, MessageCircle, Network, Search, Sparkles, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import VendorJourney from '../components/VendorJourney';
 import { auth } from '../firebase';
@@ -99,7 +99,7 @@ export default function VendorPortfolioProfiles() {
   const workflowStage = missingProfileCount ? 1 : reviewNeededCount ? 2 : pendingProfiles.length ? 3 : 4;
 
   return <main className="vendor-page">
-    <Link className="vendor-back" to="/playground/vendor-portfolio"><ArrowLeft size={15} /> Portfolio intake</Link>
+    <div className="vendor-feature-nav"><Link to="/playground"><ArrowLeft size={15} /> AI Playground</Link><Link to="/playground/vendor-portfolio">Portfolio intake</Link><Link to="/playground/community?tool=vendors"><MessageCircle size={15} /> Discuss this tool</Link></div>
     <VendorJourney current="profiles" />
     <section className="vendor-profile-hero"><div><span className="vendor-eyebrow"><Sparkles size={15} /> Capability profiles</span><h1>Review capability profiles</h1><p>Review each tool’s capabilities, intended use, and confidence before adding it to your private portfolio analysis.</p></div><div className="vendor-profile-count"><Network size={18} /><strong>{profiles.length}</strong><span>tools in inventory</span></div></section>
     {error && <div className="vendor-error">{error}</div>}{profileMessage && <div className="vendor-save-message">{profileMessage}</div>}

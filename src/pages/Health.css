@@ -1,4 +1,5 @@
 .health-page { max-width: 980px; margin: 0 auto; padding: 52px 24px 80px; }
+.health-feature-nav{display:flex;justify-content:space-between;gap:14px;margin-bottom:24px}.health-feature-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;font-weight:750}.health-feature-nav a:last-child{color:var(--accent)}.health-feature-nav a:hover{text-decoration:none;color:var(--accent)}
 .health-hero { margin-bottom: 30px; }
 .health-kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .02em; }
 .health-hero h1 { margin: 12px 0 9px; font-size: 34px; letter-spacing: -.04em; }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Network, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
@@ -27,6 +27,7 @@ export default function Playground() {
     setOpenSignalsAfterAuth(true);
     setShowAuth(true);
   };
+  const accessStatus = requiresSignIn => requiresSignIn ? (user ? 'Ready to use' : <><LockKeyhole size={14} /> Sign-in required</>) : 'No sign-in required';
 
   return (
     <main className="playground-page">
@@ -37,6 +38,19 @@ export default function Playground() {
       </section>
 
       <section className="playground-grid" aria-label="AI Playground apps">
+        <article className="playground-card decision-card">
+          <div className="playground-icon decision"><Scale size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">Decision support</div>
+            <h2>Build vs. Buy Decision Studio</h2>
+            <p>Use a transparent nine-factor rubric to decide whether an AI initiative should be built, bought, or delivered as a hybrid solution.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span>{accessStatus(false)}</span>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/build-vs-buy')}>Evaluate a use case <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=build-buy')}>Discuss</button></div>
+          </div>
+        </article>
+
         <article className="playground-card vendor-card">
           <div className="playground-icon vendors"><Network size={22} /></div>
           <div className="playground-card-copy">
@@ -45,7 +59,7 @@ export default function Playground() {
             <p>Add the tools your company uses, confirm AI-generated capability profiles, and identify overlap hypotheses before a renewal conversation.</p>
           </div>
           <div className="playground-card-footer">
-            <span><LockKeyhole size={14} /> Sign-in required</span>
+            <span>{accessStatus(true)}</span>
             <div className="playground-card-actions"><button onClick={() => navigate('/playground/vendor-portfolio')} disabled={authLoading}>{user ? 'Map portfolio' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=vendors')}>Discuss</button></div>
           </div>
         </article>
@@ -58,7 +72,7 @@ export default function Playground() {
             <p>Explore verified certifications across technology, finance, insurance, teaching, quality, and more—organized by level, requirements, cost, and authority.</p>
           </div>
           <div className="playground-card-footer">
-            <span>Official issuer sources</span>
+            <span>{accessStatus(false)}</span>
             <div className="playground-card-actions"><button onClick={() => navigate('/certifications')}>Explore catalog <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=certifications')}>Discuss</button></div>
           </div>
         </article>
@@ -71,7 +85,7 @@ export default function Playground() {
             <p>Assess AI maturity across vision, strategy, metrics, governance, people, processes, and technology—then get a focused 90-day starting point.</p>
           </div>
           <div className="playground-card-footer">
-            <span><LockKeyhole size={14} /> Saved to your account</span>
+            <span>{accessStatus(true)}</span>
             <div className="playground-card-actions"><button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>{user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=compass')}>Discuss</button></div>
           </div>
         </article>
@@ -84,7 +98,7 @@ export default function Playground() {
             <p>Connect your Fitbit securely to explore personal sleep, recovery, activity, and heart-rate signals. Your data stays private to you.</p>
           </div>
           <div className="playground-card-footer">
-            <span><LockKeyhole size={14} /> Sign-in required</span>
+            <span>{accessStatus(true)}</span>
             <div className="playground-card-actions"><button onClick={openPersonalSignals} disabled={authLoading}>{user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=health')}>Discuss</button></div>
           </div>
         </article>
@@ -97,7 +111,7 @@ export default function Playground() {
             <p>Suggest new tools, ask questions, and share practical learnings from every AI Playground experiment.</p>
           </div>
           <div className="playground-card-footer">
-            <span>Ideas, questions &amp; learnings</span>
+            <span>{accessStatus(false)}</span>
             <button onClick={() => navigate('/playground/community')}>
               Join the discussion <ArrowRight size={16} />
             </button>

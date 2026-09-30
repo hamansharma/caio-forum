@@ -4,6 +4,7 @@ export const playgroundTools = {
   compass: { label: 'CAIO Compass', shortLabel: 'CAIO Compass' },
   health: { label: 'Fitbit Health Analytics', shortLabel: 'Health Analytics' },
   vendors: { label: 'Vendor Portfolio Mapper', shortLabel: 'Vendor Mapper' },
+  'build-buy': { label: 'Build vs. Buy Decision Studio', shortLabel: 'Build vs. Buy' },
   general: { label: 'AI Playground', shortLabel: 'General' },
 };
 

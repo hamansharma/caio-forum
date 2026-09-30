@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal';
 import { compassDimensions, maturityLabels, resultRoutes } from '../data/caioCompass';
 import usePageMeta from '../hooks/usePageMeta';
 import './CaioCompass.css';
+import './CaioCompassOverrides.css';
 
 const DRAFT_KEY = 'caio-compass-draft-v1';
 
@@ -109,13 +110,12 @@ export default function CaioCompass() {
   if (authLoading) return <main className="compass-page"><p>Loading…</p></main>;
   if (!user) return (
     <main className="compass-page">
+      <CompassFeatureNav />
       <section className="compass-hero compass-locked">
         <span className="compass-kicker"><Target size={15} /> CAIO Leadership Lab</span>
         <h1>CAIO Compass</h1>
         <p>A private, evidence-led AI maturity assessment across the seven building blocks of a healthy AI program.</p>
         <button className="compass-primary" onClick={() => setShowAuth(true)}><LockKeyhole size={16} /> Sign in to start</button>
-        <Link className="compass-discuss-link" to="/playground/community?tool=compass"><MessageCircle size={14} /> Discuss CAIO Compass</Link>
-        <Link className="compass-text-link" to="/playground">Back to AI Playground</Link>
       </section>
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </main>
@@ -126,9 +126,10 @@ export default function CaioCompass() {
 
   return (
     <main className="compass-page">
+      <CompassFeatureNav />
       <section className="compass-hero compact compass-hero-with-action">
         <div><span className="compass-kicker"><Target size={15} /> CAIO Leadership Lab</span><h1>CAIO Compass</h1><p>Assess your current AI capability, see the shape of your maturity, and leave with a practical place to begin.</p></div>
-        <div className="compass-hero-tools"><Link className="compass-discuss-link" to="/playground/community?tool=compass"><MessageCircle size={14} /> Discuss CAIO Compass</Link><button className="compass-history-button" onClick={() => setShowHistory(true)}><HistoryIcon size={16} /> Assessment history{history.length ? <span>{history.length}</span> : null}</button></div>
+        <div className="compass-hero-tools"><button className="compass-history-button" onClick={() => setShowHistory(true)}><HistoryIcon size={16} /> Assessment history{history.length ? <span>{history.length}</span> : null}</button></div>
       </section>
 
       <section className="compass-shell">
@@ -187,6 +188,7 @@ function Results({ assessment, priorities, onRestart, onHistory }) {
   const routeIds = assessment.recommendedRouteIds || ['transformation-operating-model'];
   const routes = routeIds.map(id => resultRoutes[id]).filter(Boolean);
   return <main className="compass-page compass-results-page">
+    <CompassFeatureNav />
     <section className="compass-hero compact compass-hero-with-action">
       <div><span className="compass-kicker"><Sparkles size={15} /> Saved assessment</span><h1>{assessment.organizationName || 'Your'} AI maturity profile</h1><p>{assessment.health.summary}</p></div>
       <button className="compass-history-button" onClick={onHistory}><HistoryIcon size={16} /> Assessment history</button>
@@ -210,6 +212,7 @@ function Results({ assessment, priorities, onRestart, onHistory }) {
 
 function AssessmentHistory({ history, loading, onBack, onOpen, onStart }) {
   return <main className="compass-page compass-history-page">
+    <CompassFeatureNav />
     <section className="compass-history-header"><button className="compass-back" onClick={onBack}><ArrowLeft size={16} /> Back to assessment</button><button className="compass-primary" onClick={onStart}><ClipboardCheck size={16} /> Start new assessment</button></section>
     <section className="compass-hero compact"><span className="compass-kicker"><HistoryIcon size={15} /> CAIO Compass</span><h1>Assessment history</h1><p>Review prior maturity profiles and revisit the roadmap that was generated from each assessment.</p></section>
     {loading ? <p className="compass-history-state">Loading your saved assessments…</p> : !history.length ? <section className="compass-empty-history"><HistoryIcon size={22} /><h2>No saved assessments yet</h2><p>Complete your first CAIO Compass assessment to establish a baseline.</p><button className="compass-primary" onClick={onStart}>Start assessment</button></section> : <section className="compass-history-list">{history.map((item, index) => {
@@ -218,4 +221,8 @@ function AssessmentHistory({ history, loading, onBack, onOpen, onStart }) {
       return <button key={item.id} onClick={() => onOpen(item)}><div className="compass-history-main"><span className="compass-history-date">{formatDate(item.createdAt)}</span><strong>{item.organizationName || 'Untitled assessment'}</strong><small>{item.stage.label} · {item.health?.label || 'Developing'}</small></div><div className="compass-history-score"><strong>{item.overallScore.toFixed(1)}</strong><span>/ 5</span>{delta !== null && <small className={delta >= 0 ? 'positive' : 'negative'}>{delta >= 0 ? '+' : ''}{delta.toFixed(1)} from prior</small>}</div><ArrowRight size={18} /></button>;
     })}</section>}
   </main>;
+}
+
+function CompassFeatureNav() {
+  return <div className="compass-feature-nav"><Link to="/playground"><ArrowLeft size={15} /> AI Playground</Link><Link to="/playground/community?tool=compass"><MessageCircle size={15} /> Discuss this tool</Link></div>;
 }
