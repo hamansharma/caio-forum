@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, Lightbulb, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
+import { auth } from '../firebase';
 import AuthModal from '../components/AuthModal';
+import ProjectRequestModal from '../components/ProjectRequestModal';
 import usePageMeta from '../hooks/usePageMeta';
 import './Playground.css';
 
@@ -12,12 +14,21 @@ export default function Playground() {
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
   const [openSignalsAfterAuth, setOpenSignalsAfterAuth] = useState(false);
+  const [pendingRequestTool, setPendingRequestTool] = useState(null);
+  const [requestTool, setRequestTool] = useState(null);
 
   useEffect(() => {
     if (openSignalsAfterAuth && user) {
       navigate('/health');
     }
   }, [openSignalsAfterAuth, user, navigate]);
+
+  useEffect(() => {
+    if (pendingRequestTool && user) {
+      setRequestTool(pendingRequestTool);
+      setPendingRequestTool(null);
+    }
+  }, [pendingRequestTool, user]);
 
   const openPersonalSignals = () => {
     if (user) {
@@ -28,6 +39,11 @@ export default function Playground() {
     setShowAuth(true);
   };
   const accessStatus = requiresSignIn => requiresSignIn ? (user ? 'Ready to use' : <><LockKeyhole size={14} /> Sign-in required</>) : 'No sign-in required';
+  const openProjectRequest = tool => {
+    if (user) setRequestTool(tool);
+    else { setPendingRequestTool(tool); setShowAuth(true); }
+  };
+  const projectAction = tool => <button className="playground-shape" onClick={() => openProjectRequest(tool)}><Lightbulb size={14} /> Help shape</button>;
 
   return (
     <main className="playground-page">
@@ -47,7 +63,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(false)}</span>
-            <div className="playground-card-actions"><button onClick={() => navigate('/playground/build-vs-buy')}>Evaluate a use case <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=build-buy')}>Discuss</button></div>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/build-vs-buy')}>Evaluate a use case <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=build-buy')}>Discuss</button>{projectAction('build-buy')}</div>
           </div>
         </article>
 
@@ -60,7 +76,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(true)}</span>
-            <div className="playground-card-actions"><button onClick={() => navigate('/playground/vendor-portfolio')} disabled={authLoading}>{user ? 'Map portfolio' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=vendors')}>Discuss</button></div>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/vendor-portfolio')} disabled={authLoading}>{user ? 'Map portfolio' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=vendors')}>Discuss</button>{projectAction('vendors')}</div>
           </div>
         </article>
 
@@ -73,7 +89,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(false)}</span>
-            <div className="playground-card-actions"><button onClick={() => navigate('/certifications')}>Explore catalog <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=certifications')}>Discuss</button></div>
+            <div className="playground-card-actions"><button onClick={() => navigate('/certifications')}>Explore catalog <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=certifications')}>Discuss</button>{projectAction('certifications')}</div>
           </div>
         </article>
 
@@ -86,7 +102,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(true)}</span>
-            <div className="playground-card-actions"><button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>{user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=compass')}>Discuss</button></div>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/caio-compass')} disabled={authLoading}>{user ? 'Start assessment' : 'Sign in to start'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=compass')}>Discuss</button>{projectAction('compass')}</div>
           </div>
         </article>
 
@@ -99,7 +115,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(true)}</span>
-            <div className="playground-card-actions"><button onClick={openPersonalSignals} disabled={authLoading}>{user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=health')}>Discuss</button></div>
+            <div className="playground-card-actions"><button onClick={openPersonalSignals} disabled={authLoading}>{user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=health')}>Discuss</button>{projectAction('health')}</div>
           </div>
         </article>
 
@@ -124,7 +140,8 @@ export default function Playground() {
         <p>Apps can be public, shared with the community, or private to your account. Each app makes its data boundary clear before you start.</p>
       </section>
 
-      {showAuth && <AuthModal onClose={() => { setShowAuth(false); setOpenSignalsAfterAuth(false); }} />}
+      {requestTool && <ProjectRequestModal tool={requestTool} onClose={() => setRequestTool(null)} />}
+      {showAuth && <AuthModal onClose={() => { setShowAuth(false); setOpenSignalsAfterAuth(false); if (!auth.currentUser) setPendingRequestTool(null); }} />}
     </main>
   );
 }

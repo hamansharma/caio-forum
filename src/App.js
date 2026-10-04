@@ -56,7 +56,7 @@ export default function App() {
           <Route path="/playground/caio-compass" element={<CaioCompass />} />
           <Route path="/playground/build-vs-buy" element={<BuildBuyDecision />} />
           <Route path="/certifications" element={<Certifications />} />
-          <Route path="/certifications/admin" element={<CertificationAdmin />} />
+          <Route path="/workspace/review-center" element={<CertificationAdmin />} />
           <Route path="*" element={<NotFound />} />
           
         </Routes>

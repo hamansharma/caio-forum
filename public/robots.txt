@@ -4,7 +4,7 @@ Disallow: /api/
 Disallow: /create
 Disallow: /profile
 Disallow: /health
-Disallow: /certifications/admin
+Disallow: /workspace/review-center
 Disallow: /playground/vendor-portfolio/profiles
 Disallow: /playground/vendor-portfolio/analysis
 

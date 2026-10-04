@@ -182,6 +182,112 @@ async function updateReport(user, req, res) {
   return res.status(200).json({ ok: true });
 }
 
+const projectRequestStatuses = ['New', 'Reviewing', 'Planned', 'Building', 'Shipped', 'Declined'];
+
+async function createProjectRequest(user, req, res) {
+  const tool = clean(req.body?.tool, 80);
+  const problem = clean(req.body?.problem, 1600);
+  const requestedCapability = clean(req.body?.requestedCapability, 1200);
+  const audience = clean(req.body?.audience, 40);
+  const valueSignal = clean(req.body?.valueSignal, 20);
+  const integrationOrData = clean(req.body?.integrationOrData, 1200);
+  const contactOk = Boolean(req.body?.contactOk);
+  if (!tool || problem.length < 20 || requestedCapability.length < 15 || !['Just me', 'My team', 'My organization'].includes(audience) || !['Useful', 'Important', 'Critical'].includes(valueSignal)) {
+    return res.status(400).json({ error: 'Please describe the problem, requested capability, audience, and expected value.' });
+  }
+  const submittedAt = new Date().toISOString();
+  await adminDb.collection('playgroundRequests').add({
+    tool, problem, requestedCapability, audience, valueSignal, integrationOrData,
+    contactOk, contactEmail: contactOk ? clean(user.email, 320) : '',
+    status: 'New', submittedByUid: user.uid, submittedAt,
+  });
+  return res.status(201).json({ ok: true });
+}
+
+async function listProjectRequests(user, res) {
+  requireCertificationAdmin(user);
+  const snapshot = await adminDb.collection('playgroundRequests').orderBy('submittedAt', 'desc').limit(100).get();
+  return res.status(200).json({ requests: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
+}
+
+async function updateProjectRequest(user, req, res) {
+  requireCertificationAdmin(user);
+  const id = clean(req.body?.id, 200);
+  const status = clean(req.body?.status, 30);
+  const adminNotes = clean(req.body?.adminNotes, 1600);
+  if (!id || !projectRequestStatuses.includes(status)) return res.status(400).json({ error: 'A valid request status is required.' });
+  await adminDb.collection('playgroundRequests').doc(id).set({ status, adminNotes, reviewedAt: new Date().toISOString(), reviewedByUid: user.uid }, { merge: true });
+  return res.status(200).json({ ok: true });
+}
+
+const toIso = value => value?.toDate ? value.toDate().toISOString() : typeof value === 'string' ? value : '';
+
+async function listCommunityModeration(user, res) {
+  requireCertificationAdmin(user);
+  const snapshot = await adminDb.collection('posts').orderBy('createdAt', 'desc').limit(100).get();
+  const entries = [];
+  snapshot.docs.forEach(document => {
+    const post = document.data();
+    const moderation = post.moderation || {};
+    entries.push({
+      id: `post:${document.id}`, type: 'Post', postId: document.id, commentId: '',
+      author: moderation.originalAuthor || post.author || 'unknown',
+      title: moderation.originalTitle || post.title || '', body: moderation.originalBody || post.body || '',
+      createdAt: toIso(post.createdAt), status: moderation.status === 'Hidden' ? 'Hidden' : post.deleted ? 'Deleted' : 'Visible',
+      canRestore: moderation.status === 'Hidden',
+    });
+    (post.comments || []).forEach(comment => {
+      const commentModeration = comment.moderation || {};
+      entries.push({
+        id: `comment:${document.id}:${comment.id}`, type: comment.parentId ? 'Reply' : 'Comment', postId: document.id, commentId: comment.id || '',
+        author: commentModeration.originalAuthor || comment.author || 'unknown', title: post.title || '', body: commentModeration.originalBody || comment.body || '',
+        createdAt: toIso(comment.createdAt), status: commentModeration.status === 'Hidden' ? 'Hidden' : comment.deleted ? 'Deleted' : 'Visible',
+        canRestore: commentModeration.status === 'Hidden',
+      });
+    });
+  });
+  entries.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  return res.status(200).json({ entries });
+}
+
+async function updateCommunityModeration(user, req, res) {
+  requireCertificationAdmin(user);
+  const postId = clean(req.body?.postId, 200);
+  const commentId = clean(req.body?.commentId, 200);
+  const action = clean(req.body?.action, 20);
+  if (!postId || !['hide', 'restore'].includes(action)) return res.status(400).json({ error: 'A post and moderation action are required.' });
+  const reference = adminDb.collection('posts').doc(postId);
+  const snapshot = await reference.get();
+  if (!snapshot.exists) return res.status(404).json({ error: 'Post not found.' });
+  const now = new Date().toISOString();
+  const moderator = user.uid;
+  if (!commentId) {
+    const post = snapshot.data();
+    const moderation = post.moderation || {};
+    if (action === 'hide') await reference.set({
+      deleted: true, deletedAt: now, title: '[removed by moderator]', body: '[removed by moderator]',
+      moderation: { status: 'Hidden', originalTitle: moderation.originalTitle || post.title || '', originalBody: moderation.originalBody || post.body || '', originalAuthor: moderation.originalAuthor || post.author || '', moderatedAt: now, moderatedByUid: moderator },
+    }, { merge: true });
+    else if (moderation.status === 'Hidden') await reference.set({
+      deleted: false, deletedAt: null, title: moderation.originalTitle || '', body: moderation.originalBody || '',
+      moderation: { ...moderation, status: 'Restored', restoredAt: now, restoredByUid: moderator },
+    }, { merge: true });
+    else return res.status(400).json({ error: 'Only moderator-hidden posts can be restored.' });
+  } else {
+    const post = snapshot.data();
+    const index = (post.comments || []).findIndex(comment => comment.id === commentId);
+    if (index < 0) return res.status(404).json({ error: 'Reply not found.' });
+    const comments = [...post.comments];
+    const comment = comments[index];
+    const moderation = comment.moderation || {};
+    if (action === 'hide') comments[index] = { ...comment, deleted: true, author: '[moderated]', body: '[removed by moderator]', moderation: { status: 'Hidden', originalAuthor: moderation.originalAuthor || comment.author || '', originalBody: moderation.originalBody || comment.body || '', moderatedAt: now, moderatedByUid: moderator } };
+    else if (moderation.status === 'Hidden') comments[index] = { ...comment, deleted: false, author: moderation.originalAuthor || '', body: moderation.originalBody || '', moderation: { ...moderation, status: 'Restored', restoredAt: now, restoredByUid: moderator } };
+    else return res.status(400).json({ error: 'Only moderator-hidden replies can be restored.' });
+    await reference.update({ comments });
+  }
+  return res.status(200).json({ ok: true });
+}
+
 async function buildPathway(user, req, res) {
   const targetRole = clean(req.body?.targetRole, 100);
   const domain = clean(req.body?.domain, 100);
@@ -277,17 +383,22 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && action === 'admin') return res.status(200).json({ isAdmin: isCertificationAdmin(user) });
     if (req.method === 'GET' && action === 'submissions') return await listSubmissions(user, res);
     if (req.method === 'GET' && action === 'reports') return await listReports(user, res);
+    if (req.method === 'GET' && action === 'project-requests') return await listProjectRequests(user, res);
+    if (req.method === 'GET' && action === 'community-moderation') return await listCommunityModeration(user, res);
     if (req.method === 'GET' && action === 'pathway-status') return await pathwayStatus(user, res);
     if (req.method === 'GET' && action === 'pathway-history') return await pathwayHistory(user, res);
     if (req.method === 'GET' && action === 'plan') return await listPlan(user, res);
     if (req.method === 'POST' && action === 'submission') return await createSubmission(user, req, res);
     if (req.method === 'POST' && action === 'publish-submission') return await publishSubmission(user, req, res);
     if (req.method === 'POST' && action === 'report') return await createReport(user, req, res);
+    if (req.method === 'POST' && action === 'project-request') return await createProjectRequest(user, req, res);
     if (req.method === 'POST' && action === 'pathway') return await buildPathway(user, req, res);
     if (req.method === 'POST' && action === 'plan') return await savePlanItems(user, req, res);
     if (req.method === 'POST' && action === 'achievement') return await toggleAchievement(user, req, res);
     if (req.method === 'PATCH' && action === 'submission') return await updateSubmission(user, req, res);
     if (req.method === 'PATCH' && action === 'report') return await updateReport(user, req, res);
+    if (req.method === 'PATCH' && action === 'project-request') return await updateProjectRequest(user, req, res);
+    if (req.method === 'PATCH' && action === 'community-moderation') return await updateCommunityModeration(user, req, res);
     if (req.method === 'PATCH' && action === 'plan') return await updatePlanItem(user, req, res);
     return res.status(405).json({ error: 'Method not allowed.' });
   } catch (error) {
