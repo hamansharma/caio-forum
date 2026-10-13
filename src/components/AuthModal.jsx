@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { X, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
 import { generateUsername } from '../utils/usernameGenerator';
@@ -206,6 +207,14 @@ export default function AuthModal({ onClose }) {
           <button type="submit" className="auth-submit" disabled={submitting}>
             {submitting ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
+
+          {mode === 'signup' && (
+            <p className="auth-legal">
+              By creating an account or continuing with Google, you agree to our{' '}
+              <Link to="/terms" onClick={onClose}>Terms of Service</Link> and{' '}
+              <Link to="/privacy" onClick={onClose}>Privacy Policy</Link>.
+            </p>
+          )}
 
         </form>
 

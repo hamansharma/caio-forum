@@ -19,6 +19,9 @@ import VendorPortfolioProfiles from './pages/VendorPortfolioProfiles';
 import VendorPortfolioAnalysis from './pages/VendorPortfolioAnalysis';
 import NotFound from './pages/NotFound';
 import BuildBuyDecision from './pages/BuildBuyDecision';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import Footer from './components/Footer';
 import './index.css';
 import Chatbot from './components/Chatbot';
 //import { seedFirestore } from './seedFirestore';
@@ -57,9 +60,12 @@ export default function App() {
           <Route path="/playground/build-vs-buy" element={<BuildBuyDecision />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/workspace/review-center" element={<CertificationAdmin />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           <Route path="*" element={<NotFound />} />
           
         </Routes>
+        <Footer />
         <Chatbot />
         <Analytics />
         <SpeedInsights />
