@@ -105,9 +105,10 @@ export default function PostDetail() {
   };
 
   const sortedComments = sortComments(post.comments || [], commentSort);
+  const related = post.related || [];
 
   return (
-    <div className="detail-page">
+    <div className={`detail-page ${related.length ? 'has-related' : ''}`}>
       <Link to="/" className="back-link"><ArrowLeft size={16} /> Back to feed</Link>
 
       <article className="detail-post">
@@ -185,6 +186,24 @@ export default function PostDetail() {
         </div>
       </article>
 
+      {/* Stored on the post by `npm run update:related`, so this needs no extra reads.
+          Sidebar on wide screens; a card between the post and comments otherwise. */}
+      {related.length > 0 && (
+        <aside className="related-section" aria-labelledby="related-heading">
+          <h2 id="related-heading"><Layers size={15} /> Related Posts</h2>
+          <ul className="related-list">
+            {related.map(item => (
+              <li key={item.id}>
+                <Link to={postPath(item)}>
+                  {item.category && <span className={`tag tag-${item.category}`}>{item.playgroundType || item.category}</span>}
+                  <span className="related-title">{item.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
       <section className="comments-section">
         <div className="comments-header">
           <h2><MessageSquare size={16} /> {post.comments.length} Comments</h2>
@@ -227,17 +246,6 @@ export default function PostDetail() {
         <CommentThread postId={post.id} comments={sortedComments} />
       </section>
 
-      {/* Stored on the post by `npm run update:related`, so this needs no extra reads */}
-      {post.related?.length > 0 && (
-        <section className="related-section" aria-labelledby="related-heading">
-          <h2 id="related-heading"><Layers size={16} /> Related discussions</h2>
-          <ul className="related-list">
-            {post.related.map(item => (
-              <li key={item.id}><Link to={postPath(item)}>{item.title}</Link></li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

@@ -174,18 +174,45 @@
 .comment-form-right {
   display: flex; align-items: center; gap: 10px; margin-left: auto;
 }
-.related-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+.related-section {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px 8px 8px; margin-bottom: 24px;
+}
 .related-section h2 {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 15px; font-weight: 600; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; padding: 0 10px 10px;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
 }
-.related-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.related-list { list-style: none; }
+.related-list li + li { border-top: 1px solid var(--border); }
 .related-list a {
-  display: block; padding: 10px 14px; border-radius: var(--radius);
-  color: var(--text-secondary); font-size: 14px; line-height: 1.45;
-  transition: background 0.15s, color 0.15s;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 12px 10px; border-radius: var(--radius);
+  transition: background 0.15s;
 }
-.related-list a:hover { background: var(--bg-hover); color: var(--accent); }
+.related-list a:hover { background: var(--bg-hover); }
+.related-title { color: var(--text-primary); font-size: 14px; font-weight: 500; line-height: 1.45; transition: color 0.15s; }
+.related-list a:hover .related-title { color: var(--accent); }
+
+/* Wide screens: post and comments on the left, related discussions in a sticky
+   sidebar. The last row is flexible so a tall sidebar never pushes the
+   comments away from the post. */
+@media (min-width: 1120px) {
+  .detail-page.has-related {
+    max-width: 1116px;
+    overflow-x: clip; /* not hidden: hidden would stop the sidebar from sticking */
+    display: grid; grid-template-columns: minmax(0, 780px) 280px;
+    grid-template-rows: auto auto 1fr; column-gap: 24px; align-items: start;
+  }
+  .has-related > .back-link { grid-column: 1; justify-self: start; }
+  .has-related > .detail-post,
+  .has-related > .comments-section { grid-column: 1; }
+  .has-related > .related-section {
+    grid-column: 2; grid-row: 2 / span 2;
+    position: sticky; top: 76px; margin-bottom: 0;
+    max-height: calc(100vh - 96px); overflow-y: auto;
+  }
+}
 
 @media (max-width: 480px) {
   .detail-page { padding: 16px 12px; }

@@ -29,9 +29,10 @@ test('never relates a post to itself or to deleted posts', () => {
   assert.equal(related.has('gone'), false);
 });
 
-test('keeps slugs for new-style posts so links use the right URL', () => {
+test('keeps slugs and categories so links and tags render correctly', () => {
   const match = findRelatedPosts(posts).get('gov2').find(item => item.id === 'new');
   assert.equal(match.slug, 'ai-governance-checklist');
+  assert.equal(match.category, 'strategy');
 });
 
 test('respects limit and minimum score', () => {

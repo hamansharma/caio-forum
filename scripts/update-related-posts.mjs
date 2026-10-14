@@ -1,4 +1,4 @@
-// Computes "Related discussions" for every forum post and stores them on the post
+// Computes "Related Posts" for every forum post and stores them on the post
 // documents, so post pages can show them without any extra reads or AI calls.
 //
 //   npm run update:related                      # dry run: print matches, write nothing
@@ -34,8 +34,8 @@ const snapshot = await db.collection('posts').get();
 const posts = snapshot.docs.map(document => ({ id: document.id, ...document.data() }));
 const related = findRelatedPosts(posts, { limit, minScore });
 
-// What gets stored on each post: just enough to render links (no scores).
-const stored = list => list.map(({ id, slug, title }) => ({ id, ...(slug ? { slug } : {}), title }));
+// What gets stored on each post: just enough to render links and tags (no scores).
+const stored = list => list.map(({ score, ...item }) => item);
 const sameList = (a = [], b = []) => JSON.stringify(a) === JSON.stringify(b);
 
 const updates = [];

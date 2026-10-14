@@ -46,7 +46,7 @@ function weightedTerms(post) {
 export const isRelatable = post => Boolean(post && !post.deleted && String(post.title || '').trim());
 
 /**
- * Returns Map<postId, Array<{ id, slug?, title, score }>> with up to `limit`
+ * Returns Map<postId, Array<{ id, slug?, title, category?, playgroundType?, score }>> with up to `limit`
  * related posts each, best first. Posts with nothing above `minScore` get [].
  */
 export function findRelatedPosts(posts, { limit = 5, minScore = 0.05 } = {}) {
@@ -91,6 +91,8 @@ export function findRelatedPosts(posts, { limit = 5, minScore = 0.05 } = {}) {
         id: other.id,
         ...(other.slug ? { slug: other.slug } : {}),
         title: other.title,
+        ...(other.category ? { category: other.category } : {}),
+        ...(other.playgroundType ? { playgroundType: other.playgroundType } : {}),
         score: Math.round(score * 1000) / 1000,
       }));
     related.set(post.id, matches);
