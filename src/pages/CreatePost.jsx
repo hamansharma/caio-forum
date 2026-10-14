@@ -52,7 +52,7 @@ export default function CreatePost() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setSubmitting(true);
     try {
-      const id = await addPost({
+      const path = await addPost({
         ...form,
         playground: isPlaygroundDiscussion,
         playgroundTool: isPlaygroundDiscussion ? playgroundTool : null,
@@ -60,7 +60,7 @@ export default function CreatePost() {
         title: sanitizeText(form.title),
         body: sanitizeText(form.body),
       });
-      navigate(`/post/${id}`);
+      navigate(path);
     } catch (err) {
       setErrors({ submit: 'Failed to create post. Please try again.' });
     } finally {

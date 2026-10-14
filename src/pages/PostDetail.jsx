@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowUp, ArrowDown, ArrowLeft, MessageSquare, Clock, TrendingUp, History, Pencil, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowUp, ArrowDown, ArrowLeft, MessageSquare, Clock, TrendingUp, History, Pencil, Trash2, Layers } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
 import CommentThread from '../components/CommentThread';
@@ -11,6 +11,7 @@ import './PostDetail.css';
 import CharCount from '../components/CharCount';
 import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
 import usePageMeta from '../hooks/usePageMeta';
+import { postPath } from '../utils/postUrl';
 
 const SORT_OPTS = [
   { key: 'newest', label: 'Newest', icon: Clock },
@@ -31,10 +32,13 @@ function sortComments(comments, sort) {
 }
 
 export default function PostDetail() {
-  const { id } = useParams();
+  const { key } = useParams();
   const navigate = useNavigate();
-  const { posts, user, votePost, votedPosts, addComment,
+  const location = useLocation();
+  const { posts, watchPost, user, votePost, votedPosts, addComment,
           editPost, deletePost } = useForum();
+  // The post loaded for a given URL key: post is null when it doesn't exist.
+  const [watched, setWatched] = useState({ key: null, post: null });
   const [comment, setComment] = useState('');
   const [commentSort, setCommentSort] = useState('newest');
   const [editing, setEditing] = useState(false);
@@ -43,9 +47,27 @@ export default function PostDetail() {
   const [editBody, setEditBody] = useState('');
   const [commentError, setCommentError] = useState('');
 
-  const post = posts.find(p => p.id === id);
+  // Use the shared posts list when another page already loaded it; otherwise load just this post.
+  const listedPost = posts.find(p => p.slug === key || p.id === key);
+  const isListed = Boolean(listedPost);
+  useEffect(() => {
+    if (isListed) return undefined;
+    return watchPost(key, loaded => setWatched({ key, post: loaded }));
+  }, [key, isListed, watchPost]);
+  // Ignore a post loaded for a previous URL, so moving between posts never
+  // redirects back to the one we just left. undefined means still loading.
+  const watchedPost = watched.key === key ? watched.post : undefined;
+  const post = listedPost || watchedPost;
+
+  // Send old /post/<id> links and outdated title slugs to the post's current URL.
+  const canonicalPath = post ? postPath(post) : null;
+  useEffect(() => {
+    if (canonicalPath && location.pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
+  }, [canonicalPath, location.pathname, navigate]);
+
   const postDescription = post ? String(post.body || '').replace(/[#*_`>[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155) : 'Read a community discussion on AI leadership, strategy, and technology.';
-  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: `/post/${id}` });
+  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null });
+  if (post === undefined) return <div className="not-found">Loading discussion…</div>;
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
 
   const voted = votedPosts[post.id] || 0;
@@ -204,6 +226,18 @@ export default function PostDetail() {
 
         <CommentThread postId={post.id} comments={sortedComments} />
       </section>
+
+      {/* Stored on the post by `npm run update:related`, so this needs no extra reads */}
+      {post.related?.length > 0 && (
+        <section className="related-section" aria-labelledby="related-heading">
+          <h2 id="related-heading"><Layers size={16} /> Related discussions</h2>
+          <ul className="related-list">
+            {post.related.map(item => (
+              <li key={item.id}><Link to={postPath(item)}>{item.title}</Link></li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

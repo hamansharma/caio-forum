@@ -11,7 +11,6 @@
 }
 .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
 .form-group textarea { resize: vertical; }
-.char-count { font-size: 11px; color: var(--text-muted); text-align: right; }
 .cat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
 .cat-pill {
   padding: 6px 14px; border-radius: 20px;
@@ -49,9 +48,6 @@
   justify-content: space-between; margin-bottom: 6px;
 }
 .form-label-row label { margin-bottom: 0; }
-.field-error {
-  font-size: 12px; color: #f87171; margin-top: 4px; display: block;
-}
 .submit-error {
   background: #2a1010; border: 1px solid #f8717140;
   color: #f87171; border-radius: var(--radius);

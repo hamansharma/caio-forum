@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -79,3 +77,9 @@ button, input, textarea { max-width: 100%; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* Shared by CreatePost and PostDetail */
+.field-error { font-size: 12px; color: #f87171; margin-top: 4px; display: block; }
+
+/* Placeholder while a page's code loads; keeps the footer from jumping up */
+.route-loading { min-height: 60vh; }

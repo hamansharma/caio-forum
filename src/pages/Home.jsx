@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Flame, Clock, TrendingUp } from 'lucide-react';
-import { useForum } from '../context/ForumContext';
+import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import usePageMeta from '../hooks/usePageMeta';
 import './Home.css';
@@ -13,7 +13,7 @@ const SORT_OPTS = [
 
 export default function Home() {
   usePageMeta('CAIO Forum | AI Leadership, Strategy & Technology Community', 'Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community.', { canonicalPath: '/' });
-  const { posts, loading } = useForum();
+  const { posts, loading } = usePosts();
   const [sort, setSort] = useState('hot');
   const [filter, setFilter] = useState('all');
   const forumPosts = posts.filter(post => !post.playground);

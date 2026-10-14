@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   collection, doc, addDoc, updateDoc, onSnapshot,
   query, orderBy, serverTimestamp, increment, getDoc, setDoc,
-  getDocs, writeBatch, deleteDoc, runTransaction
+  getDocs, writeBatch, deleteDoc, runTransaction, where, limit
 } from 'firebase/firestore';
 
 import {
@@ -20,13 +20,56 @@ import {
 
 import { db, auth } from '../firebase';
 import { generateUsername } from '../utils/usernameGenerator';
+import { slugify, looksLikePostId, postPath } from '../utils/postUrl';
 
 const ForumContext = createContext();
+
+// Resolves a URL key (new-style slug or old-style document ID) to a post ID.
+async function findPostId(key) {
+  const byId = async () => ((await getDoc(doc(db, 'posts', key))).exists() ? key : null);
+  if (looksLikePostId(key)) {
+    const id = await byId();
+    if (id) return id;
+  }
+  const bySlug = await getDocs(query(collection(db, 'posts'), where('slug', '==', key), limit(1)));
+  if (!bySlug.empty) return bySlug.docs[0].id;
+  return looksLikePostId(key) ? null : byId();
+}
+
+// Live updates for a single post, without loading the whole posts collection.
+// Calls onChange(post), or onChange(null) when it doesn't exist. Returns an unsubscribe function.
+function watchPost(key, onChange) {
+  let active = true;
+  let unsubscribe = () => {};
+  findPostId(key)
+    .then(id => {
+      if (!active) return;
+      if (!id) { onChange(null); return; }
+      unsubscribe = onSnapshot(doc(db, 'posts', id),
+        snap => onChange(snap.exists() ? { id: snap.id, ...snap.data() } : null),
+        () => onChange(null));
+    })
+    .catch(() => { if (active) onChange(null); });
+  return () => { active = false; unsubscribe(); };
+}
+
+// Slugs never take the shape of a Firestore ID, so the two URL styles can't collide.
+async function uniquePostSlug(title) {
+  const base = slugify(title) || 'discussion';
+  for (let n = 1; n <= 20; n += 1) {
+    const candidate = n === 1 ? base : `${base}-${n}`;
+    if (looksLikePostId(candidate)) continue;
+    const taken = await getDocs(query(collection(db, 'posts'), where('slug', '==', candidate), limit(1)));
+    if (taken.empty) return candidate;
+  }
+  return `${base}-${Date.now().toString(36)}`;
+}
 
 export function ForumProvider({ children }) {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [postsRequested, setPostsRequested] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [votedPosts, setVotedPosts] = useState({});
   const [votedComments, setVotedComments] = useState({});
@@ -57,8 +100,12 @@ export function ForumProvider({ children }) {
     return unsub;
   }, []);
 
-  // Real-time posts listener
+  // Real-time listener for the full posts list. Started on demand (see usePosts)
+  // so pages that don't list posts don't download the whole collection.
+  const requestPosts = useCallback(() => setPostsRequested(true), []);
+
   useEffect(() => {
+    if (!postsRequested) return undefined;
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snapshot) => {
       const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -66,7 +113,7 @@ export function ForumProvider({ children }) {
       setLoading(false);
     });
     return unsub;
-  }, []);
+  }, [postsRequested]);
 
   const saveUserData = async (uid, data) => {
     await setDoc(doc(db, 'users', uid), data, { merge: true });
@@ -200,8 +247,10 @@ export function ForumProvider({ children }) {
   };
 
   const addPost = async (postData) => {
-    const ref = await addDoc(collection(db, 'posts'), {
+    const slug = await uniquePostSlug(postData.title);
+    await addDoc(collection(db, 'posts'), {
       ...postData,
+      slug,
       author: user?.username || 'anonymous',
       authorUid: user?.uid || null,
       authorFullName: user?.fullName || '',
@@ -209,7 +258,7 @@ export function ForumProvider({ children }) {
       votes: 1,
       comments: [],
     });
-    return ref.id;
+    return postPath({ slug });
   };
 
   const votePost = async (postId, dir) => {
@@ -367,6 +416,7 @@ const updateAlias = async (newAlias, useAlias) => {
   return (
     <ForumContext.Provider value={{
       user, login, logout, signup, googleSignIn, posts, loading, authLoading,
+      requestPosts, watchPost,
       addPost, votePost, addComment, voteComment, votedPosts, votedComments,
       editPost, deletePost, editComment, deleteComment,
       updateAlias, updatePassword, deleteAccount
@@ -377,3 +427,10 @@ const updateAlias = async (newAlias, useAlias) => {
 }
 
 export const useForum = () => useContext(ForumContext);
+
+// For pages that list posts: starts the shared posts listener on first use.
+export function usePosts() {
+  const { posts, loading, requestPosts } = useContext(ForumContext);
+  useEffect(() => { requestPosts(); }, [requestPosts]);
+  return { posts, loading };
+}

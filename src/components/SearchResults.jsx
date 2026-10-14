@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, User, Tag, MessageSquare } from 'lucide-react';
 import { renderHighlighted } from '../utils/search';
+import { postPath } from '../utils/postUrl';
 import './SearchResults.css';
 
 const FIELD_ICONS = {
@@ -47,7 +48,7 @@ export default function SearchResults({ results, query, onClose }) {
             return (
               <Link
                 key={post.id}
-                to={`/post/${post.id}`}
+                to={postPath(post)}
                 className="search-result-item"
                 onClick={onClose}>
                 <div className="result-top">

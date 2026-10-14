@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Lightbulb, MessageCircleQuestion, Plus, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useForum } from '../context/ForumContext';
+import { useForum, usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import AuthModal from '../components/AuthModal';
 import { playgroundPostTypes, playgroundTools } from '../data/playgroundCommunity';
@@ -12,7 +12,8 @@ const promptIcons = [Lightbulb, MessageCircleQuestion, Sparkles];
 
 export default function PlaygroundCommunity() {
   usePageMeta('AI Playground Community | Ideas, Questions & Learnings', 'Discuss AI Playground tools, suggest experiments, ask practical questions, and share what you learned with the CAIO community.', { canonicalPath: '/playground/community' });
-  const { posts, user, loading } = useForum();
+  const { user } = useForum();
+  const { posts, loading } = usePosts();
   const navigate = useNavigate();
   const location = useLocation();
   const [showAuth, setShowAuth] = useState(false);

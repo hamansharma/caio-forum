@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUp, ArrowDown, MessageSquare, Share2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
+import { postPath } from '../utils/postUrl';
 import './PostCard.css';
 
 export default function PostCard({ post }) {
@@ -30,15 +31,15 @@ export default function PostCard({ post }) {
           <span className="meta-text">{post.createdAt ? formatDistanceToNow(post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt)) : 'just now'} ago</span>
         </div>
 
-        <Link to={`/post/${post.id}`} className="post-title">{post.title}</Link>
+        <Link to={postPath(post)} className="post-title">{post.title}</Link>
         <p className="post-excerpt">{post.body.slice(0, 160)}{post.body.length > 160 ? '…' : ''}</p>
 
         <div className="post-actions">
-          <Link to={`/post/${post.id}`} className="action-btn">
+          <Link to={postPath(post)} className="action-btn">
             <MessageSquare size={14} />
             {post.comments.length} comments
           </Link>
-          <button className="action-btn" onClick={() => navigator.clipboard?.writeText(window.location.href)}>
+          <button className="action-btn" onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${postPath(post)}`)}>
             <Share2 size={14} /> Share
           </button>
         </div>

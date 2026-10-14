@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React, { lazy, Suspense, useLayoutEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -6,24 +6,27 @@ import { ForumProvider } from './context/ForumContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import PostDetail from './pages/PostDetail';
-import CreatePost from './pages/CreatePost';
-import Profile from './pages/Profile';
-import Health from './pages/Health';
-import Playground from './pages/Playground';
-import CaioCompass from './pages/CaioCompass';
-import Certifications from './pages/Certifications';
-import CertificationAdmin from './pages/CertificationAdmin';
-import PlaygroundCommunity from './pages/PlaygroundCommunity';
-import VendorPortfolio from './pages/VendorPortfolio';
-import VendorPortfolioProfiles from './pages/VendorPortfolioProfiles';
-import VendorPortfolioAnalysis from './pages/VendorPortfolioAnalysis';
 import NotFound from './pages/NotFound';
-import BuildBuyDecision from './pages/BuildBuyDecision';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import './index.css';
 import Chatbot from './components/Chatbot';
+
+// Home, PostDetail and NotFound ship in the main bundle (they're the main entry
+// pages from search). Every other page downloads its code on first visit.
+const CreatePost = lazy(() => import('./pages/CreatePost'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Health = lazy(() => import('./pages/Health'));
+const Playground = lazy(() => import('./pages/Playground'));
+const CaioCompass = lazy(() => import('./pages/CaioCompass'));
+const Certifications = lazy(() => import('./pages/Certifications'));
+const CertificationAdmin = lazy(() => import('./pages/CertificationAdmin'));
+const PlaygroundCommunity = lazy(() => import('./pages/PlaygroundCommunity'));
+const VendorPortfolio = lazy(() => import('./pages/VendorPortfolio'));
+const VendorPortfolioProfiles = lazy(() => import('./pages/VendorPortfolioProfiles'));
+const VendorPortfolioAnalysis = lazy(() => import('./pages/VendorPortfolioAnalysis'));
+const BuildBuyDecision = lazy(() => import('./pages/BuildBuyDecision'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 //import { seedFirestore } from './seedFirestore';
 // Inside App(), add this button temporarily:
 
@@ -44,10 +47,12 @@ export default function App() {
       <BrowserRouter>
         <ScrollToTop />
         <Navbar />
+        <Suspense fallback={<div className="route-loading" aria-busy="true" />}>
         <Routes>
 
           <Route path="/" element={<Home />} />
-          <Route path="/post/:id" element={<PostDetail />} />
+          <Route path="/post/:key" element={<PostDetail />} />
+          <Route path="/post/:key/:titleSlug" element={<PostDetail />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/health" element={<Health />} />
@@ -65,6 +70,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
           
         </Routes>
+        </Suspense>
         <Footer />
         <Chatbot />
         <Analytics />

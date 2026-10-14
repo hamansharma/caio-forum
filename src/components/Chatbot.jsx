@@ -33,7 +33,7 @@ FORUM CONTENT:
 ${context}`;
 
 export default function Chatbot() {
-  const { posts } = useForum();
+  const { posts, requestPosts } = useForum();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -48,9 +48,10 @@ export default function Chatbot() {
 
   useEffect(() => {
     if (open) {
+      requestPosts();
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [open]);
+  }, [open, requestPosts]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

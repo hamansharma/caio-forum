@@ -28,6 +28,8 @@
     "test": "react-scripts test",
     "import:certifications": "node --env-file=.env.local scripts/import-certifications.mjs",
     "import:vendor-catalog": "node --env-file=.env.local scripts/import-vendor-capability-catalog.mjs",
+    "update:related": "node --env-file=.env.local scripts/update-related-posts.mjs",
+    "test:scripts": "node --test scripts/lib/relatedPosts.test.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

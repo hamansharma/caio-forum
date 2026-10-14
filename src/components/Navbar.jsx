@@ -10,7 +10,7 @@ import './Navbar.css';
 import logo from '../assets/CAIO.png';
 
 export default function Navbar() {
-  const { user, logout, authLoading, posts } = useForum();
+  const { user, logout, authLoading, posts, requestPosts } = useForum();
   const [showAuth, setShowAuth] = useState(false);
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -36,6 +36,7 @@ export default function Navbar() {
   }, [daylight]);
 
   const handleQueryChange = (val) => {
+    requestPosts();
     setQuery(val);
     setShowResults(val.trim().length > 0);
   };
@@ -55,7 +56,7 @@ export default function Navbar() {
         </Link>
 
         <div className="navbar-search" ref={searchRef}>
-          <SearchBar value={query} onChange={handleQueryChange} onFocus={() => query && setShowResults(true)} />
+          <SearchBar value={query} onChange={handleQueryChange} onFocus={() => { requestPosts(); if (query) setShowResults(true); }} />
           {showResults && (
             <SearchResults results={results} query={query} onClose={handleClose} />
           )}
