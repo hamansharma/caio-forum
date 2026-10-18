@@ -1,0 +1,56 @@
+# Runs on every push to main and every pull request. Vercel deploys main
+# regardless, so a red run means "fix forward", not "deploy blocked".
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Build, tests, API functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # matches the Vercel project's Node.js version
+          cache: npm
+      - run: npm ci
+      - name: Build (CI=true turns lint warnings into errors)
+        run: npm run build
+        env:
+          CI: true
+      - name: App tests
+        run: npm test -- --watchAll=false
+        env:
+          CI: true
+      - name: Script tests
+        run: npm run test:scripts
+      - name: API functions load the way Vercel runs them
+        run: npm run check:api
+
+  rules:
+    name: Firestore rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4 # the Firestore emulator needs Java
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-15.34.0
+      - run: npm ci
+      - run: npm run test:rules

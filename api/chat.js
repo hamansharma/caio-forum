@@ -6,8 +6,11 @@ import { selectRelevantPosts, formatPostForPrompt, formatPostIndex } from '../sc
 // the browser sends only the conversation, so this endpoint can't be used as a
 // general-purpose proxy for the Anthropic API key.
 
-const MODEL = 'claude-sonnet-4-6';
-const MAX_OUTPUT_TOKENS = 1000;
+const MODEL = 'claude-sonnet-5-5';
+// Thinking counts toward this limit; at low effort it's skipped for most
+// simple questions, and the headroom keeps answers from being cut off when not.
+const MAX_OUTPUT_TOKENS = 2000;
+const EFFORT = 'low'; // recommended for chat on this model
 
 const LIMITS = {
   userPerHour: 20,
@@ -109,7 +112,18 @@ export default async function handler(req, res) {
     const { remainingThisHour } = await recordUsage(user.uid);
     const system = buildSystemPrompt(await loadPosts(), messages);
 
-    const response = await anthropic.messages.create({ model: MODEL, max_tokens: MAX_OUTPUT_TOKENS, system, messages });
+    // Server-side fallback: if the model declines for certain safety categories,
+    // Anthropic retries the request on the previous Sonnet instead of failing.
+    // Only the reply text is kept, so thinking blocks are never sent back.
+    const response = await anthropic.beta.messages.create({
+      model: MODEL,
+      max_tokens: MAX_OUTPUT_TOKENS,
+      output_config: { effort: EFFORT },
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      system,
+      messages,
+    });
 
     const reply = response.stop_reason === 'refusal'
       ? "Sorry, I can't help with that request."
