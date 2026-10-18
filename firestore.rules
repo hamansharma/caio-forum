@@ -1,0 +1,153 @@
+rules_version = '2';
+
+// Source of truth for the Firestore security rules. Firestore only enforces the
+// published copy: deploy with `firebase deploy --only firestore:rules` (or paste
+// into Firebase console → Firestore → Rules). Test with `npm run test:rules`.
+//
+// Collections without a match block (chatUsage, caioCompassAssessments,
+// vendorPortfolios, certification*, playgroundRequests, ...) are server-only:
+// browsers are denied, and the API reaches them through the Admin SDK.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isPostAuthor() {
+      return isSignedIn() &&
+        request.auth.uid == resource.data.authorUid;
+    }
+
+    function isValidPost() {
+      let data = request.resource.data;
+      return data.title is string
+          && data.title.size() > 0
+          && data.title.size() <= 300
+          && data.body is string
+          && data.body.size() > 0
+          && data.body.size() <= 50000
+          && data.category in ['concepts','discussion','strategy','ethics','links']
+          && data.author is string
+          && data.authorUid == request.auth.uid;
+    }
+
+    function onlyVoteChanged() {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      return affected.hasOnly(['votes', 'userVotes']);
+    }
+
+    function voteIsValid() {
+      let newVotes = request.resource.data.votes;
+      let oldVotes = resource.data.votes;
+      let delta = newVotes - oldVotes;
+      // Delta must be -2, -1, 0, 1, or 2 (switching vote directions)
+      return delta >= -2 && delta <= 2;
+    }
+
+    function onlyCommentsChanged() {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      return affected.hasOnly(['comments']);
+    }
+
+    // Browsers may only append one comment; existing comments must be unchanged.
+    // Edits, deletes and comment votes go through api/comments.js, which checks
+    // who wrote each comment.
+    function onlyCommentAppended() {
+      let before = resource.data.get('comments', []);
+      let after = request.resource.data.comments;
+      // An empty slice is an error in rules, so a first comment is checked separately.
+      return after.size() == before.size() + 1
+          && (before.size() == 0 || after[0:before.size()] == before);
+    }
+
+    function newCommentIsValid() {
+      let comments = request.resource.data.comments;
+      let newComment = comments[comments.size() - 1];
+      return newComment.authorUid == request.auth.uid
+          && newComment.body is string
+          && newComment.body.size() > 0
+          && newComment.body.size() <= 10000
+          && newComment.author is string;
+    }
+
+    function onlyPostContentChanged() {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      return affected.hasOnly(['title', 'body', 'editedAt']);
+    }
+
+    function onlyDeleteFieldsChanged() {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      return affected.hasOnly(['deleted', 'deletedAt', 'body', 'title', 'author']);
+    }
+
+    // ── Users ─────────────────────────────────────────────────
+    match /users/{userId} {
+      // Profiles hold emails and vote history: members read only their own.
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.email is string
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 2
+        && request.resource.data.username.size() <= 50;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ── Username index ────────────────────────────────────────
+    match /usernames/{username} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ── Posts ─────────────────────────────────────────────────
+    match /posts/{postId} {
+      allow read: if true;
+
+      // Create — must be signed in, valid post, authorUid matches caller
+      allow create: if isSignedIn() && isValidPost();
+
+      allow update: if isSignedIn() && (
+
+        // Voting — any signed-in user, delta must be small
+        (onlyVoteChanged() && voteIsValid())
+
+        // Adding a comment — append only, and it must belong to the caller
+        || (onlyCommentsChanged()
+            && onlyCommentAppended()
+            && newCommentIsValid())
+
+        // Edit post — only post author
+        || (onlyPostContentChanged() && isPostAuthor())
+
+        // Soft delete post — only post author
+        || (onlyDeleteFieldsChanged() && isPostAuthor())
+      );
+
+      // Hard deletes not allowed
+      allow delete: if false;
+    }
+
+    // ── Private health integration data ───────────────────────
+    match /healthConnections/{userId} {
+      allow read, write: if false;
+    }
+
+    match /healthOAuthStates/{state} {
+      allow read, write: if false;
+    }
+
+    match /healthDailyMetrics/{userId} {
+      allow read, write: if false;
+
+      match /days/{date} {
+        allow read, write: if false;
+      }
+    }
+  }
+}

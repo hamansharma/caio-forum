@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   collection, doc, addDoc, updateDoc, onSnapshot,
   query, orderBy, serverTimestamp, increment, getDoc, setDoc,
-  getDocs, writeBatch, deleteDoc, runTransaction, where, limit
+  getDocs, deleteDoc, runTransaction, where, limit, arrayUnion
 } from 'firebase/firestore';
 
 import {
@@ -51,6 +51,20 @@ function watchPost(key, onChange) {
     })
     .catch(() => { if (active) onChange(null); });
   return () => { active = false; unsubscribe(); };
+}
+
+// Edits, deletes and votes on existing comments go through api/comments.js,
+// which checks authorship; Firestore rules only let browsers append comments.
+async function commentsApi(action, payload = {}) {
+  const token = await auth.currentUser.getIdToken();
+  const response = await fetch(`/api/comments?action=${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Request failed. Please try again.');
+  return data;
 }
 
 // Slugs never take the shape of a Firestore ID, so the two URL styles can't collide.
@@ -277,9 +291,6 @@ export function ForumProvider({ children }) {
   };
 
   const addComment = async (postId, body, parentId = null) => {
-    const postRef = doc(db, 'posts', postId);
-    const postSnap = await getDoc(postRef);
-    const existing = postSnap.data().comments || [];
     const newComment = {
       id: Date.now().toString(),
       postId,
@@ -290,22 +301,21 @@ export function ForumProvider({ children }) {
       votes: 1,
       createdAt: new Date().toISOString(),
     };
-    await updateDoc(postRef, { comments: [...existing, newComment] });
+    // arrayUnion appends atomically, so simultaneous comments don't overwrite each other.
+    await updateDoc(doc(db, 'posts', postId), { comments: arrayUnion(newComment) });
   };
 
   const voteComment = async (postId, commentId, dir) => {
     const key = `${postId}-${commentId}`;
     const prev = votedComments[key] || 0;
     if (prev === dir) return;
-    const newVoted = { ...votedComments, [key]: dir };
-    setVotedComments(newVoted);
-    const postRef = doc(db, 'posts', postId);
-    const postSnap = await getDoc(postRef);
-    const comments = postSnap.data().comments.map(c =>
-      c.id === commentId ? { ...c, votes: c.votes + dir - prev } : c
-    );
-    await updateDoc(postRef, { comments });
-    if (user) await saveUserData(user.uid, { votedComments: newVoted });
+    setVotedComments(current => ({ ...current, [key]: dir }));
+    try {
+      await commentsApi('vote', { postId, commentId, dir });
+    } catch (error) {
+      setVotedComments(current => ({ ...current, [key]: prev })); // undo the optimistic vote
+      console.error('Comment vote failed:', error.message);
+    }
   };
 
   const editPost = async (postId, newTitle, newBody) => {
@@ -329,27 +339,9 @@ export function ForumProvider({ children }) {
     });
   };
 
-  const editComment = async (postId, commentId, newBody) => {
-    const postRef = doc(db, 'posts', postId);
-    const postSnap = await getDoc(postRef);
-    const comments = postSnap.data().comments.map(c => {
-      if (c.id !== commentId) return c;
-      if (c.authorUid !== user?.uid) throw new Error('Not authorized.');
-      return { ...c, body: newBody, editedAt: new Date().toISOString() };
-    });
-    await updateDoc(postRef, { comments });
-  };
+  const editComment = (postId, commentId, newBody) => commentsApi('edit', { postId, commentId, body: newBody });
 
-  const deleteComment = async (postId, commentId) => {
-    const postRef = doc(db, 'posts', postId);
-    const postSnap = await getDoc(postRef);
-    const comments = postSnap.data().comments.map(c => {
-      if (c.id !== commentId) return c;
-      if (c.authorUid !== user?.uid) throw new Error('Not authorized.');
-      return { ...c, body: '[deleted]', author: '[deleted]', deleted: true };
-    });
-    await updateDoc(postRef, { comments });
-  };
+  const deleteComment = (postId, commentId) => commentsApi('delete', { postId, commentId });
 
 const updateAlias = async (newAlias, useAlias) => {
     // Check new alias isn't taken by someone else
@@ -376,37 +368,8 @@ const updateAlias = async (newAlias, useAlias) => {
 
   const deleteAccount = async () => {
     const uid = user.uid;
-    const username = user.username;
-
-    const allPosts = await getDocs(collection(db, 'posts'));
-    const batch = writeBatch(db);
-
-    allPosts.docs.forEach(postDoc => {
-      const data = postDoc.data();
-      let changed = false;
-
-      if (data.author === username) {
-        batch.update(postDoc.ref, {
-          author: '[deleted]', body: '[deleted]',
-          title: '[deleted]', deleted: true,
-        });
-        changed = true;
-      }
-
-      const updatedComments = (data.comments || []).map(c => {
-        if (c.author === username) {
-          changed = true;
-          return { ...c, author: '[deleted]', body: '[deleted]', deleted: true };
-        }
-        return c;
-      });
-
-      if (changed && data.author !== username) {
-        batch.update(postDoc.ref, { comments: updatedComments });
-      }
-    });
-
-    await batch.commit();
+    // The server replaces this member's posts and comments with "[deleted]".
+    await commentsApi('anonymize-account');
     await deleteDoc(doc(db, 'users', uid));
     await deleteUser(auth.currentUser);
     setUser(null);
