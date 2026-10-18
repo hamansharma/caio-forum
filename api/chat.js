@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { adminDb, requireUser } from './_lib/firebaseAdmin';
-import { selectRelevantPosts, formatPostForPrompt, formatPostIndex } from '../scripts/lib/chatContext.mjs';
+import { selectRelevantPosts, formatPostForPrompt, formatPostIndex } from '../scripts/lib/chatContext';
 
 // The forum assistant. The prompt is built here on the server from Firestore;
 // the browser sends only the conversation, so this endpoint can't be used as a

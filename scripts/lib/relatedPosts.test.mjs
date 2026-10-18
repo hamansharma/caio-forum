@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tokenize, findRelatedPosts } from './relatedPosts.mjs';
+import { tokenize, findRelatedPosts } from './relatedPosts.js';
 
 const posts = [
   { id: 'gov1', title: 'AI governance frameworks for the board', body: 'How boards set governance policies and oversight for AI risk.', category: 'strategy' },

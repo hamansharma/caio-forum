@@ -6,7 +6,7 @@
 //   npm run update:related -- --limit 3 --min-score 0.08
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { findRelatedPosts } from './lib/relatedPosts.mjs';
+import { findRelatedPosts } from './lib/relatedPosts.js';
 
 const args = process.argv.slice(2);
 const valueAfter = flag => {

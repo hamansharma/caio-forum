@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { selectRelevantPosts, formatPostIndex, formatPostForPrompt } from './chatContext.mjs';
+import { selectRelevantPosts, formatPostIndex, formatPostForPrompt } from './chatContext.js';
 
 const posts = [
   { id: 'aaaaaaaaaaaaaaaaaaaa', title: 'Measuring ROI of AI projects', body: 'Payback period and cost savings.', category: 'strategy', author: 'a' },

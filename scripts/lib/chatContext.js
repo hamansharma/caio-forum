@@ -1,7 +1,7 @@
 // Chooses which forum posts the chatbot sees for a conversation, so the prompt
 // carries only the most relevant posts instead of the whole forum.
 // Pure functions: used by api/chat.js and unit-tested without Firestore.
-import { tokenize, isRelatable } from './relatedPosts.mjs';
+import { tokenize, isRelatable } from './relatedPosts.js';
 import { postPath } from '../../src/utils/postUrl.js';
 
 // The latest question counts double; earlier questions keep follow-ups on topic.
