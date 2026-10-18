@@ -7,12 +7,14 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import PostDetail from './pages/PostDetail';
 import NotFound from './pages/NotFound';
+import CategoryPage from './pages/CategoryPage';
 import Footer from './components/Footer';
+import CookieConsent from './components/CookieConsent';
 import './index.css';
 import Chatbot from './components/Chatbot';
 
-// Home, PostDetail and NotFound ship in the main bundle (they're the main entry
-// pages from search). Every other page downloads its code on first visit.
+// Home, PostDetail, CategoryPage and NotFound ship in the main bundle (they're
+// the main entry pages from search). Every other page downloads its code on first visit.
 const CreatePost = lazy(() => import('./pages/CreatePost'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Health = lazy(() => import('./pages/Health'));
@@ -53,6 +55,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/post/:key" element={<PostDetail />} />
           <Route path="/post/:key/:titleSlug" element={<PostDetail />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/health" element={<Health />} />
@@ -72,6 +75,7 @@ export default function App() {
         </Routes>
         </Suspense>
         <Footer />
+        <CookieConsent />
         <Chatbot />
         <Analytics />
         <SpeedInsights />

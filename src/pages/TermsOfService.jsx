@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
-import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE } from '../data/legal';
+import { LEGAL_CONTACT_EMAIL, TERMS_EFFECTIVE_DATE } from '../data/legal';
 import './Legal.css';
 
 export default function TermsOfService() {
@@ -15,7 +15,7 @@ export default function TermsOfService() {
         <span className="legal-eyebrow"><FileText size={15} /> Legal</span>
         <h1>Terms of Service</h1>
         <p>These terms govern your use of CAIO Forum at caioleadership.com, including the forum, the AI assistant, and the AI Playground tools (together, the “Service”). By using the Service, you agree to these terms.</p>
-        <p className="legal-updated">Effective {LEGAL_EFFECTIVE_DATE}</p>
+        <p className="legal-updated">Effective {TERMS_EFFECTIVE_DATE}</p>
       </header>
 
       <section className="legal-section">

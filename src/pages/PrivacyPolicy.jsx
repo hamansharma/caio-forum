@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
-import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE } from '../data/legal';
+import { LEGAL_CONTACT_EMAIL, PRIVACY_EFFECTIVE_DATE } from '../data/legal';
 import './Legal.css';
 
 export default function PrivacyPolicy() {
@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
         <span className="legal-eyebrow"><ShieldCheck size={15} /> Legal</span>
         <h1>Privacy Policy</h1>
         <p>This policy explains what information CAIO Forum (“we”, “us”) collects when you use caioleadership.com, including the forum, the AI assistant, and the AI Playground tools, and how that information is used.</p>
-        <p className="legal-updated">Effective {LEGAL_EFFECTIVE_DATE}</p>
+        <p className="legal-updated">Effective {PRIVACY_EFFECTIVE_DATE}</p>
       </header>
 
       <aside className="legal-summary">
@@ -43,13 +43,13 @@ export default function PrivacyPolicy() {
           <li><strong>Project requests:</strong> the ideas you submit and, only if you opt in to be contacted, your account email.</li>
         </ul>
         <h3>AI assistant conversations</h3>
-        <p>Messages you send to the on-site AI assistant are sent to our AI provider to generate a reply. We do not store chatbot conversations in our database. To prevent abuse, we temporarily keep a count of requests per IP address in server memory.</p>
+        <p>The on-site AI assistant is available to signed-in members. Messages you send to it are sent to our AI provider, together with the forum posts most relevant to your question, to generate a reply. We do not store chatbot conversations. To prevent abuse and control costs, we keep a count of how many messages each account sends per hour and per day.</p>
         <h3>Google Health data (optional)</h3>
         <p>If you choose to connect Google Health on the Personal Signals page, we request <strong>read-only</strong> access to activity and fitness, health metrics and measurements, and sleep data. We store daily summaries (such as steps, sleep duration, resting heart rate, and workouts) and AI-generated insights about them. Your Google access tokens are encrypted before they are stored.</p>
         <h3>Technical and usage data</h3>
-        <p>We use Vercel Analytics and Speed Insights to understand aggregate traffic and page performance. These tools do not use advertising cookies. Our hosting provider also processes standard request data such as IP address, browser type, and timestamps.</p>
+        <p>We use Vercel Analytics and Speed Insights to understand aggregate traffic and page performance; these do not use cookies. We also use Google Analytics to understand how visitors use the site, such as which pages they view and how they arrived. Google Analytics sets cookies only if you accept them in our cookie banner. If you decline or haven’t chosen, it sends limited cookieless measurements that don’t identify your browser across visits. Advertising features are turned off. Our hosting provider also processes standard request data such as IP address, browser type, and timestamps.</p>
         <h3>Data stored in your browser</h3>
-        <p>We use your browser’s local storage for preferences such as your theme choice and certification progress, and Firebase stores your sign-in session. We do not use third-party advertising or tracking cookies.</p>
+        <p>We use your browser’s local storage for preferences such as your theme choice, your cookie choice, and certification progress, and Firebase stores your sign-in session. The only analytics cookies are Google Analytics cookies, set only with your consent. You can change your choice at any time with “Cookie settings” at the bottom of every page. We do not use advertising cookies.</p>
       </section>
 
       <section className="legal-section">
@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
           <li><strong>Google Firebase</strong> for authentication and database storage.</li>
           <li><strong>Vercel</strong> for hosting, serverless functions, and analytics.</li>
           <li><strong>Anthropic</strong> to generate AI assistant replies, vendor portfolio analyses, and Google Health insights. Only the content needed for the specific request is sent.</li>
-          <li><strong>Google</strong>, when you choose to sign in with Google or connect Google Health.</li>
+          <li><strong>Google</strong>, for Google Analytics, and when you choose to sign in with Google or connect Google Health.</li>
         </ul>
         <p>We may also disclose information if required by law, to protect the rights and safety of our users or others, or in connection with a transfer of the service. Public posts and comments are visible to everyone.</p>
       </section>

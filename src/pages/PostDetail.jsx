@@ -11,6 +11,9 @@ import './PostDetail.css';
 import CharCount from '../components/CharCount';
 import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
 import usePageMeta from '../hooks/usePageMeta';
+import useStructuredData from '../hooks/useStructuredData';
+import { postStructuredData } from '../utils/structuredData';
+import CategoryTag from '../components/CategoryTag';
 import { postPath } from '../utils/postUrl';
 
 const SORT_OPTS = [
@@ -66,7 +69,8 @@ export default function PostDetail() {
   }, [canonicalPath, location.pathname, navigate]);
 
   const postDescription = post ? String(post.body || '').replace(/[#*_`>[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155) : 'Read a community discussion on AI leadership, strategy, and technology.';
-  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null });
+  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null, pending: post === undefined });
+  useStructuredData(post && !post.deleted ? postStructuredData(post) : null);
   if (post === undefined) return <div className="not-found">Loading discussion…</div>;
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
 
@@ -126,7 +130,7 @@ export default function PostDetail() {
 
         <div className="detail-content">
           <div className="post-meta">
-            <span className={`tag tag-${post.category}`}>{post.playgroundType || post.category}</span>
+            <CategoryTag post={post} />
             {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
             <span className="meta-text">
               u/<strong>{post.author}</strong> · {post.createdAt

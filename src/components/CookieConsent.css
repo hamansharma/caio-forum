@@ -1,0 +1,25 @@
+/* Bottom-left so it never covers the chatbot button in the bottom-right corner. */
+.cookie-consent {
+  position: fixed; left: 16px; bottom: 16px; z-index: 450;
+  width: min(420px, calc(100% - 104px));
+  background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: 16px;
+  box-shadow: 0 12px 32px #0000004d;
+}
+.cookie-consent p { font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
+.cookie-consent a { color: var(--accent); }
+.cookie-consent a:hover { text-decoration: underline; }
+.cookie-consent-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.cookie-consent-actions button {
+  padding: 8px 14px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s;
+}
+.cookie-decline { color: var(--text-secondary); border: 1px solid var(--border-light); }
+.cookie-decline:hover { color: var(--text-primary); background: var(--bg-hover); }
+.cookie-accept { background: var(--accent); color: white; }
+.cookie-accept:hover { background: var(--accent-hover); }
+@media (max-width: 480px) {
+  .cookie-consent { left: 12px; bottom: 12px; width: calc(100% - 92px); padding: 14px; }
+  .cookie-consent-actions { flex-wrap: wrap; }
+  .cookie-consent-actions button { flex: 1; }
+}

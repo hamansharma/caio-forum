@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
+import { trackPageView } from '../utils/analyticsConsent';
 
-const publicOrigin = 'https://caioleadership.com';
+export const publicOrigin = 'https://caioleadership.com';
 
 function upsertMeta(selector, attribute, value) {
   let tag = document.querySelector(selector);
@@ -13,7 +14,9 @@ function upsertMeta(selector, attribute, value) {
   tag.setAttribute('content', value);
 }
 
-export default function usePageMeta(title, description, { canonicalPath, noIndex = false } = {}) {
+// `pending: true` means the page is still loading its real title (e.g. a post
+// being fetched); the analytics page view waits until it's false.
+export default function usePageMeta(title, description, { canonicalPath, noIndex = false, pending = false } = {}) {
   useEffect(() => {
     document.title = title;
     upsertMeta('meta[name="description"]', 'name', description);
@@ -28,5 +31,6 @@ export default function usePageMeta(title, description, { canonicalPath, noIndex
     if (!canonical) { canonical = document.createElement('link'); canonical.setAttribute('rel', 'canonical'); document.head.appendChild(canonical); }
     canonical.setAttribute('href', canonicalUrl);
     upsertMeta('meta[property="og:url"]', 'property', canonicalUrl);
-  }, [title, description, canonicalPath, noIndex]);
+    if (!pending) trackPageView();
+  }, [title, description, canonicalPath, noIndex, pending]);
 }

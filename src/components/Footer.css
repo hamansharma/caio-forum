@@ -6,6 +6,6 @@
   color: var(--text-muted); font-size: 13px;
 }
 .site-footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
-.site-footer-links a { color: var(--text-secondary); transition: color 0.15s; }
-.site-footer-links a:hover { color: var(--accent); }
+.site-footer-links a, .site-footer-links button { color: var(--text-secondary); font-size: 13px; transition: color 0.15s; }
+.site-footer-links a:hover, .site-footer-links button:hover { color: var(--accent); }
 @media (max-width: 680px) { .site-footer { padding: 20px 16px 28px; } }

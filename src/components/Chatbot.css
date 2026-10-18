@@ -138,6 +138,19 @@
 .chatbot-input-row button:hover:not(:disabled) { background: var(--accent-hover); }
 .chatbot-input-row button:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.chatbot-signin {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.chatbot-signin p { font-size: 13px; color: var(--text-secondary); }
+.chatbot-signin button {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 8px 12px; border-radius: var(--radius);
+  background: var(--accent); color: white; font-size: 13px; font-weight: 600;
+  transition: background 0.15s;
+}
+.chatbot-signin button:hover { background: var(--accent-hover); }
+
 .chatbot-hint {
   text-align: center; font-size: 10px;
   color: var(--text-muted); padding: 0 12px 8px;

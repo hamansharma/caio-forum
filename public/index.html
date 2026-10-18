@@ -8,6 +8,26 @@
       content="width=device-width, initial-scale=1"
     />
 
+    <!-- Google Analytics 4 with Consent Mode. Analytics cookies stay off until the
+         visitor accepts in the cookie banner (src/components/CookieConsent.jsx);
+         until then GA sends only cookieless pings. Ad features are always off. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      var analyticsConsent = null;
+      try { analyticsConsent = window.localStorage.getItem('caio-analytics-consent'); } catch (e) {}
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: analyticsConsent === 'granted' ? 'granted' : 'denied'
+      });
+      gtag('js', new Date());
+      // Page views are sent by the app once each page has its real title (usePageMeta).
+      gtag('config', 'G-166FH9J9BC', { send_page_view: false });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-166FH9J9BC"></script>
+
     <!-- Fonts: requested from the HTML so they start downloading before the app's CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

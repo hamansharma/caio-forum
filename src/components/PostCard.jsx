@@ -4,6 +4,7 @@ import { ArrowUp, ArrowDown, MessageSquare, Share2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
 import { postPath } from '../utils/postUrl';
+import CategoryTag from './CategoryTag';
 import './PostCard.css';
 
 export default function PostCard({ post }) {
@@ -24,7 +25,7 @@ export default function PostCard({ post }) {
 
       <div className="post-body">
         <div className="post-meta">
-          <span className={`tag tag-${post.category}`}>{post.playgroundType || post.category}</span>
+          <CategoryTag post={post} />
           {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
           <span className="meta-text">Posted by <strong>u/{post.author}</strong></span>
           <span className="meta-dot">·</span>

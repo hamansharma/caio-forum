@@ -1,57 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader, LogIn } from 'lucide-react';
 import { useForum } from '../context/ForumContext';
+import { auth } from '../firebase';
+import AuthModal from './AuthModal';
 import MarkdownRenderer from './MarkdownRenderer';
 import './Chatbot.css';
 
-function buildContext(posts) {
-  return posts.map(post => {
-    const comments = (post.comments || [])
-      .map(c => `    [Comment by u/${c.author}]: ${c.body}`)
-      .join('\n');
-    return `POST TITLE: ${post.title}
-CATEGORY: ${post.category}
-AUTHOR: u/${post.author}
-BODY: ${post.body}
-COMMENTS:
-${comments || '    (no comments yet)'}`;
-  }).join('\n\n---\n\n');
+// Must match the limits in api/chat.js.
+const MAX_HISTORY = 10;
+const MAX_INPUT_CHARS = 2000;
+
+const GREETING = {
+  role: 'assistant',
+  greeting: true,
+  content: "Hi! I'm your CAIO Forum assistant. Ask me anything about forum discussions — I can summarize threads, answer questions about AI strategy, or help you find relevant posts.",
+};
+
+// The greeting and error notices are shown in the chat but never sent to the
+// server; the server also only accepts the most recent turns.
+function conversationForServer(messages) {
+  const history = messages.filter(m => !m.greeting && !m.error).slice(-MAX_HISTORY);
+  while (history.length && history[0].role !== 'user') history.shift();
+  return history.map(({ role, content }) => ({ role, content }));
 }
 
-const SYSTEM_PROMPT = (context) => `You are a helpful AI assistant for the CAIO Forum — a discussion community for Chief AI Officer topics, part of the Chicago Booth CAIO Certificate program.
-
-You have access to all current forum posts and their comments below. Use this content to answer user questions accurately. When answering:
-- Base your answers primarily on what has been discussed in the forum
-- Cite specific posts or authors when relevant (e.g. "As u/ai_researcher noted in their post on transformers...")
-- If a topic hasn't been discussed in the forum, say so clearly and don't offer general knowledge on the topic
-- Keep answers concise but thorough
-- Use markdown formatting for clarity when helpful
-- If asked to summarize discussions, highlight key themes and differing viewpoints
-- Do not use open internet to search for answers
-
-FORUM CONTENT:
-${context}`;
-
 export default function Chatbot() {
-  const { posts, requestPosts } = useForum();
+  const { user, authLoading } = useForum();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your CAIO Forum assistant. I have access to all forum posts and comments. Ask me anything — I can summarize discussions, answer questions about AI strategy, or help you find relevant content.",
-    }
-  ]);
+  const [showAuth, setShowAuth] = useState(false);
+  const [messages, setMessages] = useState([GREETING]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef();
   const inputRef = useRef();
 
   useEffect(() => {
-    if (open) {
-      requestPosts();
+    if (open && user) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [open, requestPosts]);
+  }, [open, user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,42 +46,28 @@ export default function Chatbot() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !user) return;
 
     const userMsg = { role: 'user', content: input.trim() };
-    setMessages(prev => [...prev, userMsg]);
+    const conversation = [...messages, userMsg];
+    setMessages(conversation);
     setInput('');
     setLoading(true);
 
     try {
-      const context = buildContext(posts);
-      const systemPrompt = SYSTEM_PROMPT(context);
-
-      const history = [...messages, userMsg].map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
-
+      const token = await auth.currentUser.getIdToken();
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system: systemPrompt,
-          messages: history,
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ messages: conversationForServer(conversation) }),
       });
-
-      if (!response.ok) {
-        const errData  = await response.json();
-        throw new Error(errData.error || 'API error');
-      }
-
-      const data = await response.json();
-      const reply = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'API error');
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
+        error: true,
         content: err.message || 'Sorry, chat is unavailable right now. Someone forgot to pay Claude AI bill and I am out of credits!',
       }]);
     } finally {
@@ -110,10 +83,7 @@ export default function Chatbot() {
   };
 
   const clearChat = () => {
-    setMessages([{
-      role: 'assistant',
-      content: "Hi! I'm your CAIO Forum assistant. I have access to all forum posts and comments. Ask me anything!",
-    }]);
+    setMessages([GREETING]);
   };
 
   return (
@@ -134,7 +104,7 @@ export default function Chatbot() {
               </div>
               <div>
                 <div className="chatbot-title">CAIO Assistant</div>
-                <div className="chatbot-subtitle">{posts.length} posts in context</div>
+                <div className="chatbot-subtitle">Answers from forum posts</div>
               </div>
             </div>
             <button className="chatbot-clear" onClick={clearChat} title="Clear chat">
@@ -172,6 +142,12 @@ export default function Chatbot() {
             <div ref={bottomRef} />
           </div>
 
+          {!user ? (
+            <div className="chatbot-signin">
+              <p>{authLoading ? 'Checking your sign-in…' : 'Sign in to chat with the forum assistant.'}</p>
+              {!authLoading && <button onClick={() => setShowAuth(true)}><LogIn size={14} /> Sign in</button>}
+            </div>
+          ) : (<>
           <form className="chatbot-input-row" onSubmit={sendMessage}>
             <textarea
               ref={inputRef}
@@ -180,6 +156,7 @@ export default function Chatbot() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
+              maxLength={MAX_INPUT_CHARS}
               disabled={loading}
             />
             <button type="submit" disabled={!input.trim() || loading}>
@@ -187,8 +164,10 @@ export default function Chatbot() {
             </button>
           </form>
           <p className="chatbot-hint">Enter to send · Shift+Enter for new line</p>
+          </>)}
         </div>
       )}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>
   );
 }

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Flame, Clock, TrendingUp } from 'lucide-react';
 import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import usePageMeta from '../hooks/usePageMeta';
+import { FORUM_CATEGORIES, categoryPath } from '../data/forumCategories';
 import './Home.css';
 
 const SORT_OPTS = [
@@ -66,10 +68,10 @@ export default function Home() {
         </div>
         <div className="sidebar-card">
           <h3>Topics</h3>
-          {['concepts', 'discussion', 'strategy', 'ethics', 'links'].map(cat => (
-            <button key={cat} className={`sidebar-topic tag-${cat}`} onClick={() => setFilter(cat)}>
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </button>
+          {FORUM_CATEGORIES.map(category => (
+            <Link key={category.id} to={categoryPath(category.id)} className={`sidebar-topic tag-${category.id}`}>
+              {category.label}
+            </Link>
           ))}
         </div>
       </aside>
