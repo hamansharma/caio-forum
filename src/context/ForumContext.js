@@ -16,6 +16,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   deleteUser,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 
 import { db, auth } from '../firebase';
@@ -360,6 +361,11 @@ const updateAlias = async (newAlias, useAlias) => {
     setUser(prev => ({ ...prev, username: newAlias, useAlias }));
   };
 
+  // Firebase emails a reset link (its standard hosted page); the link returns
+  // the user to this site afterwards.
+  const sendPasswordReset = email =>
+    sendPasswordResetEmail(auth, email, { url: `${window.location.origin}/` });
+
   const updatePassword = async (currentPassword, newPassword) => {
     const credential = EmailAuthProvider.credential(user.email, currentPassword);
     await reauthenticateWithCredential(auth.currentUser, credential);
@@ -382,7 +388,7 @@ const updateAlias = async (newAlias, useAlias) => {
       requestPosts, watchPost,
       addPost, votePost, addComment, voteComment, votedPosts, votedComments,
       editPost, deletePost, editComment, deleteComment,
-      updateAlias, updatePassword, deleteAccount
+      updateAlias, updatePassword, sendPasswordReset, deleteAccount
     }}>
       {children}
     </ForumContext.Provider>

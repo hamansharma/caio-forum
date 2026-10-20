@@ -6,8 +6,9 @@ import { generateUsername } from '../utils/usernameGenerator';
 import './AuthModal.css';
 
 export default function AuthModal({ onClose }) {
-  const { login, signup, googleSignIn } = useForum();
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
+  const { login, signup, googleSignIn, sendPasswordReset } = useForum();
+  const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'reset'
+  const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -66,6 +67,32 @@ export default function AuthModal({ onClose }) {
     }
   };
 
+  const switchMode = (next) => {
+    setMode(next);
+    setError('');
+    setResetSent(false);
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await sendPasswordReset(form.email.trim());
+      setResetSent(true);
+    } catch (err) {
+      const code = err?.code || '';
+      // Same confirmation whether or not the account exists, so the form can't
+      // be used to discover which emails are registered.
+      if (code.includes('user-not-found')) setResetSent(true);
+      else if (code.includes('invalid-email') || code.includes('missing-email')) setError('Please enter a valid email address.');
+      else if (code.includes('too-many-requests')) setError('Too many attempts. Please wait a few minutes and try again.');
+      else setError('Unable to send a reset email right now. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setError('');
     setSubmitting(true);
@@ -97,11 +124,37 @@ export default function AuthModal({ onClose }) {
           <button className="auth-close" onClick={onClose}><X size={18} /></button>
         </div>
 
+        {mode === 'reset' ? (
+          <form onSubmit={handleReset} className="auth-form">
+            <h2 className="auth-reset-title">Reset your password</h2>
+            <p className="auth-reset-intro">Enter the email you signed up with and we'll send you a link to choose a new password.</p>
+            <div className="form-field">
+              <label>Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={e => { set('email', e.target.value); setResetSent(false); }}
+                required
+                autoFocus
+              />
+            </div>
+            {error && <div className="auth-error">{error}</div>}
+            {resetSent && (
+              <div className="auth-success" role="status">
+                If an account exists for {form.email.trim()}, a reset link is on its way. Check your inbox and spam folder. Signed up with Google? Use “Continue with Google” instead.
+              </div>
+            )}
+            <button type="submit" className="auth-submit" disabled={submitting}>
+              {submitting ? 'Sending…' : resetSent ? 'Send again' : 'Send reset link'}
+            </button>
+          </form>
+        ) : (<>
         <div className="auth-tabs">
-          <button className={mode === 'signin' ? 'active' : ''} onClick={() => { setMode('signin'); setError(''); }}>
+          <button className={mode === 'signin' ? 'active' : ''} onClick={() => switchMode('signin')}>
             Sign In
           </button>
-          <button className={mode === 'signup' ? 'active' : ''} onClick={() => { setMode('signup'); setError(''); }}>
+          <button className={mode === 'signup' ? 'active' : ''} onClick={() => switchMode('signup')}>
             Create Account
           </button>
         </div>
@@ -153,6 +206,9 @@ export default function AuthModal({ onClose }) {
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
+            {mode === 'signin' && (
+              <button type="button" className="auth-forgot" onClick={() => switchMode('reset')}>Forgot password?</button>
+            )}
           </div>
 
           {mode === 'signup' && (
@@ -217,11 +273,14 @@ export default function AuthModal({ onClose }) {
           )}
 
         </form>
+        </>)}
 
         <p className="auth-footer">
           {mode === 'signin'
-            ? <>New here? <button onClick={() => { setMode('signup'); setError(''); }}>Create an account</button></>
-            : <>Already have an account? <button onClick={() => { setMode('signin'); setError(''); }}>Sign in</button></>
+            ? <>New here? <button onClick={() => switchMode('signup')}>Create an account</button></>
+            : mode === 'reset'
+              ? <>Remembered it? <button onClick={() => switchMode('signin')}>Back to sign in</button></>
+              : <>Already have an account? <button onClick={() => switchMode('signin')}>Sign in</button></>
           }
         </p>
 

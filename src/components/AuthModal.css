@@ -151,3 +151,21 @@
 }
 .auth-legal a { color: var(--accent); }
 .auth-legal a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.auth-forgot {
+  align-self: flex-end; margin-top: 2px;
+  font-size: 12px; font-weight: 500; color: var(--accent);
+  font-family: var(--font); transition: color 0.15s;
+}
+.auth-forgot:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.auth-reset-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.auth-reset-intro { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-top: -6px; }
+
+.auth-success {
+  background: #10291c; border: 1px solid #4ade8040;
+  color: #4ade80; border-radius: var(--radius);
+  padding: 10px 14px; font-size: 13px; line-height: 1.5;
+}
+:root[data-theme='daylight'] .auth-success { background: #e3f8ec; border-color: #16825140; color: #168251; }
+
