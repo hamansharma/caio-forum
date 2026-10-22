@@ -39,6 +39,7 @@
     "import:certifications": "node --env-file=.env.local scripts/import-certifications.mjs",
     "import:vendor-catalog": "node --env-file=.env.local scripts/import-vendor-capability-catalog.mjs",
     "update:related": "node --env-file=.env.local scripts/update-related-posts.mjs",
+    "data:school-neighborhoods": "node scripts/data-atlas/build-school-neighborhoods.mjs",
     "check:api": "node scripts/check-api-functions.cjs",
     "test:scripts": "node --test scripts/lib/relatedPosts.test.mjs scripts/lib/chatContext.test.mjs",
     "test:rules": "npx --yes firebase-tools@15.34.0 emulators:exec --only firestore --project demo-caio-forum \"node --test scripts/rules/firestore-rules.test.mjs\"",

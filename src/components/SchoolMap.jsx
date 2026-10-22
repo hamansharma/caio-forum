@@ -28,7 +28,9 @@ function themeColors() {
   };
 }
 
-export default function SchoolMap({ D, topo, shown, cls, bins, selected, onSelect, focusState, flyTo }) {
+// `focus` is { key, state }: when key changes the map zooms to the schools currently
+// shown (a state or a place), or back out when it's empty; `state` gets an outline.
+export default function SchoolMap({ D, topo, shown, cls, bins, selected, onSelect, focus, flyTo }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const tipRef = useRef(null);
@@ -261,21 +263,25 @@ export default function SchoolMap({ D, topo, shown, cls, bins, selected, onSelec
 
   useEffect(() => { engine.current?.draw(); }, [selected]);
 
-  // Zoom to the chosen state (trimming outliers such as overseas addresses), or back out.
+  // Zoom to the schools in the focused state or place (trimming outliers such as
+  // overseas addresses), or back out. Small places like a ZIP code may zoom closer.
+  const focusKey = focus?.key || '';
+  const focusStateOutline = focus?.state || '';
   useEffect(() => {
     const e = engine.current;
     if (!e) return;
-    e.focus = focusState;
-    if (!focusState) { e.zoomTo(zoomIdentity, 600); return; }
-    const index = D.dict.st.indexOf(focusState);
+    e.focus = focusStateOutline;
+    if (!focusKey) { e.zoomTo(zoomIdentity, 600); return; }
+    const visible = latest.current.shown;
     const xs = []; const ys = [];
-    for (let i = 0; i < D.n; i += 1) if (D.st[i] === index && e.X[i] === e.X[i]) { xs.push(e.X[i]); ys.push(e.Y[i]); } // eslint-disable-line no-self-compare
-    if (!xs.length) return;
+    for (let i = 0; i < D.n; i += 1) if (visible[i] && e.X[i] === e.X[i]) { xs.push(e.X[i]); ys.push(e.Y[i]); } // eslint-disable-line no-self-compare
+    if (!xs.length) { e.draw(); return; }
     xs.sort((a, b) => a - b); ys.sort((a, b) => a - b);
     const [x0, x1, y0, y1] = [quantileSorted(xs, 0.002), quantileSorted(xs, 0.998), quantileSorted(ys, 0.002), quantileSorted(ys, 0.998)];
-    const k = Math.min(60, 0.85 / Math.max((x1 - x0) / e.W, (y1 - y0) / e.H, 1e-6));
+    const maxZoom = focusKey.startsWith('place:') ? 160 : 60;
+    const k = Math.min(maxZoom, 0.85 / Math.max((x1 - x0) / e.W, (y1 - y0) / e.H, 1e-6));
     e.zoomTo(zoomIdentity.translate(e.W / 2, e.H / 2).scale(Math.max(1, k)).translate(-(x0 + x1) / 2, -(y0 + y1) / 2), 650);
-  }, [focusState, D]);
+  }, [focusKey, focusStateOutline, D]);
 
   // Fly to a school picked from search.
   useEffect(() => {

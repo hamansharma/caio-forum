@@ -6,8 +6,9 @@ import SchoolMap from '../components/SchoolMap';
 import usePageMeta from '../hooks/usePageMeta';
 import { datasetById, dataAtlasPath } from '../data/dataAtlas';
 import {
-  STATES, LOCALE, LOCALE_GROUP, RACES, NO_DATA, gradeLabel, COLOR_MODES, LEVEL_FILTERS, TYPE_FILTERS,
+  STATES, LOCALE, LOCALE_GROUP, RACES, NO_DATA, gradeLabel, COLOR_MODES, LEVEL_FILTERS, TYPE_FILTERS, isReliable, formatDollars, formatPovertyRatio,
   colorMode, defaultFilters, filterSchools, classify, shownMask, binCounts, summarize, loadSchoolAtlas, searchText, matchesSearch,
+  PLACE_KINDS, buildPlaceIndex, searchPlaces,
 } from '../data/schoolAtlasModel';
 import './SchoolAtlas.css';
 
@@ -55,6 +56,11 @@ function Atlas({ D, topo }) {
   const counts = useMemo(() => binCounts(visible, cls, mode.bins.length), [visible, cls, mode]);
   const shown = useMemo(() => shownMask(visible, cls, hiddenBins), [visible, cls, hiddenBins]);
   const stats = useMemo(() => summarize(D, shown), [D, shown]);
+  const places = useMemo(() => buildPlaceIndex(D), [D]);
+  const focus = useMemo(() => ({
+    key: filters.place ? `place:${filters.place.id}` : filters.state ? `state:${filters.state}` : '',
+    state: filters.state,
+  }), [filters.place, filters.state]);
   const states = useMemo(() => Object.keys(STATES).filter(abbr => D.dict.st.includes(abbr)).sort((a, b) => STATES[a].localeCompare(STATES[b])), [D]);
 
   const toggleIn = (key, value) => setFilters(current => {
@@ -90,11 +96,19 @@ function Atlas({ D, topo }) {
 
         <div className="atlas-group">
           <label className="atlas-label" htmlFor="atlas-state">State or territory</label>
-          <select id="atlas-state" value={filters.state} onChange={event => setFilters(current => ({ ...current, state: event.target.value }))}>
+          <select id="atlas-state" value={filters.state} onChange={event => setFilters(current => ({ ...current, state: event.target.value, place: current.place?.state === event.target.value ? current.place : null }))}>
             <option value="">All states and territories</option>
             {states.map(abbr => <option key={abbr} value={abbr}>{STATES[abbr]}</option>)}
           </select>
         </div>
+
+        <PlaceFilter
+          places={places}
+          stateFilter={filters.state}
+          place={filters.place}
+          onChoose={place => setFilters(current => ({ ...current, place, state: place.state }))}
+          onClear={() => setFilters(current => ({ ...current, place: null }))}
+        />
 
         <div className="atlas-stats">
           {[
@@ -103,14 +117,19 @@ function Atlas({ D, topo }) {
             [stats.frlPercent == null ? '—' : `${stats.frlPercent}%`, 'eligible for free or reduced lunch'],
             [stats.studentsPerTeacher ?? '—', 'students per teacher'],
             [stats.charterPercent == null ? '—' : `${stats.charterPercent}%`, 'are charter schools'],
-            [filters.state ? STATES[filters.state] : 'All', 'state or territory'],
+            filters.place ? [filters.place.label, PLACE_KINDS[filters.place.kind].toLowerCase()] : [filters.state ? STATES[filters.state] : 'All', 'state or territory'],
           ].map(([value, label]) => <div key={label}><b>{value}</b><span>{label}</span></div>)}
         </div>
 
         <div className="atlas-group">
           <label className="atlas-label" htmlFor="atlas-color">Color schools by</label>
           <select id="atlas-color" value={modeId} onChange={event => { setModeId(event.target.value); setHiddenBins(new Set()); }}>
-            {COLOR_MODES.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+            {COLOR_MODES.filter(option => !option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+            {D.hasNeighborhoods && (
+              <optgroup label="Neighborhood (Census and NCES)">
+                {COLOR_MODES.filter(option => option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+              </optgroup>
+            )}
           </select>
           <div className="atlas-legend">
             {mode.bins.map((bin, k) => (bin.label === 'No data' && counts[k] === 0 ? null : (
@@ -122,6 +141,13 @@ function Atlas({ D, topo }) {
             )))}
           </div>
           <p className="atlas-hint">Click a legend row to hide or show those schools.</p>
+          {COLOR_MODES.find(option => option.id === modeId)?.neighborhood && (
+            <p className="atlas-caveat">
+              {modeId === 'ipr'
+                ? 'Estimated income of families living near the school, relative to the poverty line (1× = at the poverty line). These are approximate small-area estimates from NCES; they describe the neighborhood, not the students enrolled.'
+                : 'Census estimate for the school’s ZIP code area (2020–2024). A ZIP code is not the school’s attendance zone, and many students may live elsewhere. Estimates with a margin of error above 30% are shown as low reliability.'}
+            </p>
+          )}
         </div>
 
         <ChipGroup label="School level" items={LEVEL_FILTERS.map(([key]) => [key, key])} active={filters.levels} onToggle={key => toggleIn('levels', key)} />
@@ -129,17 +155,60 @@ function Atlas({ D, topo }) {
         <ChipGroup label="Type" items={TYPE_FILTERS} active={filters.types} onToggle={key => toggleIn('types', key)} />
 
         <div className="atlas-foot">
-          <p>Source: <a href={dataset.source.url} target="_blank" rel="noopener noreferrer">{dataset.source.name}</a>. Locations 2024–25; characteristics 2022–23. Schools that opened after 2022–23 have a location but no enrollment data.</p>
+          <p>Source: <a href={dataset.sources[0].url} target="_blank" rel="noopener noreferrer">{dataset.sources[0].name}</a>. Locations 2024–25; characteristics 2022–23. Schools that opened after 2022–23 have a location but no enrollment data.</p>
+          {D.hasNeighborhoods && <p>Neighborhood data: <a href={dataset.sources[1].url} target="_blank" rel="noopener noreferrer">Census ACS 2020–2024</a> (home value and household income by ZIP code area) and <a href={dataset.sources[2].url} target="_blank" rel="noopener noreferrer">NCES School Neighborhood Poverty Estimates 2021–22</a>.</p>}
           <p>Lunch eligibility is not comparable across all states. Districts using community eligibility (common in MS, DC and others) report every student as eligible.</p>
         </div>
       </aside>
 
       <div className="atlas-map">
-        <SchoolMap D={D} topo={topo} shown={shown} cls={cls} bins={mode.bins} selected={selected} onSelect={i => setSelected(i)} focusState={filters.state} flyTo={flyTo} />
+        <SchoolMap D={D} topo={topo} shown={shown} cls={cls} bins={mode.bins} selected={selected} onSelect={i => setSelected(i)} focus={focus} flyTo={flyTo} />
         <button type="button" className="atlas-menu" onClick={() => setRailOpen(true)} aria-controls="atlas-rail" aria-expanded={railOpen}><SlidersHorizontal size={14} /> Filters</button>
         {selected >= 0 && <SchoolCard D={D} i={selected} onClose={() => setSelected(-1)} />}
       </div>
     </main>
+  );
+}
+
+// Narrows the map to one county, city, school district or ZIP code.
+function PlaceFilter({ places, stateFilter, place, onChoose, onClear }) {
+  const [query, setQuery] = useState('');
+  const [cursor, setCursor] = useState(-1);
+  const [open, setOpen] = useState(false);
+  const hits = useMemo(() => searchPlaces(places, query, stateFilter), [places, query, stateFilter]);
+  const choose = chosen => { setQuery(''); setOpen(false); onChoose(chosen); };
+
+  return (
+    <div className="atlas-group atlas-search">
+      <label className="atlas-label" htmlFor="atlas-place">Filter by place</label>
+      {place ? (
+        <div className="atlas-place-chip">
+          <span><small>{PLACE_KINDS[place.kind]}</small>{place.label}</span>
+          <button type="button" onClick={onClear} aria-label={`Clear ${place.label}`}><X size={14} /></button>
+        </div>
+      ) : (
+        <input
+          id="atlas-place" type="search" placeholder="County, city, school district or ZIP" autoComplete="off" value={query}
+          onChange={event => { setQuery(event.target.value); setCursor(-1); setOpen(true); }}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={event => {
+            if (event.key === 'ArrowDown') { setCursor(c => Math.min(hits.length - 1, c + 1)); event.preventDefault(); }
+            else if (event.key === 'ArrowUp') { setCursor(c => Math.max(0, c - 1)); event.preventDefault(); }
+            else if (event.key === 'Enter' && hits.length) choose(hits[Math.max(cursor, 0)]);
+            else if (event.key === 'Escape') setOpen(false);
+          }}
+        />
+      )}
+      {!place && open && hits.length > 0 && (
+        <div className="atlas-results">
+          {hits.map((hit, n) => (
+            <button type="button" key={hit.id} className={n === cursor ? 'on' : ''} onMouseDown={event => event.preventDefault()} onClick={() => choose(hit)}>
+              {hit.label}<small>{PLACE_KINDS[hit.kind]} · {fmt(hit.count)} {hit.count === 1 ? 'school' : 'schools'}</small>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -160,14 +229,19 @@ function SchoolSearch({ D, stateFilter, onChoose }) {
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(-1);
   const [open, setOpen] = useState(false);
+  const nameText = useMemo(() => D.name.map(name => searchText(name, '')), [D]);
   const haystack = useMemo(() => D.name.map((name, i) => searchText(name, D.city[i])), [D]);
   const hits = useMemo(() => {
     if (query.trim().length < 2) return [];
     const stateIndex = stateFilter ? D.dict.st.indexOf(stateFilter) : -1;
+    const inState = i => stateIndex < 0 || D.st[i] === stateIndex;
+    // Schools whose name contains every word come first, then name-or-city matches.
     const found = [];
-    for (let i = 0; i < D.n && found.length < 12; i += 1) if ((stateIndex < 0 || D.st[i] === stateIndex) && matchesSearch(haystack[i], query)) found.push(i);
+    for (let i = 0; i < D.n && found.length < 12; i += 1) if (inState(i) && matchesSearch(nameText[i], query)) found.push(i);
+    const seen = new Set(found);
+    for (let i = 0; i < D.n && found.length < 12; i += 1) if (!seen.has(i) && inState(i) && matchesSearch(haystack[i], query)) found.push(i);
     return found;
-  }, [query, stateFilter, D, haystack]);
+  }, [query, stateFilter, D, nameText, haystack]);
   const choose = i => { setQuery(D.name[i]); setOpen(false); onChoose(i); };
 
   return (
@@ -250,7 +324,40 @@ function SchoolCard({ D, i, onClose }) {
       ) : (
         <p className="atlas-note">This school is in the 2024–25 directory but not in the 2022–23 characteristics file, usually because it opened recently. Enrollment and demographics are not available.</p>
       )}
+      {D.hasNeighborhoods && <NeighborhoodFacts D={D} i={i} />}
       <p className="atlas-note">NCES ID {D.id[i]} · <a href={`https://nces.ed.gov/ccd/schoolsearch/school_detail.asp?ID=${D.id[i]}`} target="_blank" rel="noopener noreferrer">Full NCES profile</a></p>
     </section>
+  );
+}
+
+// Economic context around a school. ZIP-level census figures and NCES's
+// small-area estimate, each with its margin so readers see how precise it is.
+function NeighborhoodFacts({ D, i }) {
+  const zip = D.zcta[i];
+  const rows = [];
+  const census = (label, value, moe, kind) => {
+    if (value == null) return;
+    const reliable = isReliable(value, moe);
+    rows.push({ label, value: formatDollars(value, kind), margin: moe != null ? `±${formatDollars(moe)}` : '', low: !reliable });
+  };
+  census(`Median home value${zip ? ` (ZIP ${zip})` : ''}`, D.home[i], D.homeMoe[i], 'home');
+  census(`Median household income${zip ? ` (ZIP ${zip})` : ''}`, D.income[i], D.incomeMoe[i], 'income');
+  if (D.ipr[i] != null) {
+    rows.push({ label: 'Neighborhood income vs. poverty line', value: formatPovertyRatio(D.ipr[i]), margin: D.iprSe[i] != null ? `±${((1.645 * D.iprSe[i]) / 100).toFixed(1)}×` : '' });
+  }
+  if (!rows.length) return null;
+  return (
+    <div className="atlas-neighborhood">
+      <span className="atlas-label">Neighborhood</span>
+      <dl>
+        {rows.map(row => (
+          <div key={row.label}>
+            <dt>{row.label}</dt>
+            <dd>{row.value} {row.margin && <small>{row.margin}</small>} {row.low && <span className="atlas-low">low reliability</span>}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="atlas-note">Describes the area around the school, not its students or attendance zone. Margins are 90% confidence intervals.</p>
+    </div>
   );
 }

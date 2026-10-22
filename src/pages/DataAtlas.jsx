@@ -32,7 +32,7 @@ export default function DataAtlas() {
               <dl className="data-atlas-facts">
                 <div><dt>Records</dt><dd>{fmt.format(dataset.rows)} {dataset.rowsLabel}</dd></div>
                 <div><dt>Period</dt><dd>{dataset.period}</dd></div>
-                <div><dt>Source</dt><dd><a href={dataset.source.url} target="_blank" rel="noopener noreferrer">{dataset.source.name}</a></dd></div>
+                <div><dt>Sources</dt><dd>{dataset.sources.map((source, k) => <React.Fragment key={source.url}>{k > 0 && <br />}<a href={source.url} target="_blank" rel="noopener noreferrer">{source.name}</a></React.Fragment>)}</dd></div>
               </dl>
             </div>
             <div className="playground-card-footer">

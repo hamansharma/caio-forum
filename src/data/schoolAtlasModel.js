@@ -12,6 +12,42 @@ export const gradeLabel = grade => ({ PK: 'PK', KG: 'K', UG: 'Ungraded', AE: 'Ad
 // "nodata" is resolved to a theme color by the map and legend.
 export const NO_DATA = 'nodata';
 const SEQUENTIAL = ['#2c9c8c', '#8dbb4c', '#e0b028', '#e2702d', '#c4304a'];
+// Neighborhood economics use a neutral palette, so higher or lower values don't read as better or worse.
+const ECONOMIC = ['#4f6fd6', '#3a9bc7', '#3fb8a6', '#9ccf6a', '#f2c94c'];
+const LOW_RELIABILITY = '#8a8fa3';
+
+// Census estimates whose margin of error exceeds 30% of the value are shown as
+// low reliability instead of as a precise figure. Top- and bottom-coded values
+// ("$2,000,000 or more") have no margin and count as reliable.
+export const RELIABLE_MOE_SHARE = 0.3;
+export const isReliable = (value, moe) => value != null && (moe == null || moe <= value * RELIABLE_MOE_SHARE);
+const TOP_CODES = { home: [9999, 2000001], income: [2499, 250001] };
+
+// "$412,000", or the census top and bottom codes as ranges ("$2M or more").
+export function formatDollars(value, kind) {
+  if (value == null) return '—';
+  const [bottom, top] = TOP_CODES[kind] || [];
+  if (value === top) return kind === 'home' ? '$2M or more' : '$250K or more';
+  if (value === bottom) return kind === 'home' ? 'Under $10K' : 'Under $2,500';
+  return `$${Math.round(value).toLocaleString('en-US')}`;
+}
+// Income-to-poverty ratio: 100 = at the poverty line, so 284 reads "2.8×".
+export const formatPovertyRatio = ipr => (ipr == null ? '—' : `${(ipr / 100).toFixed(1)}×`);
+
+// Bins a census estimate, with separate bins for low-reliability estimates and missing data.
+function censusBinner(values, moes, cuts, labels) {
+  const lowBin = labels.length;
+  return {
+    bins: labels.map((label, k) => ({ label, color: ECONOMIC[k] })).concat([{ label: 'Low-reliability estimate', color: LOW_RELIABILITY }, { label: 'No data', color: NO_DATA }]),
+    of: i => {
+      const value = values[i];
+      if (value == null) return lowBin + 1;
+      if (!isReliable(value, moes[i])) return lowBin;
+      for (let k = 0; k < cuts.length; k += 1) if (value < cuts[k]) return k;
+      return labels.length - 1;
+    },
+  };
+}
 
 // Bins numeric values at `cuts` (after dividing by `div`); the last bin is "No data".
 function binner(values, cuts, labels, palette, div = 1) {
@@ -35,11 +71,18 @@ export const COLOR_MODES = [
   { id: 'level', label: 'School level' },
   { id: 'locale', label: 'City, suburb, town or rural' },
   { id: 'charter', label: 'Charter status' },
+  { id: 'home', label: 'Median home value in the school’s ZIP', neighborhood: true },
+  { id: 'income', label: 'Median household income in the school’s ZIP', neighborhood: true },
+  { id: 'ipr', label: 'Neighborhood income vs. poverty line', neighborhood: true },
 ];
 
 // Returns { bins: [{ label, color }], of(i) -> bin index } for a color mode.
 export function colorMode(D, id) {
   switch (id) {
+    case 'home': return censusBinner(D.home, D.homeMoe, [150000, 250000, 400000, 700000], ['Under $150K', '$150K–$250K', '$250K–$400K', '$400K–$700K', '$700K or more']);
+    case 'income': return censusBinner(D.income, D.incomeMoe, [45000, 65000, 85000, 120000], ['Under $45K', '$45K–$65K', '$65K–$85K', '$85K–$120K', '$120K or more']);
+    // Small-area estimates with wide margins by design, so broad bins and no reliability cutoff.
+    case 'ipr': return binner(D.ipr, [150, 200, 300, 500], ['Under 1.5×', '1.5–2×', '2–3×', '3–5×', '5× or more'], ECONOMIC);
     case 'ratio': return binner(D.ratio, [12, 15, 18, 22], ['Under 12', '12–15', '15–18', '18–22', '22 or more'], SEQUENTIAL, 10);
     case 'enr': return binner(D.enr, [200, 500, 1000, 2000], ['Under 200', '200–499', '500–999', '1,000–1,999', '2,000 or more'], SEQUENTIAL);
     case 'race': return {
@@ -99,10 +142,57 @@ export const TYPE_FILTERS = [['Traditional', 'trad'], ['Charter', 'charter'], ['
 
 export const defaultFilters = () => ({
   state: '',
+  place: null, // { id, kind, key, label, state } from buildPlaceIndex
   levels: new Set(LEVEL_FILTERS.map(([key]) => key)),
   locales: new Set(Object.keys(LOCALE_GROUP)),
   types: new Set(TYPE_FILTERS.map(([, key]) => key)),
 });
+
+// ----- Places: counties, cities, school districts and ZIP codes to filter by.
+export const PLACE_KINDS = { county: 'County', city: 'City', district: 'School district', zip: 'ZIP code' };
+const titleCase = text => (text === text.toUpperCase() ? text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (m, sep, c) => sep + c.toUpperCase()) : text);
+
+// County, city and district names repeat across states, so their keys include the state.
+export function placeKeyOf(D, kind, i) {
+  const state = D.dict.st[D.st[i]];
+  if (kind === 'county') return `${D.county[i]}|${state}`;
+  if (kind === 'city') return `${String(D.city[i]).toUpperCase()}|${state}`;
+  if (kind === 'district') return `${D.lea[i]}|${state}`;
+  return String(D.zip[i]).slice(0, 5);
+}
+
+// Every place with at least one school: [{ id, kind, key, label, state, count, search }].
+export function buildPlaceIndex(D) {
+  const places = new Map();
+  for (let i = 0; i < D.n; i += 1) {
+    const state = D.dict.st[D.st[i]];
+    for (const kind of Object.keys(PLACE_KINDS)) {
+      const key = placeKeyOf(D, kind, i);
+      const id = `${kind}:${key}`;
+      const existing = places.get(id);
+      if (existing) { existing.count += 1; continue; }
+      const city = titleCase(String(D.city[i]));
+      const label = kind === 'county' ? `${D.dict.county[D.county[i]]}, ${state}`
+        : kind === 'city' ? `${city}, ${state}`
+          : kind === 'district' ? `${D.dict.lea[D.lea[i]]}, ${state}`
+            : `${key} (${city}, ${state})`;
+      places.set(id, { id, kind, key, label, state, count: 1, search: label.toLowerCase() });
+    }
+  }
+  return [...places.values()];
+}
+
+// Places whose label contains every typed word, best first: labels that start
+// with the query, then places with more schools.
+export function searchPlaces(places, query, stateFilter = '', limit = 10) {
+  const q = query.trim().toLowerCase();
+  const words = q.split(/\s+/).filter(Boolean);
+  if (!words.length || q.length < 2) return [];
+  return places
+    .filter(place => (!stateFilter || place.state === stateFilter) && words.every(word => place.search.includes(word)))
+    .sort((a, b) => Number(b.search.startsWith(q)) - Number(a.search.startsWith(q)) || b.count - a.count)
+    .slice(0, limit);
+}
 
 // 1 for each school that passes the filters (and has a location), else 0.
 export function filterSchools(D, filters) {
@@ -114,7 +204,8 @@ export function filterSchools(D, filters) {
   const isAlternative = D.dict.type.map(type => type === 'Alternative Education School' || type === 'Special Education School');
   const visible = new Uint8Array(D.n);
   for (let i = 0; i < D.n; i += 1) {
-    let ok = D.lat[i] != null && D.lon[i] != null && levelOk[D.level[i]] && localeOk[D.locale[i]] && (stateIndex < 0 || D.st[i] === stateIndex);
+    let ok = D.lat[i] != null && D.lon[i] != null && levelOk[D.level[i]] && localeOk[D.locale[i]] && (stateIndex < 0 || D.st[i] === stateIndex)
+      && (!filters.place || placeKeyOf(D, filters.place.kind, i) === filters.place.key);
     if (ok) {
       const type = isVirtual[D.virtual[i]] ? 'virt' : isAlternative[D.type[i]] ? 'alt' : isCharter[D.charter[i]] ? 'charter' : 'trad';
       ok = filters.types.has(type);
@@ -166,13 +257,30 @@ export function summarize(D, shown) {
   };
 }
 
-// Loads the dataset (split across two files) and the county map shapes.
+// Expands neighborhoods.json (built by scripts/data-atlas/build-school-neighborhoods.mjs)
+// into per-school arrays on D. ZIP-level values are stored once per ZIP and
+// referenced by index. Returns false if the file doesn't line up with the schools.
+export function attachNeighborhoods(D, N) {
+  if (!N || N.n !== D.n || N.check?.[0] !== String(D.id[0]) || N.check?.[1] !== String(D.id[D.n - 1])) return false;
+  const fromZip = values => N.z.map(z => (z < 0 ? null : values[z]));
+  Object.assign(D, {
+    zcta: fromZip(N.zcta), home: fromZip(N.zHome), homeMoe: fromZip(N.zHomeMoe),
+    income: fromZip(N.zIncome), incomeMoe: fromZip(N.zIncomeMoe), ipr: N.ipr, iprSe: N.iprSe,
+    neighborhoodSources: N.sources,
+  });
+  return true;
+}
+
+// Loads the dataset (split across two files), the county map shapes, and the
+// neighborhood economics. The map still works if the neighborhood file fails.
 export async function loadSchoolAtlas(baseUrl) {
   const get = async file => {
     const response = await fetch(`${baseUrl}/${file}`);
     if (!response.ok) throw new Error(`${file} returned ${response.status}`);
     return response.json();
   };
-  const [a, b, topo] = await Promise.all([get('schools-a.json'), get('schools-b.json'), get('us-counties.json')]);
-  return { D: Object.assign(a, b), topo };
+  const [a, b, topo, neighborhoods] = await Promise.all([get('schools-a.json'), get('schools-b.json'), get('us-counties.json'), get('neighborhoods.json').catch(() => null)]);
+  const D = Object.assign(a, b);
+  D.hasNeighborhoods = attachNeighborhoods(D, neighborhoods);
+  return { D, topo };
 }
