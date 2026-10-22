@@ -1,0 +1,27 @@
+.school-map { position: relative; min-width: 0; height: 100%; overflow: hidden; background: var(--bg-base); }
+.school-map canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.school-map canvas.dragging { cursor: grabbing; }
+
+.school-map-tools { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
+.school-map-tools button {
+  width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary);
+  box-shadow: 0 6px 24px #0000002e; transition: border-color 0.15s;
+}
+.school-map-tools button:hover { border-color: var(--accent); }
+
+.school-map-where {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 200px);
+  padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); box-shadow: 0 6px 24px #0000002e;
+  font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
+.school-map-where small { font-weight: 400; color: var(--text-muted); }
+
+.school-map-tip {
+  position: absolute; pointer-events: none; transform: translate(10px, -50%);
+  padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); box-shadow: 0 6px 24px #0000002e;
+  font-size: 12.5px; white-space: nowrap;
+}
+.school-map-tip small { color: var(--text-muted); }

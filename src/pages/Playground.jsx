@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Award, ClipboardCheck, FlaskConical, Lightbulb, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, Database, FlaskConical, Lightbulb, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
@@ -116,6 +116,19 @@ export default function Playground() {
           <div className="playground-card-footer">
             <span>{accessStatus(true)}</span>
             <div className="playground-card-actions"><button onClick={openPersonalSignals} disabled={authLoading}>{user ? 'Open Personal Signals' : 'Sign in to access'} <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=health')}>Discuss</button>{projectAction('health')}</div>
+          </div>
+        </article>
+
+        <article className="playground-card data-card">
+          <div className="playground-icon data"><Database size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">Open data</div>
+            <h2>Data Atlas</h2>
+            <p>Explore public datasets through interactive maps and charts, with every figure traceable to its source. New datasets are added over time.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span>{accessStatus(false)}</span>
+            <button onClick={() => navigate('/playground/data-atlas')}>Explore datasets <ArrowRight size={16} /></button>
           </div>
         </article>
 
