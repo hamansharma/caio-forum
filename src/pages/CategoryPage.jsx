@@ -6,9 +6,8 @@ import PostCard from '../components/PostCard';
 import NotFound from './NotFound';
 import usePageMeta from '../hooks/usePageMeta';
 import { FORUM_CATEGORIES, forumCategory, categoryPath } from '../data/forumCategories';
+import { SORTS } from '../utils/postDisplay';
 import './Home.css';
-
-const toTime = value => (value?.toDate ? value.toDate() : new Date(value || 0)).getTime();
 
 // Landing page for one forum category, e.g. /category/strategy.
 export default function CategoryPage() {
@@ -17,7 +16,7 @@ export default function CategoryPage() {
   const { posts, loading } = usePosts();
   const categoryPosts = posts
     .filter(post => !post.playground && !post.deleted && post.category === id)
-    .sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt));
+    .sort(SORTS.new);
 
   usePageMeta(
     category ? `${category.label} Discussions | CAIO Forum` : 'Page Not Found | CAIO Forum',

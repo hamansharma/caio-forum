@@ -67,3 +67,4 @@
 .category-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px; font-size: 13px; color: var(--text-muted); transition: color 0.15s; }
 .category-back:hover { color: var(--text-primary); }
 .category-empty { color: var(--text-muted); padding: 40px; text-align: center; }
+.posts-empty { padding: 40px; text-align: center; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-lg); }

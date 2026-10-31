@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Flame, Clock, TrendingUp } from 'lucide-react';
 import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import usePageMeta from '../hooks/usePageMeta';
 import { FORUM_CATEGORIES, categoryPath } from '../data/forumCategories';
+import { SORTS, visibleComments } from '../utils/postDisplay';
 import './Home.css';
 
+// Latest posts first by default; the choice is kept in the URL (?sort=hot).
 const SORT_OPTS = [
-  { key: 'hot', label: 'Hot', icon: Flame },
   { key: 'new', label: 'New', icon: Clock },
+  { key: 'hot', label: 'Hot', icon: Flame },
   { key: 'top', label: 'Top', icon: TrendingUp },
 ];
+const DEFAULT_SORT = 'new';
 
 export default function Home() {
   usePageMeta('CAIO Forum | AI Leadership, Strategy & Technology Community', 'Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community.', { canonicalPath: '/' });
   const { posts, loading } = usePosts();
-  const [sort, setSort] = useState('hot');
-  const [filter, setFilter] = useState('all');
-  const forumPosts = posts.filter(post => !post.playground);
+  const [params, setParams] = useSearchParams();
+  const sort = SORTS[params.get('sort')] ? params.get('sort') : DEFAULT_SORT;
+  const filter = params.get('category') || 'all';
+  const update = (key, value, fallback) => setParams(current => {
+    const next = new URLSearchParams(current);
+    if (value === fallback) next.delete(key); else next.set(key, value);
+    return next;
+  }, { replace: true });
+  const forumPosts = posts.filter(post => !post.playground && !post.deleted);
 
-  const sorted = [...forumPosts]
+  const sorted = forumPosts
     .filter(p => filter === 'all' || p.category === filter)
-    .sort((a, b) => {
-      if (sort === 'new') return new Date(b.createdAt) - new Date(a.createdAt);
-      if (sort === 'top') return b.votes - a.votes;
-      return (b.votes * 0.7 + b.comments.length * 10) - (a.votes * 0.7 + a.comments.length * 10);
-    });
+    .sort(SORTS[sort]);
 
   return (
     <div className="home">
@@ -34,14 +39,14 @@ export default function Home() {
         <header className="home-page-header"><h1>AI leadership discussions</h1><p>Practical ideas on AI strategy, technology, governance, and responsible adoption.</p></header>
         <div className="sort-bar">
           {SORT_OPTS.map(({ key, label, icon: Icon }) => (
-            <button key={key} className={`sort-btn ${sort === key ? 'active' : ''}`} onClick={() => setSort(key)}>
+            <button key={key} className={`sort-btn ${sort === key ? 'active' : ''}`} aria-pressed={sort === key} onClick={() => update('sort', key, DEFAULT_SORT)}>
               <Icon size={14} /> {label}
             </button>
           ))}
           <div className="filter-pills">
             {['all', 'concepts', 'discussion', 'strategy', 'ethics', 'links'].map(cat => (
               <button key={cat} className={`filter-pill ${filter === cat ? 'active' : ''} ${cat !== 'all' ? `tag-${cat}` : ''}`}
-                onClick={() => setFilter(cat)}>
+                aria-pressed={filter === cat} onClick={() => update('category', cat, 'all')}>
                 {cat === 'all' ? 'All' : cat}
               </button>
             ))}
@@ -49,9 +54,9 @@ export default function Home() {
         </div>
         <div className="posts-list">
           {loading
-            ? <div style={{color:'var(--text-muted)', padding:'40px', textAlign:'center'}}>Loading discussions…</div>
+            ? <div className="posts-empty">Loading discussions…</div>
             : sorted.length === 0
-              ? <div style={{color:'var(--text-muted)', padding:'40px', textAlign:'center'}}>No posts yet. Be the first!</div>
+              ? <div className="posts-empty">{filter === 'all' ? 'No posts yet. Be the first!' : 'No posts in this category yet.'}</div>
               : sorted.map(post => <PostCard key={post.id} post={post} />)
           }
         </div>
@@ -63,7 +68,7 @@ export default function Home() {
           <p>A discussion space for Chief AI Officer topics. Do not post copyright material without proper consent.</p>
           <div className="sidebar-stats">
             <div><strong>{forumPosts.length}</strong><span>Posts</span></div>
-            <div><strong>{forumPosts.reduce((a, p) => a + p.comments.length, 0)}</strong><span>Comments</span></div>
+            <div><strong>{forumPosts.reduce((total, post) => total + visibleComments(post).length, 0)}</strong><span>Comments</span></div>
           </div>
         </div>
         <div className="sidebar-card">

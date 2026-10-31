@@ -3,19 +3,13 @@
 import { postPath } from './postUrl';
 import { publicOrigin } from '../hooks/usePageMeta';
 import { forumCategory, categoryPath } from '../data/forumCategories';
+import { markdownToPlainText } from './postDisplay';
 
 const toIso = value => {
   const date = value?.toDate ? value.toDate() : value ? new Date(value) : null;
   return date && !Number.isNaN(date.getTime()) ? date.toISOString() : undefined;
 };
 
-export const markdownToPlainText = markdown => String(markdown || '')
-  .replace(/```[\s\S]*?```/g, ' ')
-  .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-  .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-  .replace(/[#*_`>|~]/g, ' ')
-  .replace(/\s+/g, ' ')
-  .trim();
 
 const person = name => ({ '@type': 'Person', name: String(name || 'anonymous') });
 
