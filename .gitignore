@@ -28,3 +28,6 @@ yarn-error.log*
 # Firebase emulator logs
 firestore-debug.log
 firebase-debug.log
+
+# Service-account keys (never commit)
+*-firebase-adminsdk-*.json
