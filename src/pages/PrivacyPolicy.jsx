@@ -2,11 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import { LEGAL_CONTACT_EMAIL, PRIVACY_EFFECTIVE_DATE } from '../data/legal';
 import './Legal.css';
 
 export default function PrivacyPolicy() {
-  usePageMeta('Privacy Policy | CAIO Forum', 'How CAIO Forum and the AI Playground collect, use, share, and protect your information.', { canonicalPath: '/privacy' });
+  usePageMeta(PAGE_META.privacy.title, PAGE_META.privacy.description, { canonicalPath: PAGE_META.privacy.path });
   const mail = <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>;
 
   return (

@@ -51,6 +51,8 @@ export default function App() {
       <BrowserRouter>
         <ScrollToTop />
         <Navbar />
+        {/* At least a screen tall, so the footer never flashes at the top and then jumps while a page loads. */}
+        <div className="app-content">
         <Suspense fallback={<div className="route-loading" aria-busy="true" />}>
         <Routes>
 
@@ -78,6 +80,7 @@ export default function App() {
           
         </Routes>
         </Suspense>
+        </div>
         <Footer />
         <CookieConsent />
         <Chatbot />

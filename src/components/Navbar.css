@@ -15,10 +15,10 @@
   width: auto;
   border-radius: 8px;
 }
-.navbar-brand svg { color: var(--accent); }
+.navbar-brand svg { color: var(--accent-text); }
 .navbar-badge {
   font-size: 10px; font-weight: 500;
-  background: var(--accent-soft); color: var(--accent);
+  background: var(--accent-soft); color: var(--accent-text);
   padding: 2px 8px; border-radius: 20px;
   border: 1px solid var(--accent)40;
 }

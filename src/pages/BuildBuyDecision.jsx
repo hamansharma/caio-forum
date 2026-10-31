@@ -7,6 +7,7 @@ import { calculateTco, createTcoDraft, formatCurrency, tcoPathFields } from '../
 import { useForum } from '../context/ForumContext';
 import { db } from '../firebase';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import './BuildBuyDecision.css';
 import './BuildBuyDecisionOverrides.css';
 
@@ -20,7 +21,7 @@ const compactAssessment = assessment => ({
 });
 
 export default function BuildBuyDecision() {
-  usePageMeta('Build vs. Buy Decision Studio | CAIO Leadership Lab', 'Use a structured nine-factor assessment to evaluate whether an AI capability should be built, bought, or delivered as a hybrid solution.', { canonicalPath: '/playground/build-vs-buy' });
+  usePageMeta(PAGE_META.buildVsBuy.title, PAGE_META.buildVsBuy.description, { canonicalPath: PAGE_META.buildVsBuy.path });
   const { user } = useForum();
   const [name, setName] = useState('');
   const [businessCase, setBusinessCase] = useState('');

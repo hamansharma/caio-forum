@@ -16,7 +16,7 @@
 }
 .profile-avatar-lg {
   width: 72px; height: 72px; border-radius: 50%;
-  background: var(--accent-soft); color: var(--accent);
+  background: var(--accent-soft); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   font-size: 26px; font-weight: 700; margin-bottom: 8px;
   border: 2px solid var(--accent);
@@ -29,7 +29,7 @@
 .profile-stat {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
-.profile-stat strong { font-size: 20px; font-weight: 700; color: var(--accent); }
+.profile-stat strong { font-size: 20px; font-weight: 700; color: var(--accent-text); }
 .profile-stat span { font-size: 11px; color: var(--text-muted); }
 .profile-member-since {
   font-size: 11px; color: var(--text-muted);
@@ -46,7 +46,7 @@
   transition: all 0.15s;
 }
 .profile-nav button:hover { background: var(--bg-hover); color: var(--text-primary); }
-.profile-nav button.active { background: var(--accent-soft); color: var(--accent); }
+.profile-nav button.active { background: var(--accent-soft); color: var(--accent-text); }
 .profile-nav button.danger-nav:hover { color: #f87171; background: #f8717110; }
 .profile-nav button.danger-nav.active { background: #f8717115; color: #f87171; }
 
@@ -95,7 +95,7 @@
   font-family: var(--font); transition: all 0.15s;
 }
 .alias-pill:hover { border-color: var(--border-light); color: var(--text-primary); }
-.alias-pill.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.alias-pill.active { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
 
 .random-name-row { display: flex; align-items: center; gap: 10px; }
 .random-name-preview {
@@ -109,7 +109,7 @@
   border: 1px solid var(--border); color: var(--text-secondary);
   font-size: 13px; font-family: var(--font); transition: all 0.15s;
 }
-.btn-regenerate:hover { color: var(--accent); border-color: var(--accent); }
+.btn-regenerate:hover { color: var(--accent-text); border-color: var(--accent); }
 
 .toggle-row {
   display: flex; align-items: center;

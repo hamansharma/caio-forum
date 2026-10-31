@@ -17,7 +17,7 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px 0;
 }
-.auth-logo { font-size: 16px; font-weight: 700; color: var(--accent); }
+.auth-logo { font-size: 16px; font-weight: 700; color: var(--accent-text); }
 .auth-close {
   color: var(--text-muted); padding: 4px; border-radius: 6px;
   transition: color 0.15s;
@@ -38,7 +38,7 @@
   transition: all 0.15s; margin-bottom: -1px;
 }
 .auth-tabs button.active {
-  color: var(--accent);
+  color: var(--accent-text);
   border-bottom-color: var(--accent);
 }
 .auth-tabs button:hover:not(.active) { color: var(--text-primary); }
@@ -97,7 +97,7 @@
 }
 .username-opt:hover { border-color: var(--border-light); color: var(--text-primary); }
 .username-opt.active {
-  background: var(--accent-soft); color: var(--accent);
+  background: var(--accent-soft); color: var(--accent-text);
   border-color: var(--accent);
 }
 
@@ -111,7 +111,7 @@
   color: var(--text-muted); padding: 4px; border-radius: 4px;
   transition: color 0.15s, transform 0.2s;
 }
-.random-username button:hover { color: var(--accent); transform: rotate(180deg); }
+.random-username button:hover { color: var(--accent-text); transform: rotate(180deg); }
 
 .username-hint {
   font-size: 11px; color: var(--text-muted);
@@ -139,25 +139,25 @@
   color: var(--text-muted); padding: 16px 24px 20px;
 }
 .auth-footer button {
-  color: var(--accent); font-weight: 500;
+  color: var(--accent-text); font-weight: 500;
   font-family: var(--font); font-size: 13px;
   transition: color 0.15s;
 }
-.auth-footer button:hover { color: var(--accent-hover); }
+.auth-footer button:hover { color: var(--accent-text-hover); }
 
 .auth-legal {
   font-size: 11px; color: var(--text-muted);
   text-align: center; line-height: 1.5;
 }
-.auth-legal a { color: var(--accent); }
-.auth-legal a:hover { color: var(--accent-hover); text-decoration: underline; }
+.auth-legal a { color: var(--accent-text); }
+.auth-legal a:hover { color: var(--accent-text-hover); text-decoration: underline; }
 
 .auth-forgot {
   align-self: flex-end; margin-top: 2px;
-  font-size: 12px; font-weight: 500; color: var(--accent);
+  font-size: 12px; font-weight: 500; color: var(--accent-text);
   font-family: var(--font); transition: color 0.15s;
 }
-.auth-forgot:hover { color: var(--accent-hover); text-decoration: underline; }
+.auth-forgot:hover { color: var(--accent-text-hover); text-decoration: underline; }
 
 .auth-reset-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
 .auth-reset-intro { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-top: -6px; }

@@ -7,12 +7,14 @@
   --bg-input: #131620;
   --border: #252838;
   --border-light: #2e3248;
-  --accent: #7c6af7;
-  --accent-hover: #9180f9;
+  --accent: #6c5ae6;           /* white text on it: 4.9:1 */
+  --accent-hover: #5d4bd6;
   --accent-soft: #7c6af720;
+  --accent-text: #9180f9;      /* accent as text: 4.5:1+ on dark backgrounds */
+  --accent-text-hover: #a596fb;
   --text-primary: #e8eaf6;
   --text-secondary: #9fa8c7;
-  --text-muted: #5c6385;
+  --text-muted: #868eb2;       /* 4.5:1+ on every dark background */
   --tag-concepts: #1a3a2a;
   --tag-concepts-text: #4ade80;
   --tag-discussion: #2a1a3a;
@@ -40,9 +42,11 @@
   --accent: #0071e3;
   --accent-hover: #0077ed;
   --accent-soft: #0071e314;
+  --accent-text: #0066cc;
+  --accent-text-hover: #004f9e;
   --text-primary: #1d1d1f;
   --text-secondary: #515154;
-  --text-muted: #86868b;
+  --text-muted: #6e6e73;
   --tag-concepts: #e3f8ec;
   --tag-concepts-text: #168251;
   --tag-discussion: #eeeaff;
@@ -81,5 +85,6 @@ button, input, textarea { max-width: 100%; }
 /* Shared by CreatePost and PostDetail */
 .field-error { font-size: 12px; color: #f87171; margin-top: 4px; display: block; }
 
-/* Placeholder while a page's code loads; keeps the footer from jumping up */
+/* Page area below the 56px navbar is at least a screen tall, so the footer starts below the fold */
+.app-content { min-height: calc(100vh - 56px); min-height: calc(100dvh - 56px); }
 .route-loading { min-height: 60vh; }

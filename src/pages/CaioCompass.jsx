@@ -6,6 +6,7 @@ import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
 import { compassDimensions, maturityLabels, resultRoutes } from '../data/caioCompass';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import './CaioCompass.css';
 import './CaioCompassOverrides.css';
 
@@ -32,7 +33,7 @@ function formatDate(value) {
 }
 
 export default function CaioCompass() {
-  usePageMeta('CAIO Compass | AI Maturity Assessment & Roadmap', 'Assess your organization’s AI maturity across strategy, data, operating model, governance, and delivery—then identify practical next steps.', { canonicalPath: '/playground/caio-compass' });
+  usePageMeta(PAGE_META.caioCompass.title, PAGE_META.caioCompass.description, { canonicalPath: PAGE_META.caioCompass.path });
   const { user, authLoading } = useForum();
   const [showAuth, setShowAuth] = useState(false);
   const [step, setStep] = useState(0);

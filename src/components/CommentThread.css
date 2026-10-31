@@ -27,7 +27,7 @@
 }
 .comment-avatar {
   width: 22px; height: 22px; border-radius: 50%;
-  background: var(--accent-soft); color: var(--accent);
+  background: var(--accent-soft); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700; flex-shrink: 0;
 }
@@ -53,13 +53,13 @@
   display: flex; align-items: center;
 }
 .vote-inline:hover { color: var(--text-primary); }
-.vote-inline.up.active { color: var(--accent); }
+.vote-inline.up.active { color: var(--accent-text); }
 .vote-inline.down.active { color: #f87171; }
 .vote-inline-count {
   font-size: 12px; font-weight: 600;
   color: var(--text-secondary); min-width: 20px; text-align: center;
 }
-.vote-inline-count.voted { color: var(--accent); }
+.vote-inline-count.voted { color: var(--accent-text); }
 
 .reply-btn {
   display: flex; align-items: center; gap: 4px;

@@ -15,6 +15,7 @@ import {
   EmailAuthProvider,
   GoogleAuthProvider,
   signInWithPopup,
+  browserPopupRedirectResolver,
   deleteUser,
   sendPasswordResetEmail,
 } from 'firebase/auth';
@@ -211,7 +212,7 @@ export function ForumProvider({ children }) {
   const googleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const credential = await signInWithPopup(auth, provider);
+    const credential = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
     const firebaseUser = credential.user;
     const userRef = doc(db, 'users', firebaseUser.uid);
     const existingProfile = await getDoc(userRef);

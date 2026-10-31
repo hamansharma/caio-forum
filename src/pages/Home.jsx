@@ -4,6 +4,7 @@ import { Flame, Clock, TrendingUp } from 'lucide-react';
 import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import { FORUM_CATEGORIES, categoryPath } from '../data/forumCategories';
 import { SORTS, visibleComments } from '../utils/postDisplay';
 import './Home.css';
@@ -17,7 +18,7 @@ const SORT_OPTS = [
 const DEFAULT_SORT = 'new';
 
 export default function Home() {
-  usePageMeta('CAIO Forum | AI Leadership, Strategy & Technology Community', 'Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community.', { canonicalPath: '/' });
+  usePageMeta(PAGE_META.home.title, PAGE_META.home.description, { canonicalPath: PAGE_META.home.path });
   const { posts, loading } = usePosts();
   const [params, setParams] = useSearchParams();
   const sort = SORTS[params.get('sort')] ? params.get('sort') : DEFAULT_SORT;
@@ -64,15 +65,15 @@ export default function Home() {
 
       <aside className="home-sidebar">
         <div className="sidebar-card">
-          <h3>About CAIO Forum</h3>
+          <h2>About CAIO Forum</h2>
           <p>A discussion space for Chief AI Officer topics. Do not post copyright material without proper consent.</p>
           <div className="sidebar-stats">
-            <div><strong>{forumPosts.length}</strong><span>Posts</span></div>
-            <div><strong>{forumPosts.reduce((total, post) => total + visibleComments(post).length, 0)}</strong><span>Comments</span></div>
+            <div><strong>{loading ? '—' : forumPosts.length}</strong><span>Posts</span></div>
+            <div><strong>{loading ? '—' : forumPosts.reduce((total, post) => total + visibleComments(post).length, 0)}</strong><span>Comments</span></div>
           </div>
         </div>
         <div className="sidebar-card">
-          <h3>Topics</h3>
+          <h2>Topics</h2>
           {FORUM_CATEGORIES.map(category => (
             <Link key={category.id} to={categoryPath(category.id)} className={`sidebar-topic tag-${category.id}`}>
               {category.label}

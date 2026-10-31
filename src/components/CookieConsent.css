@@ -7,7 +7,7 @@
   box-shadow: 0 12px 32px #0000004d;
 }
 .cookie-consent p { font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
-.cookie-consent a { color: var(--accent); }
+.cookie-consent a { color: var(--accent-text); }
 .cookie-consent a:hover { text-decoration: underline; }
 .cookie-consent-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .cookie-consent-actions button {

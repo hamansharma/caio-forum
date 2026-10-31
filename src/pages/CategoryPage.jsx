@@ -44,7 +44,7 @@ export default function CategoryPage() {
 
       <aside className="home-sidebar">
         <div className="sidebar-card">
-          <h3>Other topics</h3>
+          <h2>Other topics</h2>
           {FORUM_CATEGORIES.filter(other => other.id !== id).map(other => (
             <Link key={other.id} to={categoryPath(other.id)} className={`sidebar-topic tag-${other.id}`}>{other.label}</Link>
           ))}

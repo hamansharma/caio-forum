@@ -6,10 +6,11 @@ import { auth } from '../firebase';
 import AuthModal from '../components/AuthModal';
 import ProjectRequestModal from '../components/ProjectRequestModal';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import './Playground.css';
 
 export default function Playground() {
-  usePageMeta('AI Playground | Practical AI Tools & Experiments', 'Explore practical AI tools, experiments, and decision-support projects from CAIO Leadership Lab, including certification planning and vendor portfolio mapping.', { canonicalPath: '/playground' });
+  usePageMeta(PAGE_META.playground.title, PAGE_META.playground.description, { canonicalPath: PAGE_META.playground.path });
   const { user, authLoading } = useForum();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);

@@ -7,12 +7,13 @@ import { Link } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import './Certifications.css';
 
 const levels = ['Beginner', 'Intermediate', 'Advanced'];
 
 export default function Certifications() {
-  usePageMeta('Certification Navigator | Compare Professional Certifications', 'Explore and compare professional certifications across cloud, AI, cybersecurity, finance, Agile, education, operations, and more before you invest.', { canonicalPath: '/certifications' });
+  usePageMeta(PAGE_META.certifications.title, PAGE_META.certifications.description, { canonicalPath: PAGE_META.certifications.path });
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [level, setLevel] = useState('All');

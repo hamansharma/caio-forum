@@ -35,6 +35,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "node --import ./scripts/lib/register-extensionless.mjs scripts/prerender.mjs",
     "test": "react-scripts test",
     "import:certifications": "node --env-file=.env.local scripts/import-certifications.mjs",
     "import:vendor-catalog": "node --env-file=.env.local scripts/import-vendor-capability-catalog.mjs",

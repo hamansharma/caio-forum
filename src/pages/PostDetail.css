@@ -58,7 +58,7 @@
   min-width: 28px;
 }
 .comment-vote span { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-.comment-vote span.voted { color: var(--accent); }
+.comment-vote span.voted { color: var(--accent-text); }
 .comment-content { flex: 1; }
 .comment-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .comment-meta strong { font-size: 13px; color: var(--text-primary); }
@@ -66,12 +66,12 @@
 .comment-content p { font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
 .vote-btn { color: var(--text-muted); padding: 3px; border-radius: 4px; transition: color 0.1s; }
 .vote-btn:hover { color: var(--text-primary); }
-.vote-btn.up.active { color: var(--accent); }
+.vote-btn.up.active { color: var(--accent-text); }
 .vote-btn.down.active { color: #f87171; }
 .vote-count { font-size: 14px; font-weight: 700; color: var(--text-secondary); }
-.vote-count.voted { color: var(--accent); }
+.vote-count.voted { color: var(--accent-text); }
 .not-found { padding: 60px; text-align: center; color: var(--text-muted); }
-.not-found a { color: var(--accent); }
+.not-found a { color: var(--accent-text); }
 .post-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .meta-text { font-size: 12px; color: var(--text-muted); }
 .meta-text strong { color: var(--text-secondary); font-weight: 500; }
@@ -103,7 +103,7 @@
   transition: all 0.15s;
 }
 .comment-sort-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
-.comment-sort-btn.active { background: var(--accent-soft); color: var(--accent); }
+.comment-sort-btn.active { background: var(--accent-soft); color: var(--accent-text); }
 
 .edited-badge {
   font-size: 10px; color: var(--text-muted);
@@ -128,7 +128,7 @@
   color: var(--text-muted); border: 1px solid var(--border);
 }
 .author-action-btn.edit:hover {
-  color: var(--accent); border-color: var(--accent);
+  color: var(--accent-text); border-color: var(--accent);
   background: var(--accent-soft);
 }
 .author-action-btn.delete {
@@ -192,7 +192,7 @@
 }
 .related-list a:hover { background: var(--bg-hover); }
 .related-title { color: var(--text-primary); font-size: 14px; font-weight: 500; line-height: 1.45; transition: color 0.15s; }
-.related-list a:hover .related-title { color: var(--accent); }
+.related-list a:hover .related-title { color: var(--accent-text); }
 
 /* Wide screens: post and comments on the left, related discussions in a sticky
    sidebar. The last row is flexible so a tall sidebar never pushes the
@@ -222,4 +222,4 @@
   .comment { gap: 8px; padding: 12px; }
   .comment-form-right { width: 100%; margin-left: 0; justify-content: space-between; }
 }
-.post-playground-tool{color:var(--accent);font-size:11px;font-weight:700}
+.post-playground-tool{color:var(--accent-text);font-size:11px;font-weight:700}

@@ -45,3 +45,8 @@ export const SORTS = {
 };
 
 export const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+
+// Search/social title and description for a post page, shared by the post page
+// and scripts/prerender.mjs so the static HTML and the app say the same thing.
+export const postMetaTitle = post => `${post.title} | CAIO Forum`;
+export const postMetaDescription = post => excerpt(post.body, 155);

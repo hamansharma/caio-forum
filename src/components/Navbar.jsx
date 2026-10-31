@@ -7,7 +7,7 @@ import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
 import { searchPosts } from '../utils/search';
 import './Navbar.css';
-import logo from '../assets/CAIO.png';
+import logo from '../assets/caio-logo-96.png';
 
 export default function Navbar() {
   const { user, logout, authLoading, posts, requestPosts } = useForum();
@@ -50,7 +50,7 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <Link to="/" className="navbar-brand">
-          <img src={logo} alt="CAIO Forum" className="navbar-logo" />
+          <img src={logo} alt="" className="navbar-logo" width="36" height="36" />
           <span className="navbar-title">CAIO Forum</span>
           <span className="navbar-badge">Roadmap to Chief AI Officer</span>
         </Link>
@@ -63,7 +63,7 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
-          <button className="btn-playground" onClick={() => navigate('/playground')}>
+          <button className="btn-playground" onClick={() => navigate('/playground')} aria-label="AI Playground">
             <Activity size={16} /> <span className="nav-label">AI Playground</span>
           </button>
           <button className="btn-icon theme-toggle" onClick={() => setDaylight(current => !current)} title={daylight ? 'Use dark theme' : 'Use daylight theme'} aria-label={daylight ? 'Use dark theme' : 'Use daylight theme'}>
@@ -80,7 +80,7 @@ export default function Navbar() {
                 <User size={15} />
                 <span>u/{user.username}</span>
               </Link>
-              <button className="btn-icon" onClick={logout} title="Sign out">
+              <button className="btn-icon" onClick={logout} title="Sign out" aria-label="Sign out">
                 <LogOut size={16} />
               </button>
             </>

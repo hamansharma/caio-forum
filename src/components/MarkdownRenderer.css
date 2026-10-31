@@ -12,10 +12,10 @@
 .markdown-body strong { color: var(--text-primary); font-weight: 600; }
 .markdown-body em { font-style: italic; color: var(--text-secondary); }
 .markdown-body a {
-  color: var(--accent); text-decoration: underline;
+  color: var(--accent-text); text-decoration: underline;
   text-underline-offset: 3px; transition: color 0.15s;
 }
-.markdown-body a:hover { color: var(--accent-hover); }
+.markdown-body a:hover { color: var(--accent-text-hover); }
 .markdown-body ul, .markdown-body ol {
   padding-left: 20px; margin-bottom: 12px;
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Database, Map } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import { DATASETS, dataAtlasPath } from '../data/dataAtlas';
 import './Playground.css';
 import './DataAtlas.css';
@@ -9,7 +10,7 @@ import './DataAtlas.css';
 const fmt = new Intl.NumberFormat('en-US');
 
 export default function DataAtlas() {
-  usePageMeta('Data Atlas | Explore Public Datasets | CAIO Forum', 'Explore public datasets through interactive maps and charts in the CAIO Forum AI Playground, with every figure traceable to its source.', { canonicalPath: dataAtlasPath() });
+  usePageMeta(PAGE_META.dataAtlas.title, PAGE_META.dataAtlas.description, { canonicalPath: PAGE_META.dataAtlas.path });
 
   return (
     <main className="playground-page">

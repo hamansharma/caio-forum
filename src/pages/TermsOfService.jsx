@@ -2,11 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import { LEGAL_CONTACT_EMAIL, TERMS_EFFECTIVE_DATE } from '../data/legal';
 import './Legal.css';
 
 export default function TermsOfService() {
-  usePageMeta('Terms of Service | CAIO Forum', 'The terms that govern your use of CAIO Forum, the AI assistant, and the AI Playground tools.', { canonicalPath: '/terms' });
+  usePageMeta(PAGE_META.terms.title, PAGE_META.terms.description, { canonicalPath: PAGE_META.terms.path });
   const mail = <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>;
 
   return (

@@ -71,7 +71,7 @@
 
 .search-mark {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
   border-radius: 2px; padding: 0 2px;
   font-style: normal;
 }

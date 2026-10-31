@@ -15,6 +15,7 @@ import useStructuredData from '../hooks/useStructuredData';
 import { postStructuredData } from '../utils/structuredData';
 import CategoryTag from '../components/CategoryTag';
 import { postPath } from '../utils/postUrl';
+import { postMetaTitle, postMetaDescription } from '../utils/postDisplay';
 
 const SORT_OPTS = [
   { key: 'newest', label: 'Newest', icon: Clock },
@@ -68,8 +69,8 @@ export default function PostDetail() {
     if (canonicalPath && location.pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
   }, [canonicalPath, location.pathname, navigate]);
 
-  const postDescription = post ? String(post.body || '').replace(/[#*_`>[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155) : 'Read a community discussion on AI leadership, strategy, and technology.';
-  usePageMeta(post ? `${post.title} | CAIO Forum` : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null, pending: post === undefined });
+  const postDescription = post ? postMetaDescription(post) : 'Read a community discussion on AI leadership, strategy, and technology.';
+  usePageMeta(post ? postMetaTitle(post) : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null, pending: post === undefined });
   useStructuredData(post && !post.deleted ? postStructuredData(post) : null);
   if (post === undefined) return <div className="not-found">Loading discussion…</div>;
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
@@ -117,12 +118,12 @@ export default function PostDetail() {
 
       <article className="detail-post">
         <div className="detail-vote">
-          <button className={`vote-btn up ${voted === 1 ? 'active' : ''}`}
+          <button className={`vote-btn up ${voted === 1 ? 'active' : ''}`} aria-label={user ? 'Upvote' : 'Sign in to vote'} title={user ? 'Upvote' : 'Sign in to vote'} aria-pressed={voted === 1}
             onClick={() => votePost(post.id, voted === 1 ? 0 : 1)}>
             <ArrowUp size={18} />
           </button>
           <span className={`vote-count ${voted !== 0 ? 'voted' : ''}`}>{post.votes}</span>
-          <button className={`vote-btn down ${voted === -1 ? 'active' : ''}`}
+          <button className={`vote-btn down ${voted === -1 ? 'active' : ''}`} aria-label={user ? 'Downvote' : 'Sign in to vote'} title={user ? 'Downvote' : 'Sign in to vote'} aria-pressed={voted === -1}
             onClick={() => votePost(post.id, voted === -1 ? 0 : -1)}>
             <ArrowDown size={18} />
           </button>

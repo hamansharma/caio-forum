@@ -2,15 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
+    <!-- Page-specific tags. scripts/prerender.mjs replaces everything between the two
+         page-meta markers in each pre-rendered page (title, description, canonical URL,
+         social tags, structured data). The markers are meta tags because the build strips
+         comments. This default copy is what other URLs fall back to, so it deliberately
+         has no canonical URL: the app sets one once it knows the page. -->
+    <meta name="page-meta" content="start" />
+    <title>CAIO Forum | AI Leadership, Strategy &amp; Technology Community</title>
+    <meta name="description" content="Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CAIO Forum | AI Leadership, Strategy &amp; Technology Community" />
+    <meta property="og:description" content="Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community." />
+    <meta name="twitter:title" content="CAIO Forum | AI Leadership, Strategy &amp; Technology Community" />
+    <meta name="twitter:description" content="Join practical discussions on AI leadership, strategy, technology, and responsible adoption. Explore ideas, projects, and free tools from the CAIO community." />
+    <meta name="page-meta" content="end" />
+
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta property="og:site_name" content="CAIO Forum" />
+    <meta property="og:image" content="https://caioleadership.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CAIO Forum — Chief AI Officer community" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://caioleadership.com/og-image.png" />
+    <meta name="twitter:image:alt" content="CAIO Forum — Chief AI Officer community" />
+
+    <meta name="theme-color" content="#0f1117" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Fonts: requested from the HTML so they start downloading before the app's CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
 
     <!-- Google Analytics 4 with Consent Mode. Analytics cookies stay off until the
          visitor accepts in the cookie banner (src/components/CookieConsent.jsx);
-         until then GA sends only cookieless pings. Ad features are always off. -->
+         until then GA sends only cookieless pings. Ad features are always off.
+         The GA script itself loads after the page, so it doesn't compete with the
+         page's own downloads; events queued before then are sent once it loads. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -25,135 +59,54 @@
       gtag('js', new Date());
       // Page views are sent by the app once each page has its real title (usePageMeta).
       gtag('config', 'G-166FH9J9BC', { send_page_view: false });
+      window.addEventListener('load', function () {
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-166FH9J9BC';
+        document.head.appendChild(script);
+      });
     </script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-166FH9J9BC"></script>
-
-    <!-- Fonts: requested from the HTML so they start downloading before the app's CSS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
-    />
-
-    <!-- Primary SEO -->
-    <title>CAIO Forum — AI &amp; Technology Community</title>
-
-    <meta
-      name="description"
-      content="CAIO Forum is an open community for practical AI, technology, and free open-source tools that help teams make better decisions."
-    />
-
-    <meta
-      name="robots"
-      content="index, follow"
-    />
-
-    <link
-      rel="canonical"
-      href="https://caioleadership.com/"
-    />
-
-    <!-- Theme -->
-    <meta
-      name="theme-color"
-      content="#000000"
-    />
-
-    <!-- Favicon -->
-    <link
-      rel="icon"
-      href="%PUBLIC_URL%/favicon.ico"
-    />
-
-    <!-- Apple / iOS -->
-    <link
-      rel="apple-touch-icon"
-      href="%PUBLIC_URL%/favicon.ico"
-    />
-
-    <!-- Web App Manifest -->
-    <link
-      rel="manifest"
-      href="%PUBLIC_URL%/manifest.json"
-    />
-
-    <!-- Open Graph -->
-    <meta
-      property="og:type"
-      content="website"
-    />
-
-    <meta
-      property="og:url"
-      content="https://caioleadership.com/"
-    />
-
-    <meta
-      property="og:title"
-      content="CAIO Forum — AI &amp; Technology Community"
-    />
-
-    <meta
-      property="og:description"
-      content="A community for discussing artificial intelligence, technology, ideas, questions, and projects."
-    />
-
-    <meta
-      property="og:site_name"
-      content="CAIO Forum"
-    />
-
-    <meta
-      property="og:image"
-      content="https://caioleadership.com/static/media/CAIO.8aa1e8222956cba28417.png"
-    />
-
-    <meta
-      property="og:image:alt"
-      content="CAIO Forum"
-    />
-
-    <!-- Twitter / X -->
-    <meta
-      name="twitter:card"
-      content="summary"
-    />
-
-    <meta
-      name="twitter:title"
-      content="CAIO Forum — AI &amp; Technology Community"
-    />
-
-    <meta
-      name="twitter:description"
-      content="A community for discussing artificial intelligence, technology, ideas, questions, and projects."
-    />
-
-    <meta
-      name="twitter:image"
-      content="https://caioleadership.com/static/media/CAIO.8aa1e8222956cba28417.png"
-    />
-
-    <meta
-      name="twitter:image:alt"
-      content="CAIO Forum"
-    />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "CAIO Forum",
-        "url": "https://caioleadership.com/",
-        "description": "An open community for practical AI, technology, and decision-support tools."
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://caioleadership.com/#website",
+            "name": "CAIO Forum",
+            "url": "https://caioleadership.com/",
+            "description": "A community for AI leaders: practical discussions on AI strategy, governance, and adoption, plus free decision-support tools.",
+            "publisher": { "@id": "https://caioleadership.com/#organization" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://caioleadership.com/#organization",
+            "name": "CAIO Forum",
+            "url": "https://caioleadership.com/",
+            "logo": "https://caioleadership.com/logo-512.png"
+          }
+        ]
       }
     </script>
   </head>
 
   <body>
+    <!-- Shown only without JavaScript (most social-preview bots and AI crawlers).
+         Pre-rendered pages insert the page's own content here. -->
     <noscript>
-      You need to enable JavaScript to run this app.
+      <div id="page-content"></div>
+      <nav aria-label="Site">
+        <a href="https://caioleadership.com/">CAIO Forum home</a> ·
+        <a href="https://caioleadership.com/category/strategy">Strategy</a> ·
+        <a href="https://caioleadership.com/category/concepts">Concepts</a> ·
+        <a href="https://caioleadership.com/category/discussion">Discussion</a> ·
+        <a href="https://caioleadership.com/category/ethics">Ethics</a> ·
+        <a href="https://caioleadership.com/playground">AI Playground</a> ·
+        <a href="https://caioleadership.com/playground/data-atlas">Data Atlas</a> ·
+        <a href="https://caioleadership.com/certifications">Certifications</a>
+      </nav>
+      <p>CAIO Forum works best with JavaScript enabled.</p>
     </noscript>
 
     <div id="root"></div>

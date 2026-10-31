@@ -6,6 +6,7 @@ import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
 import usePageMeta from '../hooks/usePageMeta';
+import { PAGE_META } from '../data/pageMeta';
 import './VendorPortfolio.css';
 
 const blankRow = (id) => ({ id, name: '', statedUse: '', websiteUrl: '', owner: '', department: '', status: 'Active', renewalDate: '', annualCost: '', licenseCount: '' });
@@ -20,7 +21,7 @@ async function authenticatedRequest(path, options = {}) {
 }
 
 export default function VendorPortfolio() {
-  usePageMeta('Vendor Portfolio Mapper | Free Open-Source SaaS Portfolio Tool', 'A free, open-source workspace for startups and small teams to inventory software, identify potential overlap, and prepare better renewal decisions.', { canonicalPath: '/playground/vendor-portfolio' });
+  usePageMeta(PAGE_META.vendorPortfolio.title, PAGE_META.vendorPortfolio.description, { canonicalPath: PAGE_META.vendorPortfolio.path });
   const { user, authLoading } = useForum();
   const [rows, setRows] = useState(() => [blankRow('new-1')]);
   const [pasteOpen, setPasteOpen] = useState(false);
