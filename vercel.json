@@ -4,6 +4,10 @@
     {
       "source": "/sitemap-posts.xml",
       "destination": "/api/sitemap-posts"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/"
     }
   ],
   "crons": [
