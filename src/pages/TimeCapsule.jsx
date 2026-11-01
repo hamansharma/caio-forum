@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Award, CalendarClock, Check, Flag, Hourglass, Link2, Lock, Pencil, Share2, Trash2 } from 'lucide-react';
-import { collection, doc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
@@ -10,7 +10,7 @@ import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
 import {
   COLORS, PREDICTIONS_PER_MEMBER, START_SIZE, TEXT_MAX, TOPICS,
-  allCanvasYears, canPlaceAt, cellId, continueSentence, currentYear, defaultCanvasYear, editableUntil, isCanvasYear, isOpen, isOutlineCell, outlineCells, predictionPath,
+  allCanvasYears, canPlaceAt, cellId, continueSentence, currentYear, defaultCanvasYear, editableUntil, isCanvasYear, isOpen, isOutlineCell, isRevealed, outlineCells, predictionPath,
 } from '../data/timeCapsule';
 import './TimeCapsule.css';
 
@@ -38,7 +38,7 @@ const timeUntilClose = year => {
   return `about ${years} year${years === 1 ? '' : 's'} from now`;
 };
 
-function SharePrediction({ year, cell, text }) {
+function SharePrediction({ year, cell }) {
   const [copied, setCopied] = useState(false);
   const url = `${window.location.origin}${predictionPath(year, cell)}`;
   const copy = async () => {
@@ -48,7 +48,7 @@ function SharePrediction({ year, cell, text }) {
   return (
     <div className="capsule-share" aria-label="Share this prediction">
       <button type="button" className="capsule-secondary" onClick={copy}>{copied ? <><Check size={13} /> Link copied</> : <><Link2 size={13} /> Copy link</>}</button>
-      <a className="capsule-secondary" href={linkedIn} target="_blank" rel="noopener noreferrer" title={`Share: ${text}`}><Share2 size={13} /> Share on LinkedIn</a>
+      <a className="capsule-secondary" href={linkedIn} target="_blank" rel="noopener noreferrer"><Share2 size={13} /> Share on LinkedIn</a>
     </div>
   );
 }
@@ -61,8 +61,10 @@ function useCanvasCounts() {
   return counts;
 }
 
-// Live data for one canvas: { size, predictions: Map(cell → prediction) }.
-function useCanvas(year) {
+// Live data for one canvas: { size, predictions: Map(cell → prediction) }. A
+// prediction's `text` is filled in only where Firestore lets this visitor read
+// it: everyone's after the canvas is revealed, otherwise only their own.
+function useCanvas(year, uid) {
   const [size, setSize] = useState(START_SIZE);
   const [predictions, setPredictions] = useState(null);
   useEffect(() => {
@@ -74,7 +76,20 @@ function useCanvas(year) {
       () => setPredictions(new Map()));
     return () => { stopCapsule(); stopPredictions(); };
   }, [year]);
-  return { size, predictions };
+
+  const [texts, setTexts] = useState({});
+  useEffect(() => {
+    setTexts({});
+    const sealed = collection(db, 'timeCapsules', String(year), 'sealed');
+    const source = isRevealed(year) ? sealed : uid ? query(sealed, where('authorUid', '==', uid)) : null;
+    if (!source) return undefined;
+    return onSnapshot(source, snapshot => setTexts(Object.fromEntries(snapshot.docs.map(item => [item.id, item.get('text')]))), () => {});
+  }, [year, uid]);
+
+  const merged = useMemo(() => (predictions
+    ? new Map([...predictions].map(([cell, item]) => [cell, texts[cell] !== undefined ? { ...item, text: texts[cell] } : item]))
+    : null), [predictions, texts]);
+  return { size, predictions: merged };
 }
 
 // How many predictions the signed-in member has left this calendar year.
@@ -254,12 +269,23 @@ function PredictionDetail({ prediction, year, user, onEdit, onDeleted }) {
         <span><span className="capsule-dot" style={{ background: prediction.hidden ? 'var(--text-muted)' : COLORS[prediction.color] }} />u/{prediction.author} · {prediction.topic}</span>
         <span className="capsule-chip">Predicted in {prediction.madeIn}</span>
       </div>
-      <p className={`capsule-detail-text ${prediction.hidden ? 'removed' : ''}`}>{prediction.hidden ? prediction.text : <><span className="capsule-detail-by">By the end of {year},</span> {continueSentence(prediction.text)}</>}</p>
+      {prediction.hidden ? <p className="capsule-detail-text removed">[removed by moderator]</p>
+        : prediction.text === undefined ? (
+          <div className="capsule-sealed">
+            <Lock size={16} aria-hidden="true" />
+            <div><strong>Sealed until Jan 1, {year + 1}</strong><span>A prediction about {prediction.topic.toLowerCase()}, due by the end of {year}. It's revealed when AI reviews this canvas.</span></div>
+          </div>
+        ) : (
+          <>
+            <p className="capsule-detail-text"><span className="capsule-detail-by">By the end of {year},</span> {continueSentence(prediction.text)}</p>
+            {mine && !isRevealed(year) && <p className="capsule-muted capsule-only-you"><Lock size={12} aria-hidden="true" /> Sealed: only you can see this until Jan 1, {year + 1}.</p>}
+          </>
+        )}
       <div className="capsule-detail-foot">
         <span><Hourglass size={13} aria-hidden="true" /> AI review on Jan 1, {year + 1}</span>
         <span>Added {formatDate(prediction.createdAt)}</span>
       </div>
-      {!prediction.hidden && <SharePrediction year={year} cell={prediction.cell} text={prediction.text} />}
+      {!prediction.hidden && <SharePrediction year={year} cell={prediction.cell} />}
       {editable && !confirmDelete && (
         <div className="capsule-detail-actions">
           <button type="button" className="capsule-secondary" onClick={onEdit}><Pencil size={13} /> Edit</button>
@@ -268,7 +294,7 @@ function PredictionDetail({ prediction, year, user, onEdit, onDeleted }) {
         </div>
       )}
       {confirmDelete && <InlineConfirm message="Delete this prediction and free the pixel?" onConfirm={remove} onCancel={() => setConfirmDelete(false)} />}
-      {user && !mine && !prediction.hidden && !reporting && (
+      {user && !mine && !prediction.hidden && prediction.text !== undefined && !reporting && (
         <button type="button" className="capsule-link" onClick={() => setReporting(true)}><Flag size={12} /> Report</button>
       )}
       {reporting && (
@@ -291,7 +317,7 @@ export default function TimeCapsule() {
   const year = isCanvasYear(requested) ? requested : defaultCanvasYear();
   const open = isOpen(year);
   const counts = useCanvasCounts();
-  const { size, predictions } = useCanvas(year);
+  const { size, predictions } = useCanvas(year, user?.uid);
   const left = usePredictionsLeft(user);
 
   // A shared link (?year=2027&p=0_0) opens with that prediction selected.
@@ -334,7 +360,7 @@ export default function TimeCapsule() {
     const { cell } = await capsuleApi('place', { ...fields, year, x, y });
     setSpot(null);
     setSelected(cell);
-    setNotice("You're on the record. Share your prediction below. You can edit or delete it for the next 24 hours.");
+    setNotice(`You're on the record. Your prediction is sealed until Jan 1, ${year + 1}; share the link and people can open it then. You can edit or delete it for the next 24 hours.`);
   };
   const saveEdit = async fields => {
     await capsuleApi('edit', { ...fields, year, cell: selected });
@@ -365,9 +391,9 @@ export default function TimeCapsule() {
       <header className="capsule-header">
         <span className="capsule-eyebrow"><Hourglass size={14} aria-hidden="true" /> AI Time Capsule</span>
         <h1>Put your AI predictions on the record</h1>
-        <p>AI leaders talk about where AI is going. Few write it down. Pick a year, claim a pixel, and make your call. When that year ends, AI reviews every prediction on its canvas, and we find out who saw it coming.</p>
+        <p>AI leaders talk about where AI is going. Few write it down. Pick a year, claim a pixel, and seal your call in the capsule. When that year ends, the canvas opens, AI reviews every prediction on it, and we find out who saw it coming.</p>
         <ul className="capsule-benefits">
-          <li><CalendarClock size={18} aria-hidden="true" /><span><strong>Get credit for being early.</strong> Every prediction is dated and public. When it comes true, the record shows you called it.</span></li>
+          <li><CalendarClock size={18} aria-hidden="true" /><span><strong>Get credit for being early.</strong> Every prediction is dated and sealed until its year ends. When it opens and comes true, the record shows you called it.</span></li>
           <li><Award size={18} aria-hidden="true" /><span><strong>Build your forecaster record.</strong> Correct calls will earn a &ldquo;Called it&rdquo; badge on your profile, and your hit rate builds over the years.</span></li>
           <li><Lock size={18} aria-hidden="true" /><span><strong>Only {PREDICTIONS_PER_MEMBER} a year.</strong> Pick your best calls. Each pixel stays on the canvas for good.</span></li>
         </ul>
@@ -423,7 +449,7 @@ export default function TimeCapsule() {
               <li key={item.cell}>
                 <button type="button" className={selected === item.cell ? 'active' : ''} onClick={() => { setSelected(item.cell); setEditing(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                   <span className="capsule-dot" style={{ background: item.hidden ? 'var(--text-muted)' : COLORS[item.color] }} />
-                  <span className="capsule-list-text">{item.text}</span>
+                  <span className={`capsule-list-text ${item.text === undefined ? 'sealed' : ''}`}>{item.hidden ? '[removed by moderator]' : item.text === undefined ? <><Lock size={12} aria-hidden="true" /> Sealed prediction · {item.topic}</> : item.text}</span>
                   <span className="capsule-muted">u/{item.author} · predicted in {item.madeIn}</span>
                 </button>
               </li>

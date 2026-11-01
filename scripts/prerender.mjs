@@ -6,7 +6,8 @@
 // Runs automatically as `postbuild`. Posts need Firebase Admin credentials
 // (FIREBASE_ADMIN_* from the environment or .env.local); without them only the
 // static pages are written. Files are written as <path>.html and served at
-// <path> by "cleanUrls" in vercel.json.
+// <path> by "cleanUrls" in vercel.json. Posts published after the build are
+// rendered on request by api/post-page.js, with the same HTML (scripts/lib/pageHtml.js).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { createElement } from 'react';
@@ -14,50 +15,19 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PAGE_META } from '../src/data/pageMeta.js';
-import { FORUM_CATEGORIES, forumCategory, categoryPath } from '../src/data/forumCategories.js';
+import { FORUM_CATEGORIES, categoryPath } from '../src/data/forumCategories.js';
 import { DATASETS, dataAtlasPath } from '../src/data/dataAtlas.js';
 import { postPath } from '../src/utils/postUrl.js';
-import { SORTS, excerpt, postMetaTitle, postMetaDescription, toMillis, visibleComments } from '../src/utils/postDisplay.js';
-import { postStructuredData } from '../src/utils/structuredData.js';
+import { SORTS, excerpt } from '../src/utils/postDisplay.js';
+import { esc, hasPageSlots, postPage, renderPage } from './lib/pageHtml.js';
 
-const ORIGIN = 'https://caioleadership.com';
 const BUILD = new URL('../build/', import.meta.url).pathname;
 const template = readFileSync(join(BUILD, 'index.html'), 'utf8');
-// Markers in public/index.html (tags, not comments, because the build strips comments).
-const META_BLOCK = /(<meta name="page-meta" content="start"\s*\/?>)[\s\S]*?(<meta name="page-meta" content="end"\s*\/?>)/;
-// The slot is empty in a fresh build; after a run it ends with an end marker, so re-running works too.
-const CONTENT_SLOT = /<div id="page-content">(?:[\s\S]*?<span id="page-content-end"><\/span>)?<\/div>/;
-if (!META_BLOCK.test(template) || !CONTENT_SLOT.test(template)) throw new Error('build/index.html is missing the page-meta markers or the page-content slot');
+if (!hasPageSlots(template)) throw new Error('build/index.html is missing the page-meta markers or the page-content slot');
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const jsonForScript = data => JSON.stringify(data).replace(/</g, '\\u003c');
 const markdownHtml = markdown => renderToStaticMarkup(createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, String(markdown || '')));
-const isoDate = value => (toMillis(value) ? new Date(toMillis(value)).toISOString() : '');
-
-function headTags({ title, description, path, type = 'website', jsonLd, published, canonical = true }) {
-  const url = `${ORIGIN}${path}`;
-  return [
-    `<title>${esc(title)}</title>`,
-    `<meta name="description" content="${esc(description)}" />`,
-    canonical && `<link rel="canonical" href="${esc(url)}" />`,
-    `<meta property="og:type" content="${type}" />`,
-    canonical && `<meta property="og:url" content="${esc(url)}" />`,
-    `<meta property="og:title" content="${esc(title)}" />`,
-    `<meta property="og:description" content="${esc(description)}" />`,
-    `<meta name="twitter:title" content="${esc(title)}" />`,
-    `<meta name="twitter:description" content="${esc(description)}" />`,
-    published && `<meta property="article:published_time" content="${esc(published)}" />`,
-    jsonLd && `<script type="application/ld+json" id="page-jsonld">${jsonForScript(jsonLd)}</script>`,
-  ].filter(Boolean).join('');
-}
 
 const postList = posts => (posts.length ? `<ul>${posts.map(post => `<li><a href="${esc(postPath(post))}">${esc(post.title)}</a> — ${esc(excerpt(post.body, 160))}</li>`).join('')}</ul>` : '');
-
-function render(meta, contentHtml) {
-  return template
-    .replace(META_BLOCK, (match, start, end) => `${start}${headTags(meta)}${end}`)
-    .replace(CONTENT_SLOT, () => `<div id="page-content">${contentHtml}<span id="page-content-end"></span></div>`);
-}
 
 // "/" is the shell every other URL falls back to, so it is rewritten in place
 // and keeps no canonical URL (other pages would inherit it). The rest become
@@ -66,7 +36,7 @@ const written = [];
 function write(path, meta, contentHtml) {
   const file = path === '/' ? join(BUILD, 'index.html') : join(BUILD, `${path.replace(/^\//, '')}.html`);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, render({ ...meta, path, canonical: path !== '/' && meta.canonical !== false }, contentHtml));
+  writeFileSync(file, renderPage(template, { ...meta, path, canonical: path !== '/' && meta.canonical !== false }, contentHtml));
   written.push(path);
 }
 
@@ -112,19 +82,8 @@ for (const dataset of DATASETS) {
 }
 
 for (const post of posts) {
-  const path = postPath(post);
-  const category = !post.playground && forumCategory(post.category);
-  const comments = visibleComments(post);
-  const related = (post.related || []).map(item => `<li><a href="${esc(postPath(item))}">${esc(item.title)}</a></li>`).join('');
-  const published = isoDate(post.createdAt);
-  write(path, { title: postMetaTitle(post), description: postMetaDescription(post), type: 'article', published, jsonLd: postStructuredData(post) }, [
-    `<article><h1>${esc(post.title)}</h1>`,
-    `<p>By u/${esc(post.author)}${published ? ` · <time datetime="${published}">${published.slice(0, 10)}</time>` : ''}${category ? ` · <a href="${esc(categoryPath(category.id))}">${esc(category.label)}</a>` : ''}</p>`,
-    markdownHtml(post.body),
-    '</article>',
-    comments.length ? `<section><h2>${comments.length} comment${comments.length === 1 ? '' : 's'}</h2>${comments.map(comment => `<div><p><strong>u/${esc(comment.author)}</strong></p>${markdownHtml(comment.body)}</div>`).join('')}</section>` : '',
-    related ? `<section><h2>Related posts</h2><ul>${related}</ul></section>` : '',
-  ].join(''));
+  const { meta, contentHtml } = postPage(post, markdownHtml);
+  write(meta.path, meta, contentHtml);
 }
 
 console.log(`prerender: wrote ${written.length} pages (${posts.length} posts).`);

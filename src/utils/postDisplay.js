@@ -20,6 +20,7 @@ export const markdownToPlainText = markdown => String(markdown || '')
   .replace(/^\s*-{3,}\s*$/gm, ' ')
   .replace(/[#*_`>|~]/g, ' ')
   .replace(/\s+/g, ' ')
+  .replace(/ ([.,;:!?)])/g, '$1') // "**point**." leaves "point ."
   .trim();
 
 // A preview of a post body, cut at a word boundary.

@@ -10,6 +10,10 @@
       "destination": "https://caioleadership-4201c.firebaseapp.com/__/auth/:path*"
     },
     {
+      "source": "/post/:path*",
+      "destination": "/api/post-page?path=:path*"
+    },
+    {
       "source": "/((?!api/|__/auth/).*)",
       "destination": "/"
     }

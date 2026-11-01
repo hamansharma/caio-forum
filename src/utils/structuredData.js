@@ -1,7 +1,7 @@
 // schema.org data for post pages, so search engines can recognise forum
 // discussions (https://developers.google.com/search/docs/appearance/structured-data/discussion-forum).
 import { postPath } from './postUrl';
-import { publicOrigin } from '../hooks/usePageMeta';
+import { SITE_ORIGIN as publicOrigin } from '../data/site';
 import { forumCategory, categoryPath } from '../data/forumCategories';
 import { markdownToPlainText } from './postDisplay';
 

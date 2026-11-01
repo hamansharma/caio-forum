@@ -114,3 +114,11 @@
 .capsule-sentence-lead { padding: 9px 12px 0; font-size: 14px; font-weight: 600; color: var(--accent-text); }
 .capsule-form .capsule-sentence textarea { border: none; background: transparent; padding-top: 2px; }
 .capsule-hint { margin-top: 8px; font-size: 13px; color: var(--tag-strategy-text); }
+/* Sealed predictions: topic shown, text hidden until the canvas is revealed */
+.capsule-sealed { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; margin-bottom: 10px; border-radius: var(--radius); background: var(--bg-hover); border: 1px dashed var(--border-light); }
+.capsule-sealed svg { color: var(--accent-text); flex-shrink: 0; margin-top: 2px; }
+.capsule-sealed div { display: flex; flex-direction: column; gap: 3px; }
+.capsule-sealed strong { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.capsule-sealed span { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.capsule-only-you { display: flex; align-items: center; gap: 5px; margin: -4px 0 10px; }
+.capsule-list-text.sealed { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); }

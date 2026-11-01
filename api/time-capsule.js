@@ -11,7 +11,8 @@ import {
 //
 // Firestore layout (one canvas per due year):
 //   timeCapsules/{dueYear}                     { year, size, count, outlineCount }
-//   timeCapsules/{dueYear}/predictions/{x_y}   one pixel (public)
+//   timeCapsules/{dueYear}/predictions/{x_y}   one pixel: topic, color, author, dates (public)
+//   timeCapsules/{dueYear}/sealed/{x_y}        its text { text, authorUid } (author only until the reveal)
 //   timeCapsuleMembers/{uid}                   { counts: { [calendar year]: n } } (owner can read)
 //   timeCapsuleReports/{dueYear_x_y_uid}       member reports (server-only)
 //   timeCapsuleModeration/{dueYear_x_y}        original text of hidden predictions (server-only)
@@ -26,6 +27,7 @@ function httpError(statusCode, message) {
 
 const capsuleRef = year => adminDb.collection('timeCapsules').doc(String(year));
 const predictionRef = (year, cell) => capsuleRef(year).collection('predictions').doc(cell);
+const sealedRef = (year, cell) => capsuleRef(year).collection('sealed').doc(cell);
 const memberRef = uid => adminDb.collection('timeCapsuleMembers').doc(uid);
 
 const requireVerified = user => {
@@ -68,9 +70,11 @@ async function place(user, body) {
     if (taken.exists) throw httpError(409, 'Someone just took that pixel. Choose another.');
     if (!canPlaceAt(year, cell, outlineCount)) throw httpError(400, 'Fill in the year first: choose one of the grey pixels.');
     if (used >= PREDICTIONS_PER_MEMBER) throw httpError(409, `You've used all ${PREDICTIONS_PER_MEMBER} of your predictions for ${madeIn}.`);
+    const { text, ...shown } = value;
     transaction.set(predictionRef(year, cell), {
-      ...value, x, y, year, madeIn, author: profile.username, authorUid: user.uid, createdAt: new Date().toISOString(),
+      ...shown, x, y, year, madeIn, author: profile.username, authorUid: user.uid, createdAt: new Date().toISOString(),
     });
+    transaction.set(sealedRef(year, cell), { year, cell, text, authorUid: user.uid });
     transaction.set(capsuleRef(year), { year, count: count + 1, size: sizeFor(count + 1, size), outlineCount: outlineCount + (onOutline ? 1 : 0) }, { merge: true });
     transaction.set(memberRef(user.uid), { counts: { [madeIn]: used + 1 } }, { merge: true });
   });
@@ -96,7 +100,9 @@ async function edit(user, body) {
   if (error) throw httpError(400, error);
   await adminDb.runTransaction(async transaction => {
     await ownEditable(transaction, user, year, cell);
-    transaction.update(predictionRef(year, cell), { ...value, editedAt: new Date().toISOString() });
+    const { text, ...shown } = value;
+    transaction.update(predictionRef(year, cell), { ...shown, editedAt: new Date().toISOString() });
+    transaction.update(sealedRef(year, cell), { text });
   });
 }
 
@@ -107,6 +113,7 @@ async function remove(user, body) {
     const prediction = await ownEditable(transaction, user, year, cell);
     const [capsule, member] = await Promise.all([transaction.get(capsuleRef(year)), transaction.get(memberRef(user.uid))]);
     transaction.delete(predictionRef(year, cell));
+    transaction.delete(sealedRef(year, cell));
     // The canvas never shrinks, so pixels never move. Deleting gives the member their prediction back.
     const outlineCount = capsule.get('outlineCount') || 0;
     transaction.set(capsuleRef(year), {
@@ -133,8 +140,9 @@ async function report(user, body) {
 // ── Admin ──
 async function adminList(user) {
   requireCertificationAdmin(user);
-  const [predictions, reports, originals] = await Promise.all([
+  const [predictions, sealed, reports, originals] = await Promise.all([
     adminDb.collectionGroup('predictions').get(),
+    adminDb.collectionGroup('sealed').get(),
     adminDb.collection('timeCapsuleReports').where('status', '==', 'Open').get(),
     adminDb.collection('timeCapsuleModeration').get(),
   ]);
@@ -145,11 +153,12 @@ async function adminList(user) {
     (reportsByKey[key(item.year, item.cell)] = reportsByKey[key(item.year, item.cell)] || []).push(item.reason);
   });
   const originalText = Object.fromEntries(originals.docs.map(document => [document.id, document.get('text')]));
+  const sealedText = Object.fromEntries(sealed.docs.map(document => [key(document.get('year'), document.id), document.get('text')]));
   const entries = predictions.docs.map(document => {
     const item = document.data();
     const id = key(item.year, document.id);
     return {
-      year: item.year, cell: document.id, author: item.author, text: item.hidden ? originalText[id] || '' : item.text,
+      year: item.year, cell: document.id, author: item.author, text: item.hidden ? originalText[id] || '' : sealedText[id] || '',
       topic: item.topic, madeIn: item.madeIn, createdAt: item.createdAt, hidden: Boolean(item.hidden), reports: reportsByKey[id] || [],
     };
   });
@@ -166,17 +175,19 @@ async function moderate(user, body) {
   const originalRef = adminDb.collection('timeCapsuleModeration').doc(`${year}_${cell}`);
   const now = new Date().toISOString();
   await adminDb.runTransaction(async transaction => {
-    const [snapshot, original] = await Promise.all([transaction.get(predictionRef(year, cell)), transaction.get(originalRef)]);
+    const [snapshot, sealed, original] = await Promise.all([transaction.get(predictionRef(year, cell)), transaction.get(sealedRef(year, cell)), transaction.get(originalRef)]);
     if (!snapshot.exists) throw httpError(404, 'Prediction not found.');
     const prediction = snapshot.data();
     if (body.action === 'hide') {
       if (prediction.hidden) return;
       // The pixel stays taken; its text moves somewhere only the server can read.
-      transaction.set(originalRef, { year, cell, text: prediction.text, hiddenAt: now, hiddenByUid: user.uid });
-      transaction.update(predictionRef(year, cell), { text: REMOVED_TEXT, hidden: true });
+      transaction.set(originalRef, { year, cell, text: sealed.get('text') || '', hiddenAt: now, hiddenByUid: user.uid });
+      transaction.update(predictionRef(year, cell), { hidden: true });
+      transaction.update(sealedRef(year, cell), { text: REMOVED_TEXT });
     } else {
       if (!prediction.hidden || !original.exists) throw httpError(400, 'Only hidden predictions can be restored.');
-      transaction.update(predictionRef(year, cell), { text: original.get('text'), hidden: false });
+      transaction.update(predictionRef(year, cell), { hidden: false });
+      transaction.update(sealedRef(year, cell), { text: original.get('text') });
       transaction.delete(originalRef);
     }
   });

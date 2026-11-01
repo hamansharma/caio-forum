@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { after, before, beforeEach, test } from 'node:test';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 
 let env;
 const existingComment = { id: 'c1', postId: 'p1', parentId: null, author: 'bob', authorUid: 'bob', body: 'First!', votes: 1, createdAt: '2026-10-01T00:00:00.000Z' };
@@ -100,6 +100,22 @@ test('members can read only their own prediction counts, and never write them', 
   await assertSucceeds(getDoc(doc(as('carol'), 'timeCapsuleMembers/carol')));
   await assertFails(getDoc(doc(as('carol'), 'timeCapsuleMembers/bob')));
   await assertFails(setDoc(doc(as('carol'), 'timeCapsuleMembers/carol'), { counts: { 2026: 0 } }));
+});
+test('prediction text is sealed: only its author can read it before the reveal', async () => {
+  const future = 2040;
+  await env.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), `timeCapsules/${future}/sealed/0_0`), { year: future, cell: '0_0', text: 'Secret call', authorUid: 'alice' }));
+  await assertSucceeds(getDoc(doc(as('alice'), `timeCapsules/${future}/sealed/0_0`)));
+  await assertFails(getDoc(doc(as('bob'), `timeCapsules/${future}/sealed/0_0`)));
+  await assertFails(getDoc(doc(as(null), `timeCapsules/${future}/sealed/0_0`)));
+  await assertFails(getDocs(collection(as('bob'), `timeCapsules/${future}/sealed`)), 'nobody can list sealed texts');
+  await assertSucceeds(getDocs(query(collection(as('alice'), `timeCapsules/${future}/sealed`), where('authorUid', '==', 'alice'))), 'authors can list their own');
+  await assertFails(setDoc(doc(as('alice'), `timeCapsules/${future}/sealed/1_1`), { text: 'x', authorUid: 'alice' }));
+});
+test('prediction text is public once its canvas is revealed', async () => {
+  // A canvas whose year has ended (rules compare against the real clock).
+  await env.withSecurityRulesDisabled(context => setDoc(doc(context.firestore(), 'timeCapsules/2020/sealed/0_0'), { year: 2020, cell: '0_0', text: 'Old call', authorUid: 'alice' }));
+  await assertSucceeds(getDoc(doc(as(null), 'timeCapsules/2020/sealed/0_0')));
+  await assertSucceeds(getDocs(collection(as(null), 'timeCapsules/2020/sealed')));
 });
 test('reports and moderation records are server-only', async () => {
   await assertFails(getDoc(doc(as('carol'), 'timeCapsuleReports/2026_0_0_carol')));

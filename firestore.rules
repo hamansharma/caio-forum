@@ -154,6 +154,14 @@ service cloud.firestore {
         allow read: if true;
         allow write: if false;
       }
+
+      // Prediction text is sealed: only its author can read it until the
+      // canvas is revealed at midnight UTC on January 1 after its year.
+      match /sealed/{cell} {
+        allow read: if request.time >= timestamp.date(int(year) + 1, 1, 1)
+          || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+        allow write: if false;
+      }
     }
 
     // How many predictions a member has made each year (for "2 left").

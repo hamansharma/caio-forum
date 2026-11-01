@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { trackPageView } from '../utils/analyticsConsent';
 
-export const publicOrigin = 'https://caioleadership.com';
+import { SITE_ORIGIN } from '../data/site';
+
+export const publicOrigin = SITE_ORIGIN;
 
 function upsertMeta(selector, attribute, value) {
   let tag = document.querySelector(selector);

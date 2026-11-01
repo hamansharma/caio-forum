@@ -4,18 +4,21 @@ import { db } from '../firebase';
 import { allCanvasYears } from '../data/timeCapsule';
 
 // The member's AI Time Capsule predictions across every canvas, soonest review
-// first. One small query per canvas (14), which needs no extra Firestore index.
-// null while loading.
+// first, with their sealed text (members can always read their own). Two small
+// queries per canvas, which need no extra Firestore index. null while loading.
 export default function useMyPredictions(uid) {
   const [predictions, setPredictions] = useState(null);
   useEffect(() => {
     if (!uid) return undefined;
     let cancelled = false;
-    Promise.all(allCanvasYears().map(year =>
-      getDocs(query(collection(db, 'timeCapsules', String(year), 'predictions'), where('authorUid', '==', uid)))))
-      .then(snapshots => {
+    const mine = (year, name) => getDocs(query(collection(db, 'timeCapsules', String(year), name), where('authorUid', '==', uid)));
+    Promise.all(allCanvasYears().map(year => Promise.all([mine(year, 'predictions'), mine(year, 'sealed')])))
+      .then(results => {
         if (cancelled) return;
-        const list = snapshots.flatMap(snapshot => snapshot.docs.map(item => ({ cell: item.id, ...item.data() })));
+        const list = results.flatMap(([predictions, sealed]) => {
+          const texts = Object.fromEntries(sealed.docs.map(item => [item.id, item.get('text')]));
+          return predictions.docs.map(item => ({ cell: item.id, ...item.data(), text: texts[item.id] || '' }));
+        });
         list.sort((a, b) => a.year - b.year || String(b.createdAt).localeCompare(String(a.createdAt)));
         setPredictions(list);
       })

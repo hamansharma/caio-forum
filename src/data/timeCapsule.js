@@ -4,7 +4,10 @@
 // There is one canvas per due year ("comes true by the end of 2030"): every pixel
 // is one member's prediction. A canvas takes predictions until the year before it
 // starts, so each prediction is made at least a full year ahead, and AI reviews
-// the whole canvas on the January 1 after it ends. Pixel coordinates are centred
+// the whole canvas on the January 1 after it ends. Until then the canvas is
+// sealed: everyone sees each pixel's topic, author and date, but its text stays
+// private to its author (Firestore rules enforce this; see firestore.rules).
+// Pixel coordinates are centred
 // on (0, 0), so when the canvas grows (a ring of empty pixels added around it)
 // nothing moves.
 
@@ -27,6 +30,9 @@ export const currentYear = (date = new Date()) => date.getUTCFullYear();
 export const allCanvasYears = () => Array.from({ length: LAST_DUE_YEAR - FIRST_DUE_YEAR + 1 }, (_, index) => FIRST_DUE_YEAR + index);
 // A canvas is open until the year it covers begins.
 export const isOpen = (year, now = new Date()) => year > currentYear(now) && year <= LAST_DUE_YEAR;
+// When a canvas's predictions are unsealed and reviewed: midnight UTC on January 1 after its year.
+export const revealTime = year => Date.UTC(year + 1, 0, 1);
+export const isRevealed = (year, now = Date.now()) => now >= revealTime(year);
 export const isCanvasYear = year => Number.isInteger(year) && year >= FIRST_DUE_YEAR && year <= LAST_DUE_YEAR;
 // The canvas to show first: the soonest one still open.
 export const defaultCanvasYear = (now = new Date()) => Math.min(LAST_DUE_YEAR, Math.max(FIRST_DUE_YEAR, currentYear(now) + 1));
