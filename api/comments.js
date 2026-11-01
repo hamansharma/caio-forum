@@ -62,6 +62,8 @@ async function deleteComment(user, body) {
 // The previous vote comes from the voter's own profile, as it did when the
 // browser handled votes.
 async function voteComment(user, body) {
+  // Same rule as post votes in firestore.rules: only verified members vote.
+  if (user.email_verified !== true) throw httpError(403, 'Please verify your email address before voting.');
   const postId = requireId(body.postId, 'post');
   const commentId = requireId(body.commentId, 'comment');
   const dir = body.dir;

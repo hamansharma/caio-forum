@@ -18,6 +18,7 @@ import {
   browserPopupRedirectResolver,
   deleteUser,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 
 import { db, auth } from '../firebase';
@@ -25,6 +26,9 @@ import { generateUsername } from '../utils/usernameGenerator';
 import { slugify, looksLikePostId, postPath } from '../utils/postUrl';
 
 const ForumContext = createContext();
+
+// Verification and reset links return the member to this site afterwards.
+const verificationLinkSettings = () => ({ url: `${window.location.origin}/` });
 
 // Resolves a URL key (new-style slug or old-style document ID) to a post ID.
 async function findPostId(key) {
@@ -102,6 +106,8 @@ export function ForumProvider({ children }) {
             email: firebaseUser.email,
             fullName: data.fullName,
             username: data.username,
+            createdAt: data.createdAt || firebaseUser.metadata.creationTime,
+            emailVerified: firebaseUser.emailVerified,
           });
           setVotedPosts(data.votedPosts || {});
           setVotedComments(data.votedComments || {});
@@ -182,12 +188,16 @@ export function ForumProvider({ children }) {
       console.error('Firestore write failed:', firestoreErr);
       throw new Error('Account created but profile save failed. Please try signing in.');
     }
+    // Posting needs a verified email; the banner (EmailVerificationBanner) can resend this.
+    await sendEmailVerification(credential.user, verificationLinkSettings()).catch(error => console.error('Verification email failed:', error.message));
 
     setUser({
       uid,
       email: String(email),
       fullName: String(fullName),
       username: String(username),
+      createdAt: credential.user.metadata.creationTime,
+      emailVerified: false,
     });
   };
 
@@ -201,6 +211,8 @@ export function ForumProvider({ children }) {
         email: String(credential.user.email),
         fullName: String(data.fullName || ''),
         username: String(data.username || ''),
+        createdAt: data.createdAt || credential.user.metadata.creationTime,
+        emailVerified: credential.user.emailVerified,
       });
       setVotedPosts(data.votedPosts || {});
       setVotedComments(data.votedComments || {});
@@ -224,6 +236,8 @@ export function ForumProvider({ children }) {
         email: firebaseUser.email,
         fullName: data.fullName || firebaseUser.displayName || '',
         username: data.username || '',
+        createdAt: data.createdAt || firebaseUser.metadata.creationTime,
+        emailVerified: firebaseUser.emailVerified,
       });
       setVotedPosts(data.votedPosts || {});
       setVotedComments(data.votedComments || {});
@@ -252,7 +266,7 @@ export function ForumProvider({ children }) {
       authProvider: 'google.com',
     };
     await setDoc(userRef, profile);
-    setUser({ uid: firebaseUser.uid, email: profile.email, fullName: profile.fullName, username });
+    setUser({ uid: firebaseUser.uid, email: profile.email, fullName: profile.fullName, username, createdAt: profile.createdAt, emailVerified: firebaseUser.emailVerified });
   };
 
   const logout = async () => {
@@ -262,7 +276,16 @@ export function ForumProvider({ children }) {
     setVotedComments({});
   };
 
+  // Posting, commenting and voting need a verified email (firestore.rules enforces it too).
+  const requireVerifiedEmail = () => {
+    if (user?.emailVerified) return;
+    const error = new Error('Please verify your email address first: use the link we emailed you, or resend it from the banner at the top of the page.');
+    error.code = 'email-not-verified';
+    throw error;
+  };
+
   const addPost = async (postData) => {
+    requireVerifiedEmail();
     const slug = await uniquePostSlug(postData.title);
     await addDoc(collection(db, 'posts'), {
       ...postData,
@@ -278,7 +301,7 @@ export function ForumProvider({ children }) {
   };
 
   const votePost = async (postId, dir) => {
-    if (!user) return;
+    if (!user?.emailVerified) return;
     const prev = votedPosts[postId] || 0;
     if (prev === dir) return;
     const delta = dir - prev;
@@ -293,6 +316,7 @@ export function ForumProvider({ children }) {
   };
 
   const addComment = async (postId, body, parentId = null) => {
+    requireVerifiedEmail();
     const newComment = {
       id: Date.now().toString(),
       postId,
@@ -308,6 +332,7 @@ export function ForumProvider({ children }) {
   };
 
   const voteComment = async (postId, commentId, dir) => {
+    if (!user?.emailVerified) return;
     const key = `${postId}-${commentId}`;
     const prev = votedComments[key] || 0;
     if (prev === dir) return;
@@ -367,6 +392,19 @@ const updateAlias = async (newAlias, useAlias) => {
   const sendPasswordReset = email =>
     sendPasswordResetEmail(auth, email, { url: `${window.location.origin}/` });
 
+  const resendVerificationEmail = () => sendEmailVerification(auth.currentUser, verificationLinkSettings());
+
+  // Checks whether the member has clicked the link (in any tab or device) and, if
+  // so, refreshes their sign-in token so the database sees the verified email.
+  const refreshEmailVerified = async () => {
+    if (!auth.currentUser) return false;
+    await auth.currentUser.reload();
+    if (!auth.currentUser.emailVerified) return false;
+    await auth.currentUser.getIdToken(true);
+    setUser(prev => (prev ? { ...prev, emailVerified: true } : prev));
+    return true;
+  };
+
   const updatePassword = async (currentPassword, newPassword) => {
     const credential = EmailAuthProvider.credential(user.email, currentPassword);
     await reauthenticateWithCredential(auth.currentUser, credential);
@@ -389,7 +427,8 @@ const updateAlias = async (newAlias, useAlias) => {
       requestPosts, watchPost,
       addPost, votePost, addComment, voteComment, votedPosts, votedComments,
       editPost, deletePost, editComment, deleteComment,
-      updateAlias, updatePassword, sendPasswordReset, deleteAccount
+      updateAlias, updatePassword, sendPasswordReset, deleteAccount,
+      resendVerificationEmail, refreshEmailVerified
     }}>
       {children}
     </ForumContext.Provider>

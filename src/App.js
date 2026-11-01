@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import CategoryPage from './pages/CategoryPage';
 import Footer from './components/Footer';
 import CookieConsent from './components/CookieConsent';
+import EmailVerificationBanner from './components/EmailVerificationBanner';
 import './index.css';
 import Chatbot from './components/Chatbot';
 
@@ -51,6 +52,7 @@ export default function App() {
       <BrowserRouter>
         <ScrollToTop />
         <Navbar />
+        <EmailVerificationBanner />
         {/* At least a screen tall, so the footer never flashes at the top and then jumps while a page loads. */}
         <div className="app-content">
         <Suspense fallback={<div className="route-loading" aria-busy="true" />}>

@@ -35,8 +35,8 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
       setReplyText('');
       setReplyOpen(false);
       setReplyError('');
-    } catch {
-      setReplyError('Failed to post reply. Please try again.');
+    } catch (error) {
+      setReplyError(error.code === 'email-not-verified' ? error.message : 'Failed to post reply. Please try again.');
     }
   };
 
@@ -58,7 +58,7 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
   };
 
   return (
-    <div className={`comment-node ${depth > 0 ? 'comment-nested' : ''}`}
+    <div id={`comment-${comment.id}`} className={`comment-node ${depth > 0 ? 'comment-nested' : ''}`}
       style={{ '--depth': Math.min(depth, 6) }}>
 
       <div className="comment-thread-line"

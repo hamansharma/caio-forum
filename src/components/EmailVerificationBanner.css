@@ -1,0 +1,20 @@
+.verify-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px 16px;
+  max-width: 1200px; margin: 12px auto 0; padding: 10px 16px;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  border-radius: var(--radius); font-size: 13px; color: var(--text-primary);
+}
+@media (max-width: 1232px) { .verify-banner { margin: 12px 16px 0; } }
+.verify-banner p { line-height: 1.5; }
+.verify-banner-status { color: var(--text-secondary); }
+.verify-banner-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.verify-banner-actions button {
+  padding: 6px 12px; border-radius: var(--radius);
+  font-size: 12px; font-weight: 600; font-family: var(--font);
+  border: 1px solid var(--accent); color: var(--accent-text);
+  transition: background 0.15s;
+}
+.verify-banner-actions button:first-child { background: var(--accent); color: white; }
+.verify-banner-actions button:hover:not(:disabled) { background: var(--accent-hover); color: white; }
+.verify-banner-actions button:disabled { opacity: 0.6; cursor: default; }

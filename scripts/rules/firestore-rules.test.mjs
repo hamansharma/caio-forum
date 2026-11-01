@@ -30,7 +30,10 @@ beforeEach(async () => {
   });
 });
 
-const as = uid => (uid ? env.authenticatedContext(uid) : env.unauthenticatedContext()).firestore();
+// Members have verified emails unless a test says otherwise.
+const as = (uid, token = { email_verified: true }) => (uid ? env.authenticatedContext(uid, token) : env.unauthenticatedContext()).firestore();
+const unverified = uid => as(uid, { email_verified: false });
+const anonymous = uid => as(uid, { firebase: { sign_in_provider: 'anonymous' } });
 
 // ── Users ──
 test('members can read their own profile', () => assertSucceeds(getDoc(doc(as('alice'), 'users/alice'))));
@@ -67,6 +70,22 @@ test('others cannot edit the post', () =>
   assertFails(updateDoc(doc(as('carol'), 'posts/p1'), { title: 'Hijacked' })));
 test('the author can soft-delete their post', () =>
   assertSucceeds(updateDoc(doc(as('alice'), 'posts/p1'), { deleted: true, deletedAt: '2026-10-18T00:00:00.000Z', title: '[deleted]', body: '[deleted]' })));
+
+// ── Email verification ──
+const newPost = uid => ({ title: 'Hello', body: 'Body', category: 'strategy', author: uid, authorUid: uid, votes: 1, comments: [] });
+test('verified members can create posts', () => assertSucceeds(setDoc(doc(as('carol'), 'posts/new'), newPost('carol'))));
+test('unverified members cannot create posts', () => assertFails(setDoc(doc(unverified('carol'), 'posts/new'), newPost('carol'))));
+test('anonymous sessions cannot create posts', () => assertFails(setDoc(doc(anonymous('anon'), 'posts/new'), newPost('anon'))));
+test('unverified members cannot comment', () =>
+  assertFails(updateDoc(doc(unverified('carol'), 'posts/p1'), { comments: arrayUnion(newComment('carol')) })));
+test('unverified members cannot vote', () =>
+  assertFails(updateDoc(doc(unverified('carol'), 'posts/p1'), { votes: 2, 'userVotes.carol': 1 })));
+test('unverified members can still create their profile and claim a username', async () => {
+  await assertSucceeds(setDoc(doc(unverified('dave'), 'users/dave'), { email: 'dave@example.com', username: 'dave' }));
+  await assertSucceeds(setDoc(doc(unverified('dave'), 'usernames/dave'), { uid: 'dave' }));
+});
+test('authors can still edit their posts before verifying', () =>
+  assertSucceeds(updateDoc(doc(unverified('alice'), 'posts/p1'), { title: 'Fixed typo', editedAt: '2026-10-18T00:00:00.000Z' })));
 
 // ── Server-only collections ──
 test('chat usage counts are server-only', async () => {

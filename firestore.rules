@@ -16,6 +16,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Posting, commenting and voting need a verified email. Google accounts are
+    // verified already; email sign-ups verify through the link sent at sign-up.
+    // Anonymous sessions (the Certifications page) have no email, so never qualify.
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
     function isPostAuthor() {
       return isSignedIn() &&
         request.auth.uid == resource.data.authorUid;
@@ -109,16 +116,17 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if true;
 
-      // Create — must be signed in, valid post, authorUid matches caller
-      allow create: if isSignedIn() && isValidPost();
+      // Create — verified member, valid post, authorUid matches caller
+      allow create: if isVerified() && isValidPost();
 
       allow update: if isSignedIn() && (
 
-        // Voting — any signed-in user, delta must be small
-        (onlyVoteChanged() && voteIsValid())
+        // Voting — any verified member, delta must be small
+        (onlyVoteChanged() && voteIsValid() && isVerified())
 
         // Adding a comment — append only, and it must belong to the caller
         || (onlyCommentsChanged()
+            && isVerified()
             && onlyCommentAppended()
             && newCommentIsValid())
 

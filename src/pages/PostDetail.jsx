@@ -69,6 +69,19 @@ export default function PostDetail() {
     if (canonicalPath && location.pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
   }, [canonicalPath, location.pathname, navigate]);
 
+  // Comment links (from the profile page) end in #comment-<id>: once the post
+  // has loaded, scroll to that comment and briefly highlight it.
+  const hasPost = Boolean(post);
+  useEffect(() => {
+    if (!hasPost || !location.hash.startsWith('#comment-')) return undefined;
+    const element = document.getElementById(location.hash.slice(1));
+    if (!element) return undefined;
+    element.scrollIntoView({ block: 'center' });
+    element.classList.add('comment-highlight');
+    const timer = setTimeout(() => element.classList.remove('comment-highlight'), 2500);
+    return () => clearTimeout(timer);
+  }, [hasPost, location.hash]);
+
   const postDescription = post ? postMetaDescription(post) : 'Read a community discussion on AI leadership, strategy, and technology.';
   usePageMeta(post ? postMetaTitle(post) : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null, pending: post === undefined });
   useStructuredData(post && !post.deleted ? postStructuredData(post) : null);
@@ -86,8 +99,8 @@ export default function PostDetail() {
       await addComment(post.id, sanitizeText(comment), null);
       setComment('');
       setCommentError('');
-    } catch {
-      setCommentError('Failed to post comment. Please try again.');
+    } catch (error) {
+      setCommentError(error.code === 'email-not-verified' ? error.message : 'Failed to post comment. Please try again.');
     }
   };
 

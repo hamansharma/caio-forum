@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, Trash2, RefreshCw, Lock, Check } from 'lucide-react';
 import { useForum, usePosts } from '../context/ForumContext';
 import { generateUsername } from '../utils/usernameGenerator';
+import { postPath } from '../utils/postUrl';
+import { SORTS, excerpt, plural, toMillis, visibleComments } from '../utils/postDisplay';
 import InlineConfirm from '../components/InlineConfirm';
 import usePageMeta from '../hooks/usePageMeta';
 import './Profile.css';
@@ -35,9 +37,13 @@ export default function Profile() {
     return null;
   }
 
-  const userPosts = posts.filter(p => p.author === user.username || p.author === user.fullName);
-  const userComments = posts.reduce((acc, p) =>
-    acc + (p.comments || []).filter(c => c.author === user.username).length, 0);
+  const isMine = item => item.authorUid === user.uid || item.author === user.username;
+  const userPosts = posts.filter(p => !p.deleted && (isMine(p) || p.author === user.fullName)).sort(SORTS.new);
+  const userCommentList = posts
+    .flatMap(p => (p.deleted ? [] : visibleComments(p).filter(isMine).map(c => ({ post: p, comment: c }))))
+    .sort((a, b) => toMillis(b.comment.createdAt) - toMillis(a.comment.createdAt));
+  const userComments = userCommentList.length;
+  const shortDate = value => (toMillis(value) ? new Date(toMillis(value)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 
   const memberSince = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -114,14 +120,14 @@ export default function Profile() {
           <div className="profile-name">{user.fullName}</div>
           <div className="profile-username">u/{user.username}</div>
           <div className="profile-stats">
-            <div className="profile-stat">
+            <button type="button" className={`profile-stat ${section === 'posts' ? 'active' : ''}`} onClick={() => { setSection('posts'); setError(''); }}>
               <strong>{userPosts.length}</strong>
               <span>Posts</span>
-            </div>
-            <div className="profile-stat">
+            </button>
+            <button type="button" className={`profile-stat ${section === 'comments' ? 'active' : ''}`} onClick={() => { setSection('comments'); setError(''); }}>
               <strong>{userComments}</strong>
               <span>Comments</span>
-            </div>
+            </button>
           </div>
           <div className="profile-member-since">Member since {memberSince}</div>
 
@@ -147,6 +153,50 @@ export default function Profile() {
             </div>
           )}
           {error && <div className="profile-error">{error}</div>}
+
+          {/* Your posts */}
+          {section === 'posts' && (
+            <div className="profile-section">
+              <h2>Your Posts</h2>
+              <p className="section-desc">{plural(userPosts.length, 'post')}, newest first.</p>
+              {userPosts.length ? (
+                <ul className="profile-activity">
+                  {userPosts.map(p => (
+                    <li key={p.id}>
+                      <Link to={postPath(p)} className="profile-activity-link">
+                        <strong>{p.title}</strong>
+                        <span>{[shortDate(p.createdAt), plural(visibleComments(p).length, 'comment')].filter(Boolean).join(' · ')}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="profile-empty">You haven't posted yet. <Link to="/create">Start a discussion</Link></p>
+              )}
+            </div>
+          )}
+
+          {/* Your comments */}
+          {section === 'comments' && (
+            <div className="profile-section">
+              <h2>Your Comments</h2>
+              <p className="section-desc">{plural(userComments, 'comment')}, newest first.</p>
+              {userComments ? (
+                <ul className="profile-activity">
+                  {userCommentList.map(({ post: p, comment: c }) => (
+                    <li key={`${p.id}-${c.id}`}>
+                      <Link to={`${postPath(p)}#comment-${c.id}`} className="profile-activity-link">
+                        <strong>{excerpt(c.body, 140)}</strong>
+                        <span>{[`on ${p.title}`, shortDate(c.createdAt)].filter(Boolean).join(' · ')}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="profile-empty">You haven't commented yet.</p>
+              )}
+            </div>
+          )}
 
           {/* Display Name Section */}
           {section === 'display' && (

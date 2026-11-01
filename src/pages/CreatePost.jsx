@@ -62,7 +62,7 @@ export default function CreatePost() {
       });
       navigate(path);
     } catch (err) {
-      setErrors({ submit: 'Failed to create post. Please try again.' });
+      setErrors({ submit: err.code === 'email-not-verified' ? err.message : 'Failed to create post. Please try again.' });
     } finally {
       setSubmitting(false);
     }
