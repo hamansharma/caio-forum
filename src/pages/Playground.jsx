@@ -129,7 +129,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>{accessStatus(false)}</span>
-            <button onClick={() => navigate('/playground/data-atlas')}>Explore datasets <ArrowRight size={16} /></button>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/data-atlas')}>Explore datasets <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=data-atlas')}>Discuss</button>{projectAction('data-atlas')}</div>
           </div>
         </article>
 
@@ -142,7 +142,7 @@ export default function Playground() {
           </div>
           <div className="playground-card-footer">
             <span>Free to browse · sign in to predict</span>
-            <button onClick={() => navigate('/playground/time-capsule')}>Make your call <ArrowRight size={16} /></button>
+            <div className="playground-card-actions"><button onClick={() => navigate('/playground/time-capsule')}>Make your call <ArrowRight size={16} /></button><button className="playground-discuss" onClick={() => navigate('/playground/community?tool=time-capsule')}>Discuss</button>{projectAction('time-capsule')}</div>
           </div>
         </article>
 

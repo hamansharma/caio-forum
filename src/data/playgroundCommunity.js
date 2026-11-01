@@ -5,6 +5,8 @@ export const playgroundTools = {
   health: { label: 'Fitbit Health Analytics', shortLabel: 'Health Analytics' },
   vendors: { label: 'Vendor Portfolio Mapper', shortLabel: 'Vendor Mapper' },
   'build-buy': { label: 'Build vs. Buy Decision Studio', shortLabel: 'Build vs. Buy' },
+  'data-atlas': { label: 'Data Atlas', shortLabel: 'Data Atlas' },
+  'time-capsule': { label: 'AI Time Capsule', shortLabel: 'Time Capsule' },
   general: { label: 'AI Playground', shortLabel: 'General' },
 };
 
