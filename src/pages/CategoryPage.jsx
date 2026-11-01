@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
+import { PlaygroundSidebarCard, withPlaygroundCard } from '../components/PlaygroundShowcase';
 import NotFound from './NotFound';
 import usePageMeta from '../hooks/usePageMeta';
 import { FORUM_CATEGORIES, forumCategory, categoryPath } from '../data/forumCategories';
@@ -38,11 +39,12 @@ export default function CategoryPage() {
             ? <div className="category-empty">Loading discussions…</div>
             : categoryPosts.length === 0
               ? <div className="category-empty">No posts in this category yet.</div>
-              : categoryPosts.map(post => <PostCard key={post.id} post={post} />)}
+              : withPlaygroundCard(categoryPosts.map(post => <PostCard key={post.id} post={post} />))}
         </div>
       </div>
 
       <aside className="home-sidebar">
+        <PlaygroundSidebarCard />
         <div className="sidebar-card">
           <h2>Other topics</h2>
           {FORUM_CATEGORIES.filter(other => other.id !== id).map(other => (

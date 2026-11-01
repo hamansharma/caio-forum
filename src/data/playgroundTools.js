@@ -1,0 +1,53 @@
+// The AI Playground tools promoted on feed pages (PlaygroundShowcase). Order is
+// the order shown; `isNew` puts a "New" badge on the most recent launch.
+export const PLAYGROUND_TOOLS = [
+  {
+    id: 'compass',
+    name: 'CAIO Compass',
+    path: '/playground/caio-compass',
+    blurb: 'Assess your AI maturity',
+    pitch: 'Score your organization’s AI maturity across seven areas and get a focused 90-day plan.',
+    cta: 'Start assessment',
+  },
+  {
+    id: 'build-buy',
+    name: 'Build vs. Buy',
+    path: '/playground/build-vs-buy',
+    blurb: 'Decide with nine factors',
+    pitch: 'Weigh nine factors to decide whether an AI capability should be built, bought, or both.',
+    cta: 'Evaluate a use case',
+  },
+  {
+    id: 'vendors',
+    name: 'Vendor Portfolio',
+    path: '/playground/vendor-portfolio',
+    blurb: 'Find overlapping software',
+    pitch: 'List the tools your company pays for and spot overlap before your next renewal.',
+    cta: 'Map your portfolio',
+  },
+  {
+    id: 'certifications',
+    name: 'Certifications',
+    path: '/certifications',
+    blurb: 'Compare professional credentials',
+    pitch: 'Compare professional certifications by level, cost, requirements, and issuing authority.',
+    cta: 'Explore certifications',
+  },
+  {
+    id: 'data-atlas',
+    name: 'Data Atlas',
+    path: '/playground/data-atlas',
+    blurb: 'Explore public datasets',
+    pitch: 'Explore public datasets on interactive maps, with every figure traced to its source.',
+    cta: 'Explore datasets',
+    isNew: true,
+  },
+  {
+    id: 'health',
+    name: 'Health Analytics',
+    path: '/health',
+    blurb: 'Your Fitbit, explained',
+    pitch: 'Connect your Fitbit to see your sleep, recovery, and activity trends. Your data stays private.',
+    cta: 'Open health analytics',
+  },
+];

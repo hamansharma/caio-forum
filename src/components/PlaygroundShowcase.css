@@ -1,0 +1,60 @@
+/* Sidebar card: accent border so it stands out from About and Topics */
+.sidebar-card.showcase-card { border-color: var(--accent); }
+.showcase-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.showcase-head h2 { display: flex; align-items: center; gap: 6px; margin-bottom: 4px !important; }
+.showcase-head h2 svg { color: var(--accent-text); }
+.showcase-head span { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.sidebar-card.showcase-card > p { margin-bottom: 8px !important; }
+
+.showcase-tools { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.showcase-tool {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 8px; margin: 0 -8px; border-radius: var(--radius);
+  text-decoration: none; transition: background 0.15s;
+}
+.showcase-tool:hover { background: var(--bg-hover); }
+.showcase-tool strong { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.showcase-tool small { display: block; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.showcase-tool:hover strong { color: var(--accent-text); }
+
+.showcase-icon {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent-text);
+}
+.showcase-icon.large { width: 36px; height: 36px; border-radius: 10px; }
+
+.showcase-new {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 4px;
+  background: var(--tag-concepts); color: var(--tag-concepts-text);
+}
+
+.showcase-all {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+  font-size: 12px; font-weight: 600; color: var(--accent-text); text-decoration: none;
+}
+.showcase-all:hover { color: var(--accent-text-hover); }
+
+/* Feed card: phones only, where the sidebar is hidden (see Home.css) */
+.showcase-feed-card {
+  display: none;
+  background: var(--bg-card); border: 1px solid var(--accent);
+  border-radius: var(--radius-lg); padding: 14px 16px;
+}
+@media (max-width: 768px) { .showcase-feed-card { display: block; } }
+.showcase-feed-eyebrow {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  font-size: 12px; font-weight: 600; color: var(--accent-text);
+}
+.showcase-feed-body { display: flex; gap: 12px; align-items: flex-start; }
+.showcase-feed-body h2 { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.showcase-feed-body p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.showcase-feed-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.showcase-feed-actions .showcase-all { margin-top: 0; }
+.showcase-feed-cta {
+  background: var(--accent); color: white; text-decoration: none;
+  padding: 8px 14px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; transition: background 0.15s;
+}
+.showcase-feed-cta:hover { background: var(--accent-hover); }

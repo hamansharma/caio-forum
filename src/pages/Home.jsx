@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Flame, Clock, TrendingUp } from 'lucide-react';
 import { usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
+import { PlaygroundSidebarCard, withPlaygroundCard } from '../components/PlaygroundShowcase';
 import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
 import { FORUM_CATEGORIES, categoryPath } from '../data/forumCategories';
@@ -58,12 +59,13 @@ export default function Home() {
             ? <div className="posts-empty">Loading discussions…</div>
             : sorted.length === 0
               ? <div className="posts-empty">{filter === 'all' ? 'No posts yet. Be the first!' : 'No posts in this category yet.'}</div>
-              : sorted.map(post => <PostCard key={post.id} post={post} />)
+              : withPlaygroundCard(sorted.map(post => <PostCard key={post.id} post={post} />))
           }
         </div>
       </div>
 
       <aside className="home-sidebar">
+        <PlaygroundSidebarCard />
         <div className="sidebar-card">
           <h2>About CAIO Forum</h2>
           <p>A discussion space for Chief AI Officer topics. Do not post copyright material without proper consent.</p>
