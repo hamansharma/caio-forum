@@ -30,6 +30,7 @@ const VendorPortfolioAnalysis = lazy(() => import('./pages/VendorPortfolioAnalys
 const BuildBuyDecision = lazy(() => import('./pages/BuildBuyDecision'));
 const DataAtlas = lazy(() => import('./pages/DataAtlas'));
 const SchoolAtlas = lazy(() => import('./pages/SchoolAtlas'));
+const TimeCapsule = lazy(() => import('./pages/TimeCapsule'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 //import { seedFirestore } from './seedFirestore';
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="/playground/build-vs-buy" element={<BuildBuyDecision />} />
           <Route path="/playground/data-atlas" element={<DataAtlas />} />
           <Route path="/playground/data-atlas/us-public-schools" element={<SchoolAtlas />} />
+          <Route path="/playground/time-capsule" element={<TimeCapsule />} />
           <Route path="/certifications" element={<Certifications />} />
           <Route path="/workspace/review-center" element={<CertificationAdmin />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

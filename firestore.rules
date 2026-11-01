@@ -141,6 +141,27 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── AI Time Capsule ──────────────────────────────────────
+    // One canvas per due year. Public to read; every change goes through
+    // api/time-capsule.js, which enforces one prediction per pixel, three new
+    // predictions per member per year, and the edit window. Reports and
+    // moderation records have no match block, so they're server-only.
+    match /timeCapsules/{year} {
+      allow read: if true;
+      allow write: if false;
+
+      match /predictions/{cell} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+
+    // How many predictions a member has made each year (for "2 left").
+    match /timeCapsuleMembers/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
     // ── Private health integration data ───────────────────────
     match /healthConnections/{userId} {
       allow read, write: if false;

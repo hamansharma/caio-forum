@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, ArrowRight, Award, ClipboardCheck, Database, FlaskConical, Network, Scale } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, Database, FlaskConical, Hourglass, Network, Scale } from 'lucide-react';
 import { PLAYGROUND_TOOLS } from '../data/playgroundTools';
 import './PlaygroundShowcase.css';
 
 // Same icons as the Playground page, so a tool looks the same everywhere.
-const ICONS = { compass: ClipboardCheck, 'build-buy': Scale, vendors: Network, certifications: Award, 'data-atlas': Database, health: Activity };
+const ICONS = { 'time-capsule': Hourglass, compass: ClipboardCheck, 'build-buy': Scale, vendors: Network, certifications: Award, 'data-atlas': Database, health: Activity };
 
 const NewBadge = () => <span className="showcase-new">New</span>;
 

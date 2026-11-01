@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Award, ClipboardCheck, Database, FlaskConical, Lightbulb, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Award, ClipboardCheck, Database, FlaskConical, Hourglass, Lightbulb, LockKeyhole, Network, Scale, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
@@ -130,6 +130,19 @@ export default function Playground() {
           <div className="playground-card-footer">
             <span>{accessStatus(false)}</span>
             <button onClick={() => navigate('/playground/data-atlas')}>Explore datasets <ArrowRight size={16} /></button>
+          </div>
+        </article>
+
+        <article className="playground-card capsule-card-entry">
+          <div className="playground-icon capsule"><Hourglass size={22} /></div>
+          <div className="playground-card-copy">
+            <div className="playground-label">New · Community forecast</div>
+            <h2>AI Time Capsule</h2>
+            <p>Put your AI predictions on the record. Pick a year from 2027 to 2040 and claim a pixel on its canvas; when that year ends, AI reviews who saw it coming and members weigh in.</p>
+          </div>
+          <div className="playground-card-footer">
+            <span>Free to browse · sign in to predict</span>
+            <button onClick={() => navigate('/playground/time-capsule')}>Make your call <ArrowRight size={16} /></button>
           </div>
         </article>
 

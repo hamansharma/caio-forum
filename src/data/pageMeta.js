@@ -60,6 +60,13 @@ export const PAGE_META = {
     heading: 'Data Atlas',
     intro: 'Public datasets you can explore directly: interactive maps and charts with every figure traceable to its source.',
   },
+  timeCapsule: {
+    path: '/playground/time-capsule',
+    title: 'AI Time Capsule | Predict the Future of AI | CAIO Forum',
+    description: 'Predict what AI will solve and by when, from 2027 to 2040. Each pixel is one prediction; when a year ends, AI reviews which ones came true.',
+    heading: 'AI Time Capsule',
+    intro: 'Community predictions about AI, one canvas per year from 2027 to 2040. Each pixel is one prediction, reviewed by AI on the New Year after its year ends.',
+  },
   privacy: {
     path: '/privacy',
     title: 'Privacy Policy | CAIO Forum',

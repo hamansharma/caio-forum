@@ -2,6 +2,15 @@
 // the order shown; `isNew` puts a "New" badge on the most recent launch.
 export const PLAYGROUND_TOOLS = [
   {
+    id: 'time-capsule',
+    name: 'AI Time Capsule',
+    path: '/playground/time-capsule',
+    blurb: 'Put your AI calls on the record',
+    pitch: 'Put your AI predictions on the record. When the year ends, AI reviews who saw it coming.',
+    cta: 'Make your call',
+    isNew: true,
+  },
+  {
     id: 'compass',
     name: 'CAIO Compass',
     path: '/playground/caio-compass',
@@ -40,7 +49,6 @@ export const PLAYGROUND_TOOLS = [
     blurb: 'Explore public datasets',
     pitch: 'Explore public datasets on interactive maps, with every figure traced to its source.',
     cta: 'Explore datasets',
-    isNew: true,
   },
   {
     id: 'health',

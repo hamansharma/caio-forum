@@ -6,6 +6,8 @@ import { generateUsername } from '../utils/usernameGenerator';
 import { postPath } from '../utils/postUrl';
 import { SORTS, excerpt, plural, toMillis, visibleComments } from '../utils/postDisplay';
 import InlineConfirm from '../components/InlineConfirm';
+import useMyPredictions from '../hooks/useMyPredictions';
+import { COLORS, PREDICTION_PAGE, predictionPath, predictionSentence } from '../data/timeCapsule';
 import usePageMeta from '../hooks/usePageMeta';
 import './Profile.css';
 
@@ -17,6 +19,7 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [section, setSection] = useState('display');
+  const predictions = useMyPredictions(user?.uid);
   const [saved, setSaved] = useState('');
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -128,6 +131,10 @@ export default function Profile() {
               <strong>{userComments}</strong>
               <span>Comments</span>
             </button>
+            <button type="button" className={`profile-stat ${section === 'predictions' ? 'active' : ''}`} onClick={() => { setSection('predictions'); setError(''); }}>
+              <strong>{predictions ? predictions.length : '—'}</strong>
+              <span>Predictions</span>
+            </button>
           </div>
           <div className="profile-member-since">Member since {memberSince}</div>
 
@@ -194,6 +201,28 @@ export default function Profile() {
                 </ul>
               ) : (
                 <p className="profile-empty">You haven't commented yet.</p>
+              )}
+            </div>
+          )}
+
+          {/* Your AI Time Capsule predictions */}
+          {section === 'predictions' && (
+            <div className="profile-section">
+              <h2>Your Predictions</h2>
+              <p className="section-desc">Your calls in the AI Time Capsule, soonest review first. Each one is reviewed by AI on the January 1 after its year ends.</p>
+              {!predictions ? <p className="profile-empty">Loading…</p> : predictions.length ? (
+                <ul className="profile-activity">
+                  {predictions.map(item => (
+                    <li key={`${item.year}-${item.cell}`}>
+                      <Link to={predictionPath(item.year, item.cell)} className="profile-activity-link">
+                        <strong><span className="profile-prediction-dot" style={{ background: item.hidden ? 'var(--text-muted)' : COLORS[item.color] }} />{item.hidden ? item.text : predictionSentence(item.year, item.text)}</strong>
+                        <span>{[`Predicted in ${item.madeIn}`, `AI review Jan 1, ${item.year + 1}`, item.topic].join(' · ')}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="profile-empty">You haven't made any predictions yet. <Link to={PREDICTION_PAGE}>Put your first call on the record</Link></p>
               )}
             </div>
           )}

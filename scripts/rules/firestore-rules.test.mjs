@@ -87,6 +87,25 @@ test('unverified members can still create their profile and claim a username', a
 test('authors can still edit their posts before verifying', () =>
   assertSucceeds(updateDoc(doc(unverified('alice'), 'posts/p1'), { title: 'Fixed typo', editedAt: '2026-10-18T00:00:00.000Z' })));
 
+// ── AI Time Capsule ──
+test('anyone can read capsules and predictions', async () => {
+  await assertSucceeds(getDoc(doc(as(null), 'timeCapsules/2026')));
+  await assertSucceeds(getDoc(doc(as(null), 'timeCapsules/2026/predictions/0_0')));
+});
+test('members cannot write predictions directly (only through the API)', async () => {
+  await assertFails(setDoc(doc(as('carol'), 'timeCapsules/2026/predictions/0_0'), { text: 'AI will do it all', authorUid: 'carol' }));
+  await assertFails(setDoc(doc(as('carol'), 'timeCapsules/2026'), { size: 128, count: 0 }));
+});
+test('members can read only their own prediction counts, and never write them', async () => {
+  await assertSucceeds(getDoc(doc(as('carol'), 'timeCapsuleMembers/carol')));
+  await assertFails(getDoc(doc(as('carol'), 'timeCapsuleMembers/bob')));
+  await assertFails(setDoc(doc(as('carol'), 'timeCapsuleMembers/carol'), { counts: { 2026: 0 } }));
+});
+test('reports and moderation records are server-only', async () => {
+  await assertFails(getDoc(doc(as('carol'), 'timeCapsuleReports/2026_0_0_carol')));
+  await assertFails(getDoc(doc(as('carol'), 'timeCapsuleModeration/2026_0_0')));
+});
+
 // ── Server-only collections ──
 test('chat usage counts are server-only', async () => {
   await assertFails(getDoc(doc(as('alice'), 'chatUsage/alice')));
