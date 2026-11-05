@@ -1,6 +1,7 @@
-// Post URLs come in two shapes:
-//   new posts  → /post/<slug>            (slug stored on the post, never changes)
-//   older posts → /post/<id>/<title-slug> (Firestore ID; title part is cosmetic)
+// Posts live at /post/<slug> (the slug is stored on the post and never changes).
+// Posts without a slug fall back to /post/<id>/<title-slug>; every post has had a
+// slug since scripts/migrate-post-slugs.mjs, and old addresses redirect (301)
+// to the slug URL (api/post-page.js).
 // Keep this file dependency-free: api/sitemap-posts.js imports it too.
 
 const SLUG_MAX_LENGTH = 80;

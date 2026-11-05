@@ -124,8 +124,9 @@
     <!-- Pre-rendered pages put their own text in #page-content (scripts/lib/pageHtml.js),
          so it shows straight away; the app replaces it when it starts. Every app
          route is served one of these files, so the text is removed at once when it
-         belongs to a different URL (e.g. the home page's text on /profile). -->
+         belongs to a different URL (e.g. the home page's text on /profile), and
+         so are the canonical URL and og:url, which belong to that other page. -->
     <div id="root"><div id="page-content"></div></div>
-    <script>!function(){var c=document.getElementById('page-content');if(!c)return;var p=location.pathname.replace(/\/+$/,'')||'/';if(c.getAttribute('data-path')!==p)c.parentNode.removeChild(c)}()</script>
+    <script>!function(){var c=document.getElementById('page-content');if(!c)return;var p=location.pathname.replace(/\/+$/,'')||'/';if(c.getAttribute('data-path')===p)return;c.parentNode.removeChild(c);document.querySelectorAll('link[rel=canonical],meta[property="og:url"]').forEach(function(e){e.parentNode.removeChild(e)})}()</script>
   </body>
 </html>

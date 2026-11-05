@@ -29,14 +29,14 @@ const markdownHtml = markdown => renderToStaticMarkup(createElement(ReactMarkdow
 
 const postList = posts => (posts.length ? `<ul>${posts.map(post => `<li><a href="${esc(postPath(post))}">${esc(post.title)}</a> — ${esc(excerpt(post.body, 160))}</li>`).join('')}</ul>` : '');
 
-// "/" is the shell every other URL falls back to, so it is rewritten in place
-// and keeps no canonical URL (other pages would inherit it). The rest become
-// <path>.html files.
+// "/" is also the shell every app-only URL falls back to (e.g. /profile); its
+// canonical URL and text are removed in the browser on any other URL (see the
+// inline script in public/index.html). The rest become <path>.html files.
 const written = [];
 function write(path, meta, contentHtml, data = null) {
   const file = path === '/' ? join(BUILD, 'index.html') : join(BUILD, `${path.replace(/^\//, '')}.html`);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, renderPage(template, { ...meta, path, canonical: path !== '/' && meta.canonical !== false }, contentHtml, path, data));
+  writeFileSync(file, renderPage(template, { ...meta, path, canonical: meta.canonical !== false }, contentHtml, path, data));
   written.push(path);
 }
 

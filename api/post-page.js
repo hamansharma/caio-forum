@@ -7,8 +7,9 @@ import { looksLikePostId } from '../src/utils/postUrl';
 // the rewrite in vercel.json). Returns the same HTML the build would have
 // written, so search engines, link previews (LinkedIn, Slack, …) and AI
 // crawlers see the post's real title, description and content immediately.
-// Unknown or deleted posts get the app shell with a 404 status; the app shows
-// its not-found page.
+// Old addresses (/post/<id>/<title>, /post/<id>) redirect permanently (301) to
+// the post's current one. Unknown or deleted posts get the app shell with a 404
+// status; the app shows its not-found page.
 
 const CACHE = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400';
 let templatePromise;
@@ -54,8 +55,8 @@ export default async function handler(req, res) {
     }
     const { meta, contentHtml, data } = postPage(post);
     res.setHeader('Cache-Control', CACHE);
-    // The text shows at the URL that was requested (old /post/<id> links included).
     const requested = `/post/${String(req.query.path || '').replace(/\/+$/, '')}`;
+    if (requested !== meta.path) return res.redirect(301, meta.path);
     return res.status(200).send(renderPage(template, meta, contentHtml, requested, data));
   } catch (error) {
     console.error('Post page failed:', error.message);
