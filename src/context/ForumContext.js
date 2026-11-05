@@ -24,6 +24,7 @@ import {
 import { db, auth } from '../firebase';
 import { generateUsername } from '../utils/usernameGenerator';
 import { slugify, looksLikePostId, postPath } from '../utils/postUrl';
+import { pageData } from '../utils/pageData';
 
 const ForumContext = createContext();
 
@@ -87,8 +88,10 @@ async function uniquePostSlug(title) {
 
 export function ForumProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // The home page ships a preview of its posts (pageData.posts, marked `partial`)
+  // so the list shows before the live listener delivers the full posts.
+  const [posts, setPosts] = useState(() => pageData.posts || []);
+  const [loading, setLoading] = useState(() => !pageData.posts);
   const [postsRequested, setPostsRequested] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [votedPosts, setVotedPosts] = useState({});
@@ -287,7 +290,7 @@ export function ForumProvider({ children }) {
   const addPost = async (postData) => {
     requireVerifiedEmail();
     const slug = await uniquePostSlug(postData.title);
-    await addDoc(collection(db, 'posts'), {
+    const reference = await addDoc(collection(db, 'posts'), {
       ...postData,
       slug,
       author: user?.username || 'anonymous',
@@ -297,6 +300,10 @@ export function ForumProvider({ children }) {
       votes: 1,
       comments: [],
     });
+    // Let search engines know about the new post (best effort; it's also in the sitemap).
+    auth.currentUser?.getIdToken()
+      .then(token => fetch('/api/indexnow', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ postId: reference.id }) }))
+      .catch(() => {});
     return postPath({ slug });
   };
 

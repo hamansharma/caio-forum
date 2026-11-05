@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, SlidersHorizontal, X } from 'lucide-react';
 import { format } from 'd3-format';
 import SchoolMap from '../components/SchoolMap';
+import PageGuide from '../components/PageGuide';
 import usePageMeta from '../hooks/usePageMeta';
 import { datasetById, dataAtlasPath } from '../data/dataAtlas';
 import {
@@ -81,92 +82,96 @@ function Atlas({ D, topo }) {
   };
 
   return (
-    <main className="atlas-page">
-      <aside className={`atlas-rail ${railOpen ? 'open' : ''}`} id="atlas-rail">
-        <div className="atlas-rail-head">
-          <Link to={dataAtlasPath()} className="atlas-back"><ArrowLeft size={14} /> Data Atlas</Link>
-          <button type="button" className="atlas-rail-close" onClick={() => setRailOpen(false)} aria-label="Close filters"><X size={16} /></button>
-        </div>
-        <div>
-          <h1>{dataset.title}</h1>
-          <p className="atlas-sub">{dataset.summary}</p>
-        </div>
-
-        <SchoolSearch D={D} stateFilter={filters.state} onChoose={chooseSchool} />
-
-        <div className="atlas-group">
-          <label className="atlas-label" htmlFor="atlas-state">State or territory</label>
-          <select id="atlas-state" value={filters.state} onChange={event => setFilters(current => ({ ...current, state: event.target.value, place: current.place?.state === event.target.value ? current.place : null }))}>
-            <option value="">All states and territories</option>
-            {states.map(abbr => <option key={abbr} value={abbr}>{STATES[abbr]}</option>)}
-          </select>
-        </div>
-
-        <PlaceFilter
-          places={places}
-          stateFilter={filters.state}
-          place={filters.place}
-          onChoose={place => setFilters(current => ({ ...current, place, state: place.state }))}
-          onClear={() => setFilters(current => ({ ...current, place: null }))}
-        />
-
-        <div className="atlas-stats">
-          {[
-            [fmt(stats.schools), 'schools shown'],
-            [stats.students >= 1e6 ? `${(stats.students / 1e6).toFixed(1)}M` : fmt(stats.students), 'students (2022–23)'],
-            [stats.frlPercent == null ? '—' : `${stats.frlPercent}%`, 'eligible for free or reduced lunch'],
-            [stats.studentsPerTeacher ?? '—', 'students per teacher'],
-            [stats.charterPercent == null ? '—' : `${stats.charterPercent}%`, 'are charter schools'],
-            filters.place ? [filters.place.label, PLACE_KINDS[filters.place.kind].toLowerCase()] : [filters.state ? STATES[filters.state] : 'All', 'state or territory'],
-          ].map(([value, label]) => <div key={label}><b>{value}</b><span>{label}</span></div>)}
-        </div>
-
-        <div className="atlas-group">
-          <label className="atlas-label" htmlFor="atlas-color">Color schools by</label>
-          <select id="atlas-color" value={modeId} onChange={event => { setModeId(event.target.value); setHiddenBins(new Set()); }}>
-            {COLOR_MODES.filter(option => !option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
-            {D.hasNeighborhoods && (
-              <optgroup label="Neighborhood (Census and NCES)">
-                {COLOR_MODES.filter(option => option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
-              </optgroup>
-            )}
-          </select>
-          <div className="atlas-legend">
-            {mode.bins.map((bin, k) => (bin.label === 'No data' && counts[k] === 0 ? null : (
-              <button type="button" key={bin.label} className={hiddenBins.has(k) ? 'off' : ''} aria-pressed={!hiddenBins.has(k)} onClick={() => toggleBin(k)}>
-                <span className="atlas-swatch" style={{ background: swatch(bin.color) }} />
-                <span>{bin.label}</span>
-                <span className="atlas-count">{fmt(counts[k])}</span>
-              </button>
-            )))}
+    <>
+      <main className="atlas-page">
+        <aside className={`atlas-rail ${railOpen ? 'open' : ''}`} id="atlas-rail">
+          <div className="atlas-rail-head">
+            <Link to={dataAtlasPath()} className="atlas-back"><ArrowLeft size={14} /> Data Atlas</Link>
+            <button type="button" className="atlas-rail-close" onClick={() => setRailOpen(false)} aria-label="Close filters"><X size={16} /></button>
           </div>
-          <p className="atlas-hint">Click a legend row to hide or show those schools.</p>
-          {COLOR_MODES.find(option => option.id === modeId)?.neighborhood && (
-            <p className="atlas-caveat">
-              {modeId === 'ipr'
-                ? 'Estimated income of families living near the school, relative to the poverty line (1× = at the poverty line). These are approximate small-area estimates from NCES; they describe the neighborhood, not the students enrolled.'
-                : 'Census estimate for the school’s ZIP code area (2020–2024). A ZIP code is not the school’s attendance zone, and many students may live elsewhere. Estimates with a margin of error above 30% are shown as low reliability.'}
-            </p>
-          )}
+          <div>
+            <h1>{dataset.title}</h1>
+            <p className="atlas-sub">{dataset.summary}</p>
+          </div>
+
+          <SchoolSearch D={D} stateFilter={filters.state} onChoose={chooseSchool} />
+
+          <div className="atlas-group">
+            <label className="atlas-label" htmlFor="atlas-state">State or territory</label>
+            <select id="atlas-state" value={filters.state} onChange={event => setFilters(current => ({ ...current, state: event.target.value, place: current.place?.state === event.target.value ? current.place : null }))}>
+              <option value="">All states and territories</option>
+              {states.map(abbr => <option key={abbr} value={abbr}>{STATES[abbr]}</option>)}
+            </select>
+          </div>
+
+          <PlaceFilter
+            places={places}
+            stateFilter={filters.state}
+            place={filters.place}
+            onChoose={place => setFilters(current => ({ ...current, place, state: place.state }))}
+            onClear={() => setFilters(current => ({ ...current, place: null }))}
+          />
+
+          <div className="atlas-stats">
+            {[
+              [fmt(stats.schools), 'schools shown'],
+              [stats.students >= 1e6 ? `${(stats.students / 1e6).toFixed(1)}M` : fmt(stats.students), 'students (2022–23)'],
+              [stats.frlPercent == null ? '—' : `${stats.frlPercent}%`, 'eligible for free or reduced lunch'],
+              [stats.studentsPerTeacher ?? '—', 'students per teacher'],
+              [stats.charterPercent == null ? '—' : `${stats.charterPercent}%`, 'are charter schools'],
+              filters.place ? [filters.place.label, PLACE_KINDS[filters.place.kind].toLowerCase()] : [filters.state ? STATES[filters.state] : 'All', 'state or territory'],
+            ].map(([value, label]) => <div key={label}><b>{value}</b><span>{label}</span></div>)}
+          </div>
+
+          <div className="atlas-group">
+            <label className="atlas-label" htmlFor="atlas-color">Color schools by</label>
+            <select id="atlas-color" value={modeId} onChange={event => { setModeId(event.target.value); setHiddenBins(new Set()); }}>
+              {COLOR_MODES.filter(option => !option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+              {D.hasNeighborhoods && (
+                <optgroup label="Neighborhood (Census and NCES)">
+                  {COLOR_MODES.filter(option => option.neighborhood).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+                </optgroup>
+              )}
+            </select>
+            <div className="atlas-legend">
+              {mode.bins.map((bin, k) => (bin.label === 'No data' && counts[k] === 0 ? null : (
+                <button type="button" key={bin.label} className={hiddenBins.has(k) ? 'off' : ''} aria-pressed={!hiddenBins.has(k)} onClick={() => toggleBin(k)}>
+                  <span className="atlas-swatch" style={{ background: swatch(bin.color) }} />
+                  <span>{bin.label}</span>
+                  <span className="atlas-count">{fmt(counts[k])}</span>
+                </button>
+              )))}
+            </div>
+            <p className="atlas-hint">Click a legend row to hide or show those schools.</p>
+            {COLOR_MODES.find(option => option.id === modeId)?.neighborhood && (
+              <p className="atlas-caveat">
+                {modeId === 'ipr'
+                  ? 'Estimated income of families living near the school, relative to the poverty line (1× = at the poverty line). These are approximate small-area estimates from NCES; they describe the neighborhood, not the students enrolled.'
+                  : 'Census estimate for the school’s ZIP code area (2020–2024). A ZIP code is not the school’s attendance zone, and many students may live elsewhere. Estimates with a margin of error above 30% are shown as low reliability.'}
+              </p>
+            )}
+          </div>
+
+          <ChipGroup label="School level" items={LEVEL_FILTERS.map(([key]) => [key, key])} active={filters.levels} onToggle={key => toggleIn('levels', key)} />
+          <ChipGroup label="Locale" items={Object.entries(LOCALE_GROUP).map(([key, label]) => [label, key])} active={filters.locales} onToggle={key => toggleIn('locales', key)} />
+          <ChipGroup label="Type" items={TYPE_FILTERS} active={filters.types} onToggle={key => toggleIn('types', key)} />
+
+          <div className="atlas-foot">
+            <p>Source: <a href={dataset.sources[0].url} target="_blank" rel="noopener noreferrer">{dataset.sources[0].name}</a>. Locations 2024–25; characteristics 2022–23. Schools that opened after 2022–23 have a location but no enrollment data.</p>
+            {D.hasNeighborhoods && <p>Neighborhood data: <a href={dataset.sources[1].url} target="_blank" rel="noopener noreferrer">Census ACS 2020–2024</a> (home value and household income by ZIP code area) and <a href={dataset.sources[2].url} target="_blank" rel="noopener noreferrer">NCES School Neighborhood Poverty Estimates 2021–22</a>.</p>}
+            <p>Lunch eligibility is not comparable across all states. Districts using community eligibility (common in MS, DC and others) report every student as eligible.</p>
+          </div>
+        </aside>
+
+        <div className="atlas-map">
+          <SchoolMap D={D} topo={topo} shown={shown} cls={cls} bins={mode.bins} selected={selected} onSelect={i => setSelected(i)} focus={focus} flyTo={flyTo} />
+          <button type="button" className="atlas-menu" onClick={() => setRailOpen(true)} aria-controls="atlas-rail" aria-expanded={railOpen}><SlidersHorizontal size={14} /> Filters</button>
+          {selected >= 0 && <SchoolCard D={D} i={selected} onClose={() => setSelected(-1)} />}
         </div>
-
-        <ChipGroup label="School level" items={LEVEL_FILTERS.map(([key]) => [key, key])} active={filters.levels} onToggle={key => toggleIn('levels', key)} />
-        <ChipGroup label="Locale" items={Object.entries(LOCALE_GROUP).map(([key, label]) => [label, key])} active={filters.locales} onToggle={key => toggleIn('locales', key)} />
-        <ChipGroup label="Type" items={TYPE_FILTERS} active={filters.types} onToggle={key => toggleIn('types', key)} />
-
-        <div className="atlas-foot">
-          <p>Source: <a href={dataset.sources[0].url} target="_blank" rel="noopener noreferrer">{dataset.sources[0].name}</a>. Locations 2024–25; characteristics 2022–23. Schools that opened after 2022–23 have a location but no enrollment data.</p>
-          {D.hasNeighborhoods && <p>Neighborhood data: <a href={dataset.sources[1].url} target="_blank" rel="noopener noreferrer">Census ACS 2020–2024</a> (home value and household income by ZIP code area) and <a href={dataset.sources[2].url} target="_blank" rel="noopener noreferrer">NCES School Neighborhood Poverty Estimates 2021–22</a>.</p>}
-          <p>Lunch eligibility is not comparable across all states. Districts using community eligibility (common in MS, DC and others) report every student as eligible.</p>
-        </div>
-      </aside>
-
-      <div className="atlas-map">
-        <SchoolMap D={D} topo={topo} shown={shown} cls={cls} bins={mode.bins} selected={selected} onSelect={i => setSelected(i)} focus={focus} flyTo={flyTo} />
-        <button type="button" className="atlas-menu" onClick={() => setRailOpen(true)} aria-controls="atlas-rail" aria-expanded={railOpen}><SlidersHorizontal size={14} /> Filters</button>
-        {selected >= 0 && <SchoolCard D={D} i={selected} onClose={() => setSelected(-1)} />}
-      </div>
-    </main>
+      </main>
+      {/* Below the full-height map, not inside its grid. */}
+      <div className="atlas-guide"><PageGuide id="us-public-schools" /></div>
+    </>
   );
 }
 

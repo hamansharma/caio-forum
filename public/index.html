@@ -35,10 +35,24 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Fonts: requested from the HTML so they start downloading before the app's CSS -->
+    <!-- Fonts: requested from the HTML so they start downloading early, but without
+         holding up the first paint (text shows in a fallback font, then swaps). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" /></noscript>
+
+    <!-- Pre-rendered page text (see #page-content below), shown until the app loads. -->
+    <style>
+      #page-content { max-width: 760px; margin: 0 auto; padding: 88px 16px 48px; color: var(--text-secondary, #9fa8c7); font-size: 15px; line-height: 1.7; }
+      #page-content h1 { color: var(--text-primary, #e8eaf6); font-size: 28px; line-height: 1.3; margin-bottom: 12px; }
+      #page-content h2, #page-content h3 { color: var(--text-primary, #e8eaf6); font-size: 18px; margin: 24px 0 8px; }
+      #page-content p, #page-content ul, #page-content dl { margin-bottom: 12px; }
+      #page-content ul { padding-left: 20px; }
+      #page-content a { color: var(--accent-text, #9180f9); }
+      #page-content dt { color: var(--text-primary, #e8eaf6); font-weight: 600; }
+      #page-content dd { margin: 0 0 10px; }
+    </style>
 
     <!-- Google Analytics 4 with Consent Mode. Analytics cookies stay off until the
          visitor accepts in the cookie banner (src/components/CookieConsent.jsx);
@@ -92,10 +106,8 @@
   </head>
 
   <body>
-    <!-- Shown only without JavaScript (most social-preview bots and AI crawlers).
-         Pre-rendered pages insert the page's own content here. -->
+    <!-- Shown only without JavaScript. -->
     <noscript>
-      <div id="page-content"></div>
       <nav aria-label="Site">
         <a href="https://caioleadership.com/">CAIO Forum home</a> ·
         <a href="https://caioleadership.com/category/strategy">Strategy</a> ·
@@ -109,6 +121,11 @@
       <p>CAIO Forum works best with JavaScript enabled.</p>
     </noscript>
 
-    <div id="root"></div>
+    <!-- Pre-rendered pages put their own text in #page-content (scripts/lib/pageHtml.js),
+         so it shows straight away; the app replaces it when it starts. Every app
+         route is served one of these files, so the text is removed at once when it
+         belongs to a different URL (e.g. the home page's text on /profile). -->
+    <div id="root"><div id="page-content"></div></div>
+    <script>!function(){var c=document.getElementById('page-content');if(!c)return;var p=location.pathname.replace(/\/+$/,'')||'/';if(c.getAttribute('data-path')!==p)c.parentNode.removeChild(c)}()</script>
   </body>
 </html>

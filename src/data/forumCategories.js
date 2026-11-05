@@ -4,7 +4,7 @@ export const FORUM_CATEGORIES = [
     id: 'concepts',
     label: 'Concepts',
     heading: 'AI concepts for leaders',
-    description: 'Plain-language explanations of AI models, data, and systems, written for executives and Chief AI Officers who need to understand the technology well enough to make decisions.',
+    description: 'Plain-language explanations of AI models, data, and systems for executives and Chief AI Officers who need to understand the technology to decide.',
   },
   {
     id: 'strategy',

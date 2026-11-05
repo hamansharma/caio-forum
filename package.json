@@ -41,6 +41,7 @@
     "import:vendor-catalog": "node --env-file=.env.local scripts/import-vendor-capability-catalog.mjs",
     "update:related": "node --env-file=.env.local scripts/update-related-posts.mjs",
     "migrate:firebase": "node --env-file=.env.local scripts/migrate-firebase-project.mjs",
+    "indexnow:submit": "node --import ./scripts/lib/register-extensionless.mjs scripts/indexnow-submit.mjs",
     "data:school-neighborhoods": "node scripts/data-atlas/build-school-neighborhoods.mjs",
     "check:api": "node scripts/check-api-functions.cjs",
     "test:scripts": "node --import ./scripts/lib/register-extensionless.mjs --test scripts/lib/relatedPosts.test.mjs scripts/lib/chatContext.test.mjs scripts/lib/timeCapsule.test.mjs scripts/lib/pageHtml.test.mjs",

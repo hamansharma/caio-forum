@@ -49,5 +49,22 @@ export const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'
 
 // Search/social title and description for a post page, shared by the post page
 // and scripts/prerender.mjs so the static HTML and the app say the same thing.
-export const postMetaTitle = post => `${post.title} | CAIO Forum`;
+// Google shows about 60–65 characters of a title, so long titles are shortened
+// for search: drop the site name, then keep a clean phrase (before a colon,
+// dash or comma), then cut at a word. The page and social previews keep the
+// full title.
+const SEARCH_TITLE_MAX = 65;
+const SITE_SUFFIX = ' | CAIO Forum';
+export function postMetaTitle(post) {
+  const title = String(post.title || '').trim();
+  const fit = text => (text.length + SITE_SUFFIX.length <= SEARCH_TITLE_MAX ? text + SITE_SUFFIX : text);
+  if (title.length + SITE_SUFFIX.length <= SEARCH_TITLE_MAX) return title + SITE_SUFFIX;
+  if (title.length <= SEARCH_TITLE_MAX) return title;
+  const lead = title.split(/:\s|\s[–—-]\s/)[0].trim();
+  if (lead.length >= 18 && lead.length <= SEARCH_TITLE_MAX) return fit(lead);
+  const clause = title.slice(0, SEARCH_TITLE_MAX + 1).split(', ').slice(0, -1).join(', ');
+  if (clause.length >= 25) return fit(clause);
+  const cut = title.slice(0, SEARCH_TITLE_MAX - 1);
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:–—-]+$/, '')}…`;
+}
 export const postMetaDescription = post => excerpt(post.body, 155);

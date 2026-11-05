@@ -5,6 +5,7 @@ import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
+import PageGuide from '../components/PageGuide';
 import InlineConfirm from '../components/InlineConfirm';
 import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
@@ -458,6 +459,7 @@ export default function TimeCapsule() {
         )}
       </section>
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      <PageGuide id="timeCapsule" />
     </main>
   );
 }

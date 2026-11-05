@@ -52,9 +52,11 @@ export default async function handler(req, res) {
       res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300');
       return res.status(404).send(template);
     }
-    const { meta, contentHtml } = postPage(post);
+    const { meta, contentHtml, data } = postPage(post);
     res.setHeader('Cache-Control', CACHE);
-    return res.status(200).send(renderPage(template, meta, contentHtml));
+    // The text shows at the URL that was requested (old /post/<id> links included).
+    const requested = `/post/${String(req.query.path || '').replace(/\/+$/, '')}`;
+    return res.status(200).send(renderPage(template, meta, contentHtml, requested, data));
   } catch (error) {
     console.error('Post page failed:', error.message);
     return res.status(503).setHeader('Retry-After', '10').send('Temporarily unavailable. Please refresh.');

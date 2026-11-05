@@ -3,6 +3,7 @@ import { ArrowLeft, Lightbulb, MessageCircleQuestion, Plus, Sparkles } from 'luc
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForum, usePosts } from '../context/ForumContext';
 import PostCard from '../components/PostCard';
+import PageGuide from '../components/PageGuide';
 import AuthModal from '../components/AuthModal';
 import { playgroundPostTypes, playgroundTools } from '../data/playgroundCommunity';
 import usePageMeta from '../hooks/usePageMeta';
@@ -53,5 +54,6 @@ export default function PlaygroundCommunity() {
       <div className="posts-list">{loading ? <p className="playground-community-empty">Loading discussions…</p> : playgroundPosts.length ? playgroundPosts.map(post => <PostCard key={post.id} post={post} />) : <section className="playground-community-empty"><Sparkles size={21} /><h3>Start the first conversation</h3><p>{tool === 'all' ? 'Choose a tool, then share an idea, question, or learning.' : `What would make ${toolLabel} more valuable to you?`}</p><button onClick={() => startDiscussion('suggestion')}>Share an idea</button></section>}</div>
     </section>
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+    <PageGuide id="playgroundCommunity" />
   </main>;
 }

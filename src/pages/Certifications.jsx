@@ -6,6 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
+import PageGuide from '../components/PageGuide';
 import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
 import './Certifications.css';
@@ -153,6 +154,7 @@ export default function Certifications() {
     {showPathwayHistory && <CertificationPathwayHistory onClose={() => setShowPathwayHistory(false)} onViewCertification={item => { setShowPathwayHistory(false); setSelected(item); }} />}
     {showPlan && <CertificationPlan onClose={() => setShowPlan(false)} />}
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+    <PageGuide id="certifications" />
   </main>;
 }
 

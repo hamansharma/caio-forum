@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hasPageSlots, plainParagraphs, postPage, renderPage } from './pageHtml.js';
+import { guideHtml, hasPageSlots, plainParagraphs, postPage, postPreview, renderPage } from './pageHtml.js';
 
 const template = '<html><head><meta name="page-meta" content="start" /><title>Home</title><meta name="page-meta" content="end" /></head>'
   + '<body><noscript><div id="page-content"></div></noscript><div id="root"></div></body></html>';
@@ -36,4 +36,25 @@ test('plain paragraphs never pass HTML through', () => {
   const html = plainParagraphs('<script>alert(1)</script>');
   assert.ok(!html.includes('<script'));
   assert.match(html, /^<p>&lt;script/);
+});
+
+test('pages carry the path they belong to and, for posts, the post data', () => {
+  const { meta, contentHtml, data } = postPage({ ...post, createdAt: { toDate: () => new Date('2026-10-01T00:00:00.000Z') } });
+  const html = renderPage(template, meta, contentHtml, meta.path, data);
+  assert.match(html, /<div id="page-content" data-path="\/post\/agents-at-work">/);
+  const json = JSON.parse(html.match(/<script type="application\/json" id="page-data">(.*?)<\/script>/)[1]);
+  assert.equal(json.post.createdAt, '2026-10-01T00:00:00.000Z', 'Timestamps become ISO strings');
+  assert.ok(!html.match(/id="page-data">[^<]*<\/(?!script)/), 'no raw < inside the JSON');
+});
+
+test('home previews are short and marked partial', () => {
+  const preview = postPreview({ ...post, body: 'x'.repeat(5000) });
+  assert.equal(preview.body.length, 600);
+  assert.equal(preview.partial, true);
+  assert.deepEqual(preview.comments, [{ id: 'c1', parentId: null }], 'deleted comments dropped, bodies left out');
+});
+
+test('tool pages get their guide', () => {
+  assert.match(guideHtml('caioCompass'), /<h2>About CAIO Compass<\/h2>/);
+  assert.equal(guideHtml('no-such-page'), '');
 });

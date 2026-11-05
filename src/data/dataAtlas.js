@@ -6,7 +6,7 @@ export const DATASETS = [
   {
     id: 'us-public-schools',
     title: 'US Public Schools',
-    summary: 'Every public school in the 2024–25 NCES directory, joined to 2022–23 enrollment, staffing, lunch-program and demographic data, plus the economics of the surrounding neighborhood.',
+    summary: 'Every US public school from the 2024–25 NCES directory, with enrollment, staffing, lunch-program and demographic data plus neighborhood economics.',
     kind: 'Interactive map',
     rows: 102178,
     rowsLabel: 'schools',

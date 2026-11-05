@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useForum } from '../context/ForumContext';
 import AuthModal from '../components/AuthModal';
+import PageGuide from '../components/PageGuide';
 import { compassDimensions, maturityLabels, resultRoutes } from '../data/caioCompass';
 import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
@@ -119,6 +120,7 @@ export default function CaioCompass() {
         <button className="compass-primary" onClick={() => setShowAuth(true)}><LockKeyhole size={16} /> Sign in to start</button>
       </section>
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      <PageGuide id="caioCompass" />
     </main>
   );
 
@@ -180,6 +182,7 @@ export default function CaioCompass() {
         </section>
       </section>
 
+      <PageGuide id="caioCompass" />
     </main>
   );
 }

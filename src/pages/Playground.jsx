@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForum } from '../context/ForumContext';
 import { auth } from '../firebase';
 import AuthModal from '../components/AuthModal';
+import PageGuide from '../components/PageGuide';
 import ProjectRequestModal from '../components/ProjectRequestModal';
 import usePageMeta from '../hooks/usePageMeta';
 import { PAGE_META } from '../data/pageMeta';
@@ -169,6 +170,7 @@ export default function Playground() {
 
       {requestTool && <ProjectRequestModal tool={requestTool} onClose={() => setRequestTool(null)} />}
       {showAuth && <AuthModal onClose={() => { setShowAuth(false); setOpenSignalsAfterAuth(false); if (!auth.currentUser) setPendingRequestTool(null); }} />}
+      <PageGuide id="playground" />
     </main>
   );
 }

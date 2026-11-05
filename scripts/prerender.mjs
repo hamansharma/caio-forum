@@ -19,7 +19,7 @@ import { FORUM_CATEGORIES, categoryPath } from '../src/data/forumCategories.js';
 import { DATASETS, dataAtlasPath } from '../src/data/dataAtlas.js';
 import { postPath } from '../src/utils/postUrl.js';
 import { SORTS, excerpt } from '../src/utils/postDisplay.js';
-import { esc, hasPageSlots, postPage, renderPage } from './lib/pageHtml.js';
+import { esc, guideHtml, hasPageSlots, postPage, postPreview, renderPage } from './lib/pageHtml.js';
 
 const BUILD = new URL('../build/', import.meta.url).pathname;
 const template = readFileSync(join(BUILD, 'index.html'), 'utf8');
@@ -33,10 +33,10 @@ const postList = posts => (posts.length ? `<ul>${posts.map(post => `<li><a href=
 // and keeps no canonical URL (other pages would inherit it). The rest become
 // <path>.html files.
 const written = [];
-function write(path, meta, contentHtml) {
+function write(path, meta, contentHtml, data = null) {
   const file = path === '/' ? join(BUILD, 'index.html') : join(BUILD, `${path.replace(/^\//, '')}.html`);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, renderPage(template, { ...meta, path, canonical: path !== '/' && meta.canonical !== false }, contentHtml));
+  writeFileSync(file, renderPage(template, { ...meta, path, canonical: path !== '/' && meta.canonical !== false }, contentHtml, path, data));
   written.push(path);
 }
 
@@ -64,9 +64,11 @@ const posts = await loadPosts();
 const forumPosts = posts.filter(post => !post.playground).sort(SORTS.new);
 
 // Static pages from src/data/pageMeta.js; the home page also lists the latest posts.
-for (const meta of Object.values(PAGE_META)) {
+for (const [key, meta] of Object.entries(PAGE_META)) {
   const list = meta.path === '/' ? postList(forumPosts.slice(0, 40)) : '';
-  write(meta.path, meta, `<h1>${esc(meta.heading)}</h1><p>${esc(meta.intro)}</p>${list}`);
+  // The home page also ships previews of every forum post, so its list draws immediately.
+  const data = meta.path === '/' ? { posts: forumPosts.map(postPreview) } : null;
+  write(meta.path, meta, `<h1>${esc(meta.heading)}</h1><p>${esc(meta.intro)}</p>${list}${guideHtml(key)}`, data);
 }
 
 for (const category of FORUM_CATEGORIES) {
@@ -78,12 +80,12 @@ for (const category of FORUM_CATEGORIES) {
 for (const dataset of DATASETS) {
   const sources = dataset.sources.map(source => `<a href="${esc(source.url)}">${esc(source.name)}</a>`).join(', ');
   write(dataAtlasPath(dataset.id), { title: `${dataset.title} Map | Data Atlas | CAIO Forum`, description: dataset.summary },
-    `<h1>${esc(dataset.title)}</h1><p>${esc(dataset.summary)}</p><p>Sources: ${sources}.</p>`);
+    `<h1>${esc(dataset.title)}</h1><p>${esc(dataset.summary)}</p><p>Sources: ${sources}.</p>${guideHtml(dataset.id)}`);
 }
 
 for (const post of posts) {
-  const { meta, contentHtml } = postPage(post, markdownHtml);
-  write(meta.path, meta, contentHtml);
+  const { meta, contentHtml, data } = postPage(post, markdownHtml);
+  write(meta.path, meta, contentHtml, data);
 }
 
 console.log(`prerender: wrote ${written.length} pages (${posts.length} posts).`);

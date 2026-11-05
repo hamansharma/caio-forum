@@ -14,6 +14,7 @@ import usePageMeta from '../hooks/usePageMeta';
 import useStructuredData from '../hooks/useStructuredData';
 import { postStructuredData } from '../utils/structuredData';
 import CategoryTag from '../components/CategoryTag';
+import { pageData } from '../utils/pageData';
 import { postPath } from '../utils/postUrl';
 import { postMetaTitle, postMetaDescription } from '../utils/postDisplay';
 
@@ -42,7 +43,9 @@ export default function PostDetail() {
   const { posts, watchPost, user, votePost, votedPosts, addComment,
           editPost, deletePost } = useForum();
   // The post loaded for a given URL key: post is null when it doesn't exist.
-  const [watched, setWatched] = useState({ key: null, post: null });
+  // A pre-rendered post page ships its post, so it shows before Firestore answers.
+  const [watched, setWatched] = useState(() => (pageData.post && (pageData.post.slug === key || pageData.post.id === key)
+    ? { key, post: pageData.post } : { key: null, post: null }));
   const [comment, setComment] = useState('');
   const [commentSort, setCommentSort] = useState('newest');
   const [editing, setEditing] = useState(false);
@@ -52,7 +55,8 @@ export default function PostDetail() {
   const [commentError, setCommentError] = useState('');
 
   // Use the shared posts list when another page already loaded it; otherwise load just this post.
-  const listedPost = posts.find(p => p.slug === key || p.id === key);
+  // Previews in the shared list (`partial`, from the home page) have shortened bodies, so they don't count.
+  const listedPost = posts.find(p => (p.slug === key || p.id === key) && !p.partial);
   const isListed = Boolean(listedPost);
   useEffect(() => {
     if (isListed) return undefined;

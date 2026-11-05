@@ -1,4 +1,5 @@
 import React from 'react';
+import PageGuide from '../components/PageGuide';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Database, Map } from 'lucide-react';
 import usePageMeta from '../hooks/usePageMeta';
@@ -48,6 +49,7 @@ export default function DataAtlas() {
         <h2>More datasets are on the way</h2>
         <p>Each dataset gets a page built for exploring it, with its source and known caveats stated up front. Have a public dataset you'd like to see here? <Link to="/playground/community">Suggest it in the Playground Community.</Link></p>
       </section>
+      <PageGuide id="dataAtlas" />
     </main>
   );
 }

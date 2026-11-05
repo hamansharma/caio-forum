@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 3000
+    },
+    {
+      "name": "caio-forum-build",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve@14", "build", "-l", "5055", "--no-clipboard"],
+      "port": 5055
     }
   ]
 }
