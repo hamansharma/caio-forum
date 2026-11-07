@@ -15,6 +15,7 @@ import useStructuredData from '../hooks/useStructuredData';
 import { postStructuredData } from '../utils/structuredData';
 import CategoryTag from '../components/CategoryTag';
 import { pageData } from '../utils/pageData';
+import MemberLink from '../components/MemberLink';
 import { postPath } from '../utils/postUrl';
 import { postMetaTitle, postMetaDescription } from '../utils/postDisplay';
 
@@ -151,7 +152,7 @@ export default function PostDetail() {
             <CategoryTag post={post} />
             {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
             <span className="meta-text">
-              u/<strong>{post.author}</strong> · {post.createdAt
+              <strong><MemberLink name={post.author} /></strong> · {post.createdAt
                 ? formatDistanceToNow(post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt))
                 : 'just now'} ago
             </span>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import MemberLink from './MemberLink';
 import { ArrowUp, ArrowDown, Check, MessageSquare, Share2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useForum } from '../context/ForumContext';
@@ -46,7 +47,7 @@ export default function PostCard({ post }) {
         <div className="post-meta">
           <CategoryTag post={post} />
           {post.playgroundTool && <span className="post-playground-tool">{post.playgroundTool === 'general' ? 'AI Playground' : post.playgroundTool === 'certifications' ? 'Certification Navigator' : post.playgroundTool === 'compass' ? 'CAIO Compass' : 'Health Analytics'}</span>}
-          <span className="meta-text">Posted by <strong>u/{post.author}</strong></span>
+          <span className="meta-text">Posted by <strong><MemberLink name={post.author} /></strong></span>
           <span className="meta-dot">·</span>
           <time className="meta-text" dateTime={created ? new Date(created).toISOString() : undefined} title={created ? new Date(created).toLocaleString() : undefined}>
             {created ? `${formatDistanceToNow(created)} ago` : 'just now'}

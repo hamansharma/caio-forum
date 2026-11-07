@@ -1,6 +1,6 @@
 // schema.org data for post pages, so search engines can recognise forum
 // discussions (https://developers.google.com/search/docs/appearance/structured-data/discussion-forum).
-import { postPath } from './postUrl';
+import { memberPath, postPath } from './postUrl';
 import { SITE_ORIGIN as publicOrigin } from '../data/site';
 import { forumCategory, categoryPath } from '../data/forumCategories';
 import { markdownToPlainText } from './postDisplay';
@@ -11,7 +11,11 @@ const toIso = value => {
 };
 
 
-const person = name => ({ '@type': 'Person', name: String(name || 'anonymous') });
+// Authors link to their public member page, which Google expects ("url" in "author").
+const person = name => {
+  const path = memberPath(name);
+  return { '@type': 'Person', name: String(name || 'anonymous'), ...(path ? { url: `${publicOrigin}${path}` } : {}) };
+};
 
 // Replies nest under their parent; a reply whose parent was deleted moves to the top level.
 function commentTree(comments) {
@@ -70,5 +74,25 @@ export function postStructuredData(post) {
       },
       breadcrumb(post, url),
     ],
+  };
+}
+
+// A member's public page (/u/<name>), as Google's ProfilePage.
+export function memberStructuredData({ name, posts, comments, firstActive }) {
+  const url = `${publicOrigin}${memberPath(name)}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url,
+    ...(firstActive ? { dateCreated: new Date(firstActive).toISOString() } : {}),
+    mainEntity: {
+      '@type': 'Person',
+      name,
+      url,
+      agentInteractionStatistic: [
+        { '@type': 'InteractionCounter', interactionType: 'https://schema.org/WriteAction', userInteractionCount: posts.length },
+        { '@type': 'InteractionCounter', interactionType: 'https://schema.org/CommentAction', userInteractionCount: comments.length },
+      ],
+    },
   };
 }

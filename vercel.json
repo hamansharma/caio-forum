@@ -14,6 +14,10 @@
       "destination": "/api/post-page?path=:path*"
     },
     {
+      "source": "/u/:member",
+      "destination": "/api/post-page?member=:member"
+    },
+    {
       "source": "/((?!api/|__/auth/).*)",
       "destination": "/"
     }

@@ -88,3 +88,7 @@ button, input, textarea { max-width: 100%; }
 /* Page area below the 56px navbar is at least a screen tall, so the footer starts below the fold */
 .app-content { min-height: calc(100vh - 56px); min-height: calc(100dvh - 56px); }
 .route-loading { min-height: 60vh; }
+
+/* Member names link to their public page (src/components/MemberLink.jsx). */
+.member-link { color: inherit; text-decoration: none; }
+.member-link:hover { color: var(--accent-text); text-decoration: underline; }

@@ -27,3 +27,11 @@ export function postPath(post) {
   const titleSlug = slugify(post.title);
   return titleSlug ? `/post/${post.id}/${titleSlug}` : `/post/${post.id}`;
 }
+
+// A member's public page, /u/<username>. Placeholder authors (deleted or
+// moderated content, anonymous) have none, so this returns null for them.
+const NO_MEMBER_PAGE = new Set(['', 'anonymous', '[deleted]', '[moderated]']);
+export function memberPath(username) {
+  const name = String(username || '').trim();
+  return NO_MEMBER_PAGE.has(name.toLowerCase()) ? null : `/u/${encodeURIComponent(name)}`;
+}

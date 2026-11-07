@@ -7,9 +7,9 @@
 // api/post-page.js (posts published since the last deploy).
 import { SITE_ORIGIN } from '../../src/data/site';
 import { forumCategory, categoryPath } from '../../src/data/forumCategories';
-import { postPath } from '../../src/utils/postUrl';
-import { postMetaTitle, postMetaDescription, toMillis, visibleComments, markdownToPlainText } from '../../src/utils/postDisplay';
-import { postStructuredData } from '../../src/utils/structuredData';
+import { memberPath, postPath } from '../../src/utils/postUrl';
+import { excerpt, plural, postMetaTitle, postMetaDescription, toMillis, visibleComments, markdownToPlainText } from '../../src/utils/postDisplay';
+import { memberStructuredData, postStructuredData } from '../../src/utils/structuredData';
 import { PAGE_GUIDES } from '../../src/data/pageGuides';
 
 // Markers in public/index.html (tags, not comments, because the build strips comments).
@@ -98,4 +98,21 @@ export function postPage(post, markdownHtml = plainParagraphs) {
     related ? `<section><h2>Related posts</h2><ul>${related}</ul></section>` : '',
   ].join('');
   return { meta, contentHtml, data: { post: toPlain(post) } };
+}
+
+// A member's public page (/u/<name>) from their activity (src/utils/memberActivity.js).
+export function memberPage(activity) {
+  const { name, posts, comments } = activity;
+  const meta = {
+    title: `u/${name} | CAIO Forum Member`,
+    description: `Posts and comments by u/${name} on CAIO Forum, the community for AI leaders: ${plural(posts.length, 'post')} and ${plural(comments.length, 'comment')}.`,
+    path: memberPath(name), type: 'profile', jsonLd: memberStructuredData(activity),
+  };
+  const list = items => `<ul>${items.join('')}</ul>`;
+  const contentHtml = [
+    `<h1>u/${esc(name)}</h1><p>${plural(posts.length, 'post')} · ${plural(comments.length, 'comment')}</p>`,
+    posts.length ? `<h2>Posts</h2>${list(posts.map(post => `<li><a href="${esc(postPath(post))}">${esc(post.title)}</a>: ${esc(excerpt(post.body, 160))}</li>`))}` : '',
+    comments.length ? `<h2>Comments</h2>${list(comments.map(({ post, comment }) => `<li>${esc(excerpt(comment.body, 160))} (on <a href="${esc(postPath(post))}">${esc(post.title)}</a>)</li>`))}` : '',
+  ].join('');
+  return { meta, contentHtml };
 }

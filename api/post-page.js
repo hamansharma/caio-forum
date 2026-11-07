@@ -1,6 +1,7 @@
 import { adminDb } from './_lib/firebaseAdmin';
-import { hasPageSlots, postPage, renderPage } from '../scripts/lib/pageHtml';
+import { hasPageSlots, memberPage, postPage, renderPage } from '../scripts/lib/pageHtml';
 import { looksLikePostId } from '../src/utils/postUrl';
+import { memberActivity } from '../src/utils/memberActivity';
 
 // Serves /post/... URLs that have no pre-rendered page: posts published since
 // the last deploy (pre-rendered ones are static files and never reach here; see
@@ -10,6 +11,9 @@ import { looksLikePostId } from '../src/utils/postUrl';
 // Old addresses (/post/<id>/<title>, /post/<id>) redirect permanently (301) to
 // the post's current one. Unknown or deleted posts get the app shell with a 404
 // status; the app shows its not-found page.
+//
+// Also serves member pages, /u/<name> (?member=<name>): always rendered here,
+// from the posts they wrote and commented on, so they stay current.
 
 const CACHE = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400';
 let templatePromise;
@@ -41,10 +45,34 @@ async function findPost(key) {
   return null;
 }
 
+async function sendMemberPage(req, res, template) {
+  const requested = String(req.query.member || '').trim();
+  const snapshot = await adminDb.collection('posts').get();
+  const activity = memberActivity(snapshot.docs.map(document => ({ id: document.id, ...document.data() })), requested);
+  if (!activity.name) {
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300');
+    return res.status(404).send(template);
+  }
+  const { meta, contentHtml } = memberPage(activity);
+  res.setHeader('Cache-Control', CACHE);
+  if (requested !== activity.name) return res.redirect(301, meta.path); // /u/haman%20sharma → /u/Haman%20Sharma
+  return res.status(200).send(renderPage(template, meta, contentHtml));
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return res.status(405).end();
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const origin = `${host?.startsWith('localhost') ? 'http' : 'https'}://${host}`;
+  if (req.query.member !== undefined) {
+    try {
+      const template = await loadTemplate(origin);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return await sendMemberPage(req, res, template);
+    } catch (error) {
+      console.error('Member page failed:', error.message);
+      return res.status(503).setHeader('Retry-After', '10').send('Temporarily unavailable. Please refresh.');
+    }
+  }
   const key = String(req.query.path || '').split('/')[0];
   try {
     const [template, post] = await Promise.all([loadTemplate(origin), findPost(key)]);

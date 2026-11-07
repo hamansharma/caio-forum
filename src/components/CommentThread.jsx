@@ -8,6 +8,7 @@ import InlineConfirm from './InlineConfirm';
 import './CommentThread.css';
 import { validateComment, sanitizeText, LIMITS } from '../utils/validate';
 import CharCount from './CharCount';
+import MemberLink from './MemberLink';
 
 function CommentNode({ comment, postId, allComments, depth = 0 }) {
   const { user, voteComment, votedComments, addComment,
@@ -71,7 +72,7 @@ function CommentNode({ comment, postId, allComments, depth = 0 }) {
             {isDeleted ? '?' : comment.author[0].toUpperCase()}
           </div>
           <strong className="comment-author">
-            {isDeleted ? '[deleted]' : `u/${comment.author}`}
+            {isDeleted ? '[deleted]' : <MemberLink name={comment.author} />}
           </strong>
           <span className="comment-time">
             · {comment.createdAt

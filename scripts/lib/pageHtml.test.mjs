@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { guideHtml, hasPageSlots, plainParagraphs, postPage, postPreview, renderPage } from './pageHtml.js';
+import { guideHtml, hasPageSlots, memberPage, plainParagraphs, postPage, postPreview, renderPage } from './pageHtml.js';
 
 const template = '<html><head><meta name="page-meta" content="start" /><title>Home</title><meta name="page-meta" content="end" /></head>'
   + '<body><noscript><div id="page-content"></div></noscript><div id="root"></div></body></html>';
@@ -57,4 +57,26 @@ test('home previews are short and marked partial', () => {
 test('tool pages get their guide', () => {
   assert.match(guideHtml('caioCompass'), /<h2>About CAIO Compass<\/h2>/);
   assert.equal(guideHtml('no-such-page'), '');
+});
+
+test('member pages list a member\'s posts and comments, and authors link to them', async () => {
+  const { memberActivity } = await import('../../src/utils/memberActivity.js');
+  const { memberPath } = await import('../../src/utils/postUrl.js');
+  const posts = [
+    { ...post, id: 'p1', author: 'Neo Smith' },
+    { ...post, id: 'p2', slug: 'other', author: 'trinity', comments: [{ id: 'c9', author: 'neo smith', body: 'Nice', createdAt: '2026-10-03T00:00:00.000Z' }] },
+    { ...post, id: 'p3', slug: 'gone', author: 'Neo Smith', deleted: true },
+  ];
+  const activity = memberActivity(posts, 'NEO SMITH');
+  assert.equal(activity.name, 'Neo Smith', 'matches case-insensitively, keeps their spelling');
+  assert.deepEqual(activity.posts.map(p => p.id), ['p1'], 'deleted posts left out');
+  assert.equal(activity.comments.length, 1);
+  assert.equal(memberPath('Neo Smith'), '/u/Neo%20Smith');
+  assert.equal(memberPath('[deleted]'), null);
+  const { meta, contentHtml } = memberPage(activity);
+  assert.equal(meta.path, '/u/Neo%20Smith');
+  assert.equal(meta.jsonLd['@type'], 'ProfilePage');
+  assert.match(contentHtml, /<h1>u\/Neo Smith<\/h1>/);
+  const { meta: postMeta } = postPage({ ...post, author: 'Neo Smith' });
+  assert.equal(postMeta.jsonLd['@graph'][0].author.url, 'https://caioleadership.com/u/Neo%20Smith');
 });

@@ -31,6 +31,7 @@ const BuildBuyDecision = lazy(() => import('./pages/BuildBuyDecision'));
 const DataAtlas = lazy(() => import('./pages/DataAtlas'));
 const SchoolAtlas = lazy(() => import('./pages/SchoolAtlas'));
 const TimeCapsule = lazy(() => import('./pages/TimeCapsule'));
+const MemberPage = lazy(() => import('./pages/MemberPage'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 //import { seedFirestore } from './seedFirestore';
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/category/:category" element={<CategoryPage />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/u/:username" element={<MemberPage />} />
           <Route path="/health" element={<Health />} />
           <Route path="/playground" element={<Playground />} />
           <Route path="/playground/community" element={<PlaygroundCommunity />} />

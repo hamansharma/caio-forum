@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Trash2, RefreshCw, Lock, Check } from 'lucide-react';
 import { useForum, usePosts } from '../context/ForumContext';
 import { generateUsername } from '../utils/usernameGenerator';
-import { postPath } from '../utils/postUrl';
+import { memberPath, postPath } from '../utils/postUrl';
 import { SORTS, excerpt, plural, toMillis, visibleComments } from '../utils/postDisplay';
 import InlineConfirm from '../components/InlineConfirm';
 import useMyPredictions from '../hooks/useMyPredictions';
@@ -122,6 +122,7 @@ export default function Profile() {
           <div className="profile-avatar-lg">{initials}</div>
           <div className="profile-name">{user.fullName}</div>
           <div className="profile-username">u/{user.username}</div>
+          {memberPath(user.username) && <Link to={memberPath(user.username)} className="profile-public-link">View your public page</Link>}
           <div className="profile-stats">
             <button type="button" className={`profile-stat ${section === 'posts' ? 'active' : ''}`} onClick={() => { setSection('posts'); setError(''); }}>
               <strong>{userPosts.length}</strong>
