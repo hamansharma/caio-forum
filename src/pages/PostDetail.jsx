@@ -54,6 +54,8 @@ export default function PostDetail() {
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [commentError, setCommentError] = useState('');
+  // Set when the post couldn't be loaded (not the same as "doesn't exist").
+  const [loadFailedKey, setLoadFailedKey] = useState(null);
 
   // Use the shared posts list when another page already loaded it; otherwise load just this post.
   // Previews in the shared list (`partial`, from the home page) have shortened bodies, so they don't count.
@@ -61,7 +63,7 @@ export default function PostDetail() {
   const isListed = Boolean(listedPost);
   useEffect(() => {
     if (isListed) return undefined;
-    return watchPost(key, loaded => setWatched({ key, post: loaded }));
+    return watchPost(key, loaded => { setWatched({ key, post: loaded }); setLoadFailedKey(null); }, () => setLoadFailedKey(key));
   }, [key, isListed, watchPost]);
   // Ignore a post loaded for a previous URL, so moving between posts never
   // redirects back to the one we just left. undefined means still loading.
@@ -90,7 +92,7 @@ export default function PostDetail() {
   const postDescription = post ? postMetaDescription(post) : 'Read a community discussion on AI leadership, strategy, and technology.';
   usePageMeta(post ? postMetaTitle(post) : 'Discussion | CAIO Forum', postDescription, { canonicalPath: canonicalPath || location.pathname, noIndex: post === null, pending: post === undefined });
   useStructuredData(post && !post.deleted ? postStructuredData(post) : null);
-  if (post === undefined) return <div className="not-found">Loading discussion…</div>;
+  if (post === undefined) return <div className="not-found">{loadFailedKey === key ? <>We couldn't load this discussion. <button type="button" className="not-found-retry" onClick={() => window.location.reload()}>Try again</button></> : 'Loading discussion…'}</div>;
   if (!post) return <div className="not-found">Post not found. <Link to="/">Go home</Link></div>;
 
   const voted = votedPosts[post.id] || 0;

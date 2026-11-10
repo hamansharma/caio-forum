@@ -45,7 +45,11 @@ async function findPostId(key) {
 
 // Live updates for a single post, without loading the whole posts collection.
 // Calls onChange(post), or onChange(null) when it doesn't exist. Returns an unsubscribe function.
-function watchPost(key, onChange) {
+// Calls onChange(post), or onChange(null) only when Firestore confirms the post
+// doesn't exist. A failed load (offline, timeout, blocked, as often happens to
+// search-engine crawlers) calls onError instead, so it never turns into "not
+// found", which would also tell search engines not to index the page.
+function watchPost(key, onChange, onError = () => {}) {
   let active = true;
   let unsubscribe = () => {};
   findPostId(key)
@@ -54,9 +58,9 @@ function watchPost(key, onChange) {
       if (!id) { onChange(null); return; }
       unsubscribe = onSnapshot(doc(db, 'posts', id),
         snap => onChange(snap.exists() ? { id: snap.id, ...snap.data() } : null),
-        () => onChange(null));
+        error => { if (active) onError(error); });
     })
-    .catch(() => { if (active) onChange(null); });
+    .catch(error => { if (active) onError(error); });
   return () => { active = false; unsubscribe(); };
 }
 
@@ -88,7 +92,7 @@ async function uniquePostSlug(title) {
 
 export function ForumProvider({ children }) {
   const [user, setUser] = useState(null);
-  // The home page ships a preview of its posts (pageData.posts, marked `partial`)
+  // The home and category pages ship previews of their posts (pageData.posts, marked `partial`)
   // so the list shows before the live listener delivers the full posts.
   const [posts, setPosts] = useState(() => pageData.posts || []);
   const [loading, setLoading] = useState(() => !pageData.posts);

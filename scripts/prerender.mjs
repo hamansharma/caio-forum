@@ -66,15 +66,17 @@ const forumPosts = posts.filter(post => !post.playground).sort(SORTS.new);
 // Static pages from src/data/pageMeta.js; the home page also lists the latest posts.
 for (const [key, meta] of Object.entries(PAGE_META)) {
   const list = meta.path === '/' ? postList(forumPosts.slice(0, 40)) : '';
-  // The home page also ships previews of every forum post, so its list draws immediately.
+  // The home page also ships previews of every forum post, so its list draws
+  // immediately, and still shows if Firestore can't be reached (as for crawlers).
   const data = meta.path === '/' ? { posts: forumPosts.map(postPreview) } : null;
   write(meta.path, meta, `<h1>${esc(meta.heading)}</h1><p>${esc(meta.intro)}</p>${list}${guideHtml(key)}`, data);
 }
 
 for (const category of FORUM_CATEGORIES) {
   const inCategory = forumPosts.filter(post => post.category === category.id);
+  // Category pages ship their post previews too, so their list shows even if Firestore can't be reached.
   write(categoryPath(category.id), { title: `${category.label} Discussions | CAIO Forum`, description: category.description },
-    `<h1>${esc(category.heading)}</h1><p>${esc(category.description)}</p>${postList(inCategory)}`);
+    `<h1>${esc(category.heading)}</h1><p>${esc(category.description)}</p>${postList(inCategory)}`, { posts: inCategory.map(postPreview) });
 }
 
 for (const dataset of DATASETS) {
