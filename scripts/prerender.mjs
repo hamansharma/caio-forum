@@ -20,6 +20,7 @@ import { DATASETS, dataAtlasPath } from '../src/data/dataAtlas.js';
 import { postPath } from '../src/utils/postUrl.js';
 import { SORTS, excerpt } from '../src/utils/postDisplay.js';
 import { esc, guideHtml, hasPageSlots, postPage, postPreview, renderPage } from './lib/pageHtml.js';
+import { pageEntries, urlsetXml } from './lib/sitemaps.js';
 
 const BUILD = new URL('../build/', import.meta.url).pathname;
 const template = readFileSync(join(BUILD, 'index.html'), 'utf8');
@@ -90,4 +91,9 @@ for (const post of posts) {
   write(meta.path, meta, contentHtml, data);
 }
 
-console.log(`prerender: wrote ${written.length} pages (${posts.length} posts).`);
+// The pages sitemap lists every page written above except posts, which have their
+// own live sitemap (api/sitemap-posts.js), so it can never miss a page.
+const pagesSitemap = pageEntries(posts);
+writeFileSync(join(BUILD, 'sitemap-pages.xml'), urlsetXml(pagesSitemap));
+
+console.log(`prerender: wrote ${written.length} pages (${posts.length} posts) and a sitemap of ${pagesSitemap.length} pages.`);
