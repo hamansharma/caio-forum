@@ -1,7 +1,7 @@
 import { adminDb } from './_lib/firebaseAdmin';
 import { hasPageSlots, memberPage, postPage, renderPage } from '../scripts/lib/pageHtml';
 import { looksLikePostId } from '../src/utils/postUrl';
-import { memberActivity } from '../src/utils/memberActivity';
+import { memberActivity, memberView } from '../src/utils/memberActivity';
 
 // Serves /post/... URLs that have no pre-rendered page: posts published since
 // the last deploy (pre-rendered ones are static files and never reach here; see
@@ -56,7 +56,7 @@ async function sendMemberPage(req, res, template) {
   const { meta, contentHtml } = memberPage(activity);
   res.setHeader('Cache-Control', CACHE);
   if (requested !== activity.name) return res.redirect(301, meta.path); // /u/haman%20sharma → /u/Haman%20Sharma
-  return res.status(200).send(renderPage(template, meta, contentHtml));
+  return res.status(200).send(renderPage(template, meta, contentHtml, meta.path, { member: memberView(activity) }));
 }
 
 export default async function handler(req, res) {

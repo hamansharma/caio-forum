@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   collection, doc, addDoc, updateDoc, onSnapshot,
   query, orderBy, serverTimestamp, increment, getDoc, setDoc,
-  getDocs, deleteDoc, runTransaction, where, limit, arrayUnion
+  getDocs, deleteDoc, runTransaction, where, limit, arrayUnion,
+  getDocFromServer, getDocsFromServer,
 } from 'firebase/firestore';
 
 import {
@@ -32,13 +33,16 @@ const ForumContext = createContext();
 const verificationLinkSettings = () => ({ url: `${window.location.origin}/` });
 
 // Resolves a URL key (new-style slug or old-style document ID) to a post ID.
+// Asks the server, never the local cache: offline, Firestore can answer from an
+// empty cache, which would look like "no such post" (see watchPost). A failed
+// server read throws instead, so it's treated as a load failure.
 async function findPostId(key) {
-  const byId = async () => ((await getDoc(doc(db, 'posts', key))).exists() ? key : null);
+  const byId = async () => ((await getDocFromServer(doc(db, 'posts', key))).exists() ? key : null);
   if (looksLikePostId(key)) {
     const id = await byId();
     if (id) return id;
   }
-  const bySlug = await getDocs(query(collection(db, 'posts'), where('slug', '==', key), limit(1)));
+  const bySlug = await getDocsFromServer(query(collection(db, 'posts'), where('slug', '==', key), limit(1)));
   if (!bySlug.empty) return bySlug.docs[0].id;
   return looksLikePostId(key) ? null : byId();
 }
@@ -57,7 +61,10 @@ function watchPost(key, onChange, onError = () => {}) {
       if (!active) return;
       if (!id) { onChange(null); return; }
       unsubscribe = onSnapshot(doc(db, 'posts', id),
-        snap => onChange(snap.exists() ? { id: snap.id, ...snap.data() } : null),
+        snap => {
+          if (!snap.exists() && snap.metadata.fromCache) return; // the empty offline cache, not a missing post
+          onChange(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+        },
         error => { if (active) onError(error); });
     })
     .catch(error => { if (active) onError(error); });
@@ -137,10 +144,14 @@ export function ForumProvider({ children }) {
     if (!postsRequested) return undefined;
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snapshot) => {
+      // Offline (as search-engine renderers often are), Firestore answers from
+      // its empty cache: that's "unknown", not "no posts", so it must not replace
+      // the posts a page shipped with or make a page look empty or missing.
+      if (snapshot.empty && snapshot.metadata.fromCache) return;
       const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setPosts(loaded);
       setLoading(false);
-    });
+    }, error => console.error('Posts failed to load:', error.message));
     return unsub;
   }, [postsRequested]);
 
